@@ -1,0 +1,20 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-ngabroad20-dev-230252-authRole",
+      "UnauthRoleArn": "arn:aws:iam::791852261793:role/amplify-ngabroad20-dev-230252-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::791852261793:role/amplify-ngabroad20-dev-230252-authRole",
+      "Region": "eu-west-2",
+      "DeploymentBucketName": "amplify-ngabroad20-dev-230252-deployment",
+      "UnauthRoleName": "amplify-ngabroad20-dev-230252-unauthRole",
+      "StackName": "amplify-ngabroad20-dev-230252",
+      "StackId": "arn:aws:cloudformation:eu-west-2:791852261793:stack/amplify-ngabroad20-dev-230252/49e89b70-cd88-11ec-a323-0212a4b832e2",
+      "AmplifyAppId": "d3d0yzjgp7ygun"
+    },
+    "categories": {
+      "auth": {
+        "ngabroad201ad3399a": {}
+      }
+    }
+  }
+}
