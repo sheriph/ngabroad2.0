@@ -1,5 +1,5 @@
 import { Container, Stack, TextField } from "@mui/material";
-import CreatePostComponent from "../components/createpost";
+import CreatePostComponent from "../components/createpostcomponent";
 import Header from "../components/header/header";
 
 export default function CreatePostPage() {
