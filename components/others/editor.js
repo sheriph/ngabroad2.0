@@ -1,27 +1,13 @@
-import { Button, Stack } from "@mui/material";
+import { Stack } from "@mui/material";
 import { Box } from "@mui/system";
-import { CKEditor } from "ckeditor4-react";
 import Script from "next/script";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useSetRecoilState } from "recoil";
+import { isLoading_ } from "../../lib/recoil";
 import { getAwsUrl } from "../../lib/utility";
 
-export default function Editor() {
+export default function Editor({ onChange, value }) {
   let editor;
-  const [ready, setReady] = useState(false);
-  const {
-    handleSubmit,
-    control,
-    formState: { errors },
-  } = useForm();
-
-  const onSubmit = () => {
-    const data = editor.getData();
-
-    console.log("data", data);
-
-    // ...
-  };
+  const setLoading = useSetRecoilState(isLoading_)
 
   class MyUploadAdapter {
     constructor(loader) {
@@ -133,36 +119,43 @@ export default function Editor() {
     };
   }
 
+  // const mydata = `<p>asdfd</p><blockquote><p>dfdffgffggfg</p></blockquote><figure class="image"><img src="https://ngav21e78a8b3cc4f543578f719d56dc031e1c170205-dev.s3.eu-west-2.amazonaws.com/public/WhatsApp+Image+2021-07-30+at+11.54.17+AM.jpeg"></figure><p>&nbsp;</p>`;
+
   return (
     <Stack>
-      <Box id="editor"></Box>
-      <Button id="submit" variant="contained" fullWidth>
-        Submit
-      </Button>
-      <Script
-        src="https://cdn.ckeditor.com/ckeditor5/34.0.0/classic/ckeditor.js"
-        strategy="lazyOnload"
-        onLoad={() => {
-          // @ts-ignore
-          ClassicEditor.create(document.querySelector("#editor"), {
-            //  toolbar:[],
-            extraPlugins: [MyCustomUploadAdapterPlugin],
-          })
-            .then((newEditor) => {
-              editor = newEditor;
+      <Stack>
+        <Box id="editor"></Box>
+        <Script
+          src="https://cdn.ckeditor.com/ckeditor5/34.0.0/classic/ckeditor.js"
+          strategy="lazyOnload"
+          onLoad={() => {
+            // @ts-ignore
+            ClassicEditor.create(document.querySelector("#editor"), {
+              //  toolbar:[],
+              extraPlugins: [MyCustomUploadAdapterPlugin],
+              initialData: value,
             })
-            .catch((error) => {
-              console.error(error);
-            })
-            .finally(() => {
-              console.log("done and style");
-              setReady(true);
-            });
+              .then((newEditor) => {
+                editor = newEditor;
+                newEditor.model.document.on("change", () => {
+                  console.log("The Document has changed!");
+                  onChange(editor.getData());
+                });
+              })
+              .catch((error) => {
+                console.error(error);
+              })
+              .finally(() => {
+                console.log("done and style");
+              });
 
-          // Assuming there is a <button id="submit">Submit</button> in your application.
-          document.querySelector("#submit").addEventListener("click", onSubmit);
-        }}
-      />
+            // Assuming there is a <button id="submit">Submit</button> in your application.
+            // document
+            //   .querySelector("#submit")
+            //   .addEventListener("click", onSubmit);
+          }}
+        />
+      </Stack>
     </Stack>
   );
 }
