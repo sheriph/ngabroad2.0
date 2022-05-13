@@ -13,6 +13,7 @@ import {
   TextField,
   Tooltip,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import ReadMoreOutlinedIcon from "@mui/icons-material/ReadMoreOutlined";
@@ -25,7 +26,9 @@ import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 import * as Yup from "yup";
+import AirplanemodeActiveOutlinedIcon from "@mui/icons-material/AirplanemodeActiveOutlined";
 import { Auth } from "aws-amplify";
+import HolidayVillageOutlinedIcon from "@mui/icons-material/HolidayVillageOutlined";
 
 import { Controller, useForm } from "react-hook-form";
 import { trim } from "lodash";
@@ -34,6 +37,7 @@ import { isLoading_ } from "../../lib/recoil";
 import OtpCountdown from "../others/otpcountdown";
 import { toast } from "react-toastify";
 import ForgotPassword from "../others/forgotpassword";
+import FeedOutlinedIcon from "@mui/icons-material/FeedOutlined";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -286,6 +290,8 @@ export default function Header() {
     }
   }
 
+  const mobile = useMediaQuery("(max-width:600px)");
+
   return (
     <Stack
       sx={{ py: 1 }}
@@ -303,33 +309,20 @@ export default function Header() {
       </Stack>
       <Stack>
         <ButtonGroup size="small">
-          <Tooltip arrow title="Book Flights and Hotel">
-            <Button>BOOK</Button>
-          </Tooltip>
-          <Tooltip
-            arrow
-            title="Explore Questions and Answers on Ticket, Visa and General Travel"
-          >
-            <Button>Q & A</Button>
-          </Tooltip>
-          <Tooltip
-            arrow
-            title={
-              user ? "Account Settings" : "Signin For Personalized Experience"
+          <Button>
+            {mobile ? <AirplanemodeActiveOutlinedIcon /> : "FLIGHT"}
+          </Button>
+          <Button>{mobile ? <HolidayVillageOutlinedIcon /> : "HOTEL"}</Button>
+
+          <Button>{mobile ? <FeedOutlinedIcon /> : "TRAVEL FORUM"}</Button>
+
+          <Button
+            onClick={user ? handleUserMenu : handleLoginDialog}
+            children={
+              user ? <AccountCircleOutlinedIcon /> : <NoAccountsOutlinedIcon />
             }
-          >
-            <Button
-              onClick={user ? handleUserMenu : handleLoginDialog}
-              children={
-                user ? (
-                  <AccountCircleOutlinedIcon />
-                ) : (
-                  <NoAccountsOutlinedIcon />
-                )
-              }
-            />
-          </Tooltip>
-          <Button endIcon={<ReadMoreOutlinedIcon />}>MORE</Button>
+          />
+          <Button>{mobile ? <ReadMoreOutlinedIcon /> : "MORE"}</Button>
         </ButtonGroup>
       </Stack>
       <Menu
@@ -389,7 +382,8 @@ export default function Header() {
         <Stack
           onSubmit={handleSubmit(onSubmit)}
           component="form"
-          sx={{ p: 2, width: "325px" }}
+          sx={{ p: 2, width: "100%" }}
+          alignSelf="center"
         >
           <IconButton
             sx={{ alignSelf: "center" }}
@@ -639,7 +633,7 @@ export default function Header() {
         </Stack>
       </Dialog>
       <Dialog onClose={null} open={openOtpDialog}>
-        <Stack spacing={2} sx={{ p: 2, width: "325px" }}>
+        <Stack alignSelf="center" spacing={2} sx={{ p: 2, width: "100%" }}>
           <IconButton
             sx={{ alignSelf: "center" }}
             onClick={() => setOpenOtpDialog(false)}
@@ -677,7 +671,9 @@ export default function Header() {
         </Stack>
       </Dialog>
       <Dialog onClose={null} open={passwordForgotDialog}>
-        <ForgotPassword setPasswordForgotDialog={setPasswordForgotDialog} />
+        <Stack alignSelf="center" spacing={2} sx={{ p: 2, width: "100%" }}>
+          <ForgotPassword setPasswordForgotDialog={setPasswordForgotDialog} />
+        </Stack>
       </Dialog>
       <Wait />
     </Stack>
