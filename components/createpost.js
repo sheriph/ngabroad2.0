@@ -37,22 +37,20 @@ export default function CreatePostComponent() {
   useEffect(() => {
     const options = getValues("tags").length === 0 ? countries : postTags;
     getValues("tags").length === 3 ? setOptions([]) : setOptions(options);
-  }, [getValues("tags").toString()]);
+  }, [watch("tags").toString()]);
 
   const getPlaceholder = () => {
     switch (getValues("tags").length) {
       case 0:
-        return "Select Country";
-      case 1:
         return "Select Tag 1";
-      case 2:
+      case 1:
         return "Select Tag 2";
+      case 2:
+        return "Select Tag 3";
       default:
         return "";
     }
   };
-
-  let editor;
 
   const onSubmit = (data) => {
     console.log("data", data);
@@ -185,7 +183,7 @@ export default function CreatePostComponent() {
 
   const placeholder = getPlaceholder();
 
-
+  //console.log('watch("tags"', watch("tags"));
 
   return (
     <Stack component="form" onSubmit={handleSubmit(onSubmit)} spacing={2}>
@@ -228,7 +226,7 @@ export default function CreatePostComponent() {
               multiple
               noOptionsText={
                 getValues("tags").length === 3
-                  ? "Maximum options selected"
+                  ? "Maximum tags selected"
                   : "No Options"
               }
               id="size-small-standard-multi"
@@ -269,7 +267,7 @@ export default function CreatePostComponent() {
                       onClick={() => setTagsDialog(true)}
                       sx={{ cursor: "pointer" }}
                     >
-                      Select related country + 2 tags{" "}
+                      Select at most 3 tags
                       <HelpOutlineOutlinedIcon
                         color="primary"
                         sx={{ fontSize: "12px" }}
@@ -299,10 +297,10 @@ export default function CreatePostComponent() {
         setOpen={setTagsDialog}
         title="About Tags"
       >
-        Tags consist of keywords that are related to this post. It allows poeple
+        Tags consist of keywords that are related to this post. It allows people
         to find your post quicker. Tags consist of a country that is repeated
         most in your post and two other travel related tags. If the post is not
-        about a specific country, you can select ALL as the country option
+        about a specific country, you can select ALL for the country tag
       </GeneralDialog>
     </Stack>
   );

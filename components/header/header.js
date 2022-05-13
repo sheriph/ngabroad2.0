@@ -314,7 +314,7 @@ export default function Header() {
           </Button>
           <Button>{mobile ? <HolidayVillageOutlinedIcon /> : "HOTEL"}</Button>
 
-          <Button>{mobile ? <FeedOutlinedIcon /> : "TRAVEL FORUM"}</Button>
+          <Button>{mobile ? <FeedOutlinedIcon /> : "FORUM"}</Button>
 
           <Button
             onClick={user ? handleUserMenu : handleLoginDialog}
