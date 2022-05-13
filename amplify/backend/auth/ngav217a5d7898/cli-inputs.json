@@ -1,10 +1,10 @@
 {
   "version": "1",
   "cognitoConfig": {
-    "identityPoolName": "ngabroad201ad3399a_identitypool_1ad3399a",
-    "allowUnauthenticatedIdentities": false,
-    "resourceNameTruncated": "ngabro1ad3399a",
-    "userPoolName": "ngabroad201ad3399a_userpool_1ad3399a",
+    "identityPoolName": "ngav217a5d7898_identitypool_7a5d7898",
+    "allowUnauthenticatedIdentities": true,
+    "resourceNameTruncated": "ngav217a5d7898",
+    "userPoolName": "ngav217a5d7898_userpool_7a5d7898",
     "autoVerifiedAttributes": [
       "email"
     ],
@@ -31,22 +31,15 @@
     "userpoolClientReadAttributes": [
       "email"
     ],
-    "userpoolClientLambdaRole": "ngabro1ad3399a_userpoolclient_lambda_role",
+    "userpoolClientLambdaRole": "ngav217a5d7898_userpoolclient_lambda_role",
     "userpoolClientSetAttributes": false,
-    "sharedId": "1ad3399a",
-    "resourceName": "ngabroad201ad3399a",
+    "sharedId": "7a5d7898",
+    "resourceName": "ngav217a5d7898",
     "authSelections": "identityPoolAndUserPool",
-    "useDefault": "defaultSocial",
-    "hostedUI": true,
+    "useDefault": "default",
     "usernameAttributes": [
       "email"
     ],
-    "hostedUIDomainName": "ngabroad201ad3399a-1ad3399a",
-    "authProvidersUserPool": [
-      "Facebook",
-      "Google"
-    ],
-    "hostedUIProviderMeta": "[{\"ProviderName\":\"Facebook\",\"authorize_scopes\":\"email,public_profile\",\"AttributeMapping\":{\"email\":\"email\",\"username\":\"id\"}},{\"ProviderName\":\"Google\",\"authorize_scopes\":\"openid email profile\",\"AttributeMapping\":{\"email\":\"email\",\"username\":\"sub\"}}]",
     "userPoolGroupList": [],
     "serviceName": "Cognito",
     "usernameCaseSensitive": false,
@@ -64,7 +57,6 @@
       ]
     },
     "breakCircularDependency": true,
-    "dependsOn": [],
-    "oAuthMetadata": "{\"AllowedOAuthFlows\":[\"code\"],\"AllowedOAuthScopes\":[\"phone\",\"email\",\"openid\",\"profile\",\"aws.cognito.signin.user.admin\"],\"CallbackURLs\":[\"https://naijagoingabroad.com/login/\"],\"LogoutURLs\":[\"https://naijagoingabroad.com/\"]}"
+    "dependsOn": []
   }
 }

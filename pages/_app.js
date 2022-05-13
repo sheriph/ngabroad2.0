@@ -11,6 +11,7 @@ import "react-toastify/dist/ReactToastify.css";
 import Amplify, { Auth } from "aws-amplify";
 import { ToastContainer } from "react-toastify";
 import { RecoilRoot } from "recoil";
+import "../styles/global.css";
 
 import config from "../src/aws-exports";
 

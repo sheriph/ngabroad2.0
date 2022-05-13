@@ -3,31 +3,15 @@
 
 const awsmobile = {
     "aws_project_region": "eu-west-2",
-    "aws_cognito_identity_pool_id": "eu-west-2:f106859c-56e1-4b38-b90e-0d2d36c0b7a3",
+    "aws_cognito_identity_pool_id": "eu-west-2:e2c541e9-071c-48f0-837d-455e18d8cf2d",
     "aws_cognito_region": "eu-west-2",
-    "aws_user_pools_id": "eu-west-2_krbZhpot0",
-    "aws_user_pools_web_client_id": "6apdv7q790lai4qhs84d0mi0rn",
-    "oauth": {
-        "domain": "ngabroad201ad3399a-1ad3399a-dev.auth.eu-west-2.amazoncognito.com",
-        "scope": [
-            "phone",
-            "email",
-            "openid",
-            "profile",
-            "aws.cognito.signin.user.admin"
-        ],
-        "redirectSignIn": "https://naijagoingabroad.com/login/",
-        "redirectSignOut": "https://naijagoingabroad.com/",
-        "responseType": "code"
-    },
-    "federationTarget": "COGNITO_USER_POOLS",
+    "aws_user_pools_id": "eu-west-2_GvM3Efs1o",
+    "aws_user_pools_web_client_id": "1rovp1d2bfeiko344v15j05hlj",
+    "oauth": {},
     "aws_cognito_username_attributes": [
         "EMAIL"
     ],
-    "aws_cognito_social_providers": [
-        "FACEBOOK",
-        "GOOGLE"
-    ],
+    "aws_cognito_social_providers": [],
     "aws_cognito_signup_attributes": [
         "EMAIL"
     ],
@@ -41,7 +25,9 @@ const awsmobile = {
     },
     "aws_cognito_verification_mechanisms": [
         "EMAIL"
-    ]
+    ],
+    "aws_user_files_s3_bucket": "ngav21e78a8b3cc4f543578f719d56dc031e1c170205-dev",
+    "aws_user_files_s3_bucket_region": "eu-west-2"
 };
 
 

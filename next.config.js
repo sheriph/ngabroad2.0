@@ -17,6 +17,7 @@ const nextConfig = {
       "images.unsplash.com",
       "sc04.alicdn.com",
       "cl9nedatabucket170937-dev.s3.eu-central-1.amazonaws.com",
+      "https://ngav21e78a8b3cc4f543578f719d56dc031e1c170205-dev.s3.eu-west-2.amazonaws.com",
     ],
   },
   webpack5: true,

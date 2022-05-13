@@ -1,15 +1,19 @@
 export type AmplifyDependentResourcesAttributes = {
     "auth": {
-        "ngabroad201ad3399a": {
+        "ngav217a5d7898": {
             "IdentityPoolId": "string",
             "IdentityPoolName": "string",
-            "HostedUIDomain": "string",
-            "OAuthMetadata": "string",
             "UserPoolId": "string",
             "UserPoolArn": "string",
             "UserPoolName": "string",
             "AppClientIDWeb": "string",
             "AppClientID": "string"
+        }
+    },
+    "storage": {
+        "ngav21s3": {
+            "BucketName": "string",
+            "Region": "string"
         }
     }
 }

@@ -261,7 +261,7 @@ export default function Header() {
     }
   };
 
-  console.log("loading, user", loading, user);
+  //console.log("loading, user", loading, user);
 
   async function signOut() {
     try {

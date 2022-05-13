@@ -1,9 +1,5 @@
-import { Button } from "@mui/material";
-import { useRecoilState } from "recoil";
-import { countState_ } from "../lib/recoil";
+import Editor from "../components/others/editor";
 
 export default function Form() {
-  const [count, setCount] = useRecoilState(countState_);
-  console.log("count", count);
-  return <Button onClick={() => setCount(count + 1)}>Count {count}</Button>;
+  return <Editor />;
 }
