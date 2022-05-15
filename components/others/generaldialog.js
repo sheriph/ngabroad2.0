@@ -6,11 +6,9 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import Slide from "@mui/material/Slide";
+import { TransitionComponent } from "../../lib/utility";
 
-const Transition = React.forwardRef(function Transition(props, ref) {
-  // @ts-ignore
-  return <Slide direction="down" ref={ref} {...props} />;
-});
+
 
 export default function GeneralDialog({ open, setOpen, title, children }) {
   const handleClickOpen = () => {
@@ -25,14 +23,14 @@ export default function GeneralDialog({ open, setOpen, title, children }) {
     <Dialog
       open={open}
       // @ts-ignore
-      TransitionComponent={Transition}
+      TransitionComponent={TransitionComponent}
       keepMounted
       onClose={handleClose}
       aria-describedby="alert-dialog-slide-description"
     >
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
-        <DialogContentText id="alert-dialog-slide-description">
+        <DialogContentText component="div" id="alert-dialog-slide-description">
           {children}
         </DialogContentText>
       </DialogContent>

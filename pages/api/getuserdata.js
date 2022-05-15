@@ -57,6 +57,8 @@ export default async function handler(req, res) {
       await client.db("ngabroad").command({
         collMod: "users",
         validator: userSchema,
+        validationLevel: "strict",
+        validationAction: "error",
       });
     }
 

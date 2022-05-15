@@ -18,8 +18,8 @@ const theme = createTheme({
     },
   },
   typography: {
-    h1: { fontSize: "1.2rem" },
-    h2: { fontSize: "1rem" },
+    h1: { fontSize: "1.2rem", fontWeight: "400" },
+    h2: { fontSize: "1rem", fontWeight: "400" },
   },
   components: {
     MuiButton: {
@@ -32,7 +32,12 @@ const theme = createTheme({
     MuiButtonGroup: {
       styleOverrides: { root: { textTransform: "none", borderRadius: 6 } },
     },
-    MuiTypography: {},
+    MuiToggleButton: {
+      styleOverrides: { root: { textTransform: "none", borderRadius: 6 } },
+    },
+    MuiListItemButton: {
+      styleOverrides: { root: { textTransform: "none", borderRadius: 6 } },
+    },
   },
 });
 

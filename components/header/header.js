@@ -19,7 +19,7 @@ import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined
 import ReadMoreOutlinedIcon from "@mui/icons-material/ReadMoreOutlined";
 import Image from "next/image";
 import NoAccountsOutlinedIcon from "@mui/icons-material/NoAccountsOutlined";
-import { useUser, Wait } from "../../lib/utility";
+import { TransitionComponent, useUser, Wait } from "../../lib/utility";
 import PropTypes from "prop-types";
 import { yupResolver } from "@hookform/resolvers/yup";
 import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
@@ -193,7 +193,6 @@ export default function Header() {
     }
     if (tabValue === 0) {
       // Login Logic
-
       setLoading(true);
       const { signinEmail, signinPassword } = data;
       setUsername(signinEmail);
@@ -201,6 +200,13 @@ export default function Header() {
       try {
         const user = await Auth.signIn(signinEmail, signinPassword);
         console.log("user", user);
+        const mut = await mutate(null, {
+          //  rollbackOnError: false,
+          //  optimisticData: null,
+          populateCache: true,
+          revalidate: true,
+        });
+        console.log("mutate", mut);
         setLoading(false);
         setOpenLoginDialog(false);
       } catch (error) {
@@ -312,7 +318,7 @@ export default function Header() {
           <Button>
             {mobile ? <AirplanemodeActiveOutlinedIcon /> : "FLIGHT"}
           </Button>
-          <Button>{mobile ? <HolidayVillageOutlinedIcon /> : "HOTEL"}</Button>
+          {/*  <Button>{mobile ? <HolidayVillageOutlinedIcon /> : "HOTEL"}</Button> */}
 
           <Button>{mobile ? <FeedOutlinedIcon /> : "FORUM"}</Button>
 
@@ -378,7 +384,11 @@ export default function Header() {
           Logout
         </MenuItem>
       </Menu>
-      <Dialog onClose={null} open={openLoginDialog}>
+      <Dialog
+        // @ts-ignore
+        TransitionComponent={TransitionComponent}
+        open={openLoginDialog}
+      >
         <Stack
           onSubmit={handleSubmit(onSubmit)}
           component="form"
@@ -632,7 +642,11 @@ export default function Header() {
           </TabPanel>
         </Stack>
       </Dialog>
-      <Dialog onClose={null} open={openOtpDialog}>
+      <Dialog
+        // @ts-ignore
+        TransitionComponent={TransitionComponent}
+        open={openOtpDialog}
+      >
         <Stack alignSelf="center" spacing={2} sx={{ p: 2, width: "100%" }}>
           <IconButton
             sx={{ alignSelf: "center" }}
@@ -670,7 +684,11 @@ export default function Header() {
           </ButtonGroup>
         </Stack>
       </Dialog>
-      <Dialog onClose={null} open={passwordForgotDialog}>
+      <Dialog
+        // @ts-ignore
+        TransitionComponent={TransitionComponent}
+        open={passwordForgotDialog}
+      >
         <Stack alignSelf="center" spacing={2} sx={{ p: 2, width: "100%" }}>
           <ForgotPassword setPasswordForgotDialog={setPasswordForgotDialog} />
         </Stack>

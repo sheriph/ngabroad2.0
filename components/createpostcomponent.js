@@ -2,21 +2,45 @@ import {
   Autocomplete,
   Box,
   Button,
+  Checkbox,
+  Divider,
+  FormControlLabel,
+  Skeleton,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import Editor from "./others/editor";
-import { countries, getAwsUrl, postTags } from "../lib/utility";
+import { countries, getAwsUrl, postTags, useUser, Wait } from "../lib/utility";
 import GeneralDialog from "./others/generaldialog";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import Script from "next/script";
 import { toast } from "react-toastify";
 import { Controller, useForm } from "react-hook-form";
 import { trim } from "lodash";
+import * as Yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+import axios from "axios";
+import { useSetRecoilState } from "recoil";
+import { isLoading_ } from "../lib/recoil";
 
 export default function CreatePostComponent() {
+  const { loading, user, mutate } = useUser();
+
+  const schema = Yup.object().shape({
+    title: Yup.string()
+      .required("Please enter the title")
+      .min(20, "Title is too short")
+      .matches(/^[aA-zZ\s\d]+$/, "Only alphanumeric characters"),
+    post: Yup.string()
+      .required("Content is required")
+      .min(20, "Content is too short. Please write some content"),
+    tags: Yup.array()
+      .required("Please select atleat 2 tags")
+      .min(2, "Please select atleat 2 tags"),
+  });
+
   const {
     handleSubmit,
     control,
@@ -24,11 +48,14 @@ export default function CreatePostComponent() {
     getValues,
     watch,
     formState: { errors },
-  } = useForm({ defaultValues: { tags: [], title: "", post: "" } });
+  } = useForm({
+    defaultValues: { tags: [], title: "", post: "", accept: false },
+    resolver: yupResolver(schema),
+  });
   const [options, setOptions] = useState([]);
-  // const [autoCompleteValue, setAuotComleteValue] = useState([]);
-  const [title, setTitle] = useState("");
   const [tagsDialog, setTagsDialog] = useState(false);
+  const [termsDialog, setTermsDialog] = useState(false);
+  const setLoading = useSetRecoilState(isLoading_);
 
   useEffect(() => {
     // setAuotComleteValue(getValues("tags"));
@@ -52,145 +79,50 @@ export default function CreatePostComponent() {
     }
   };
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     console.log("data", data);
-    const { tags, title, post } = data;
-    if (post.length < 20) {
-      toast.error("Post is too short");
-      return;
+    try {
+      setLoading(true);
+      const { title, tags, post } = data;
+      const insert = await axios.post("/api/createpost", {
+        user,
+        title,
+        tags: tags.map((t) => t.name),
+        post,
+      });
+      console.log("insert", insert.data);
+      setLoading(false);
+    } catch (error) {
+      console.log(error.response.data);
+      setLoading(false);
     }
-    if (title.length < 20) {
-      toast.error("Title is too short");
-      return;
-    }
-    if (tags.length < 2) {
-      toast.error("Minimum of 2 tags are required");
-      return;
-    }
-
-    // ...
   };
-
-  class MyUploadAdapter {
-    constructor(loader) {
-      // The file loader instance to use during the upload.
-      this.loader = loader;
-    }
-
-    // Starts the upload process.
-    upload() {
-      return this.loader.file.then(async (file) => {
-        const awsUrl = await getAwsUrl(file);
-        return new Promise((resolve, reject) => {
-          this._initRequest();
-          this._initListeners(resolve, reject, file);
-          this._sendRequest(file, awsUrl);
-        });
-      });
-    }
-
-    // Aborts the upload process.
-    abort() {
-      if (this.xhr) {
-        this.xhr.abort();
-      }
-    }
-
-    // Initializes the XMLHttpRequest object using the URL passed to the constructor.
-    _initRequest() {
-      const xhr = (this.xhr = new XMLHttpRequest());
-
-      // Note that your request may look different. It is up to you and your editor
-      // integration to choose the right communication channel. This example uses
-      // a POST request with JSON as a data structure but your configuration
-      // could be different.
-      xhr.open("POST", "/api/uploadimage", true);
-      xhr.responseType = "json";
-    }
-
-    // Initializes XMLHttpRequest listeners.
-    _initListeners(resolve, reject, file) {
-      const xhr = this.xhr;
-      const loader = this.loader;
-      const genericErrorText = `Couldn't upload file: ${file.name}.`;
-
-      xhr.addEventListener("error", () => reject(genericErrorText));
-      xhr.addEventListener("abort", () => reject());
-      xhr.addEventListener("load", () => {
-        const response = xhr.response;
-
-        // This example assumes the XHR server's "response" object will come with
-        // an "error" which has its own "message" that can be passed to reject()
-        // in the upload promise.
-        //
-        // Your integration may handle upload errors in a different way so make sure
-        // it is done properly. The reject() function must be called when the upload fails.
-        if (!response || response.error) {
-          return reject(
-            response && response.error
-              ? response.error.message
-              : genericErrorText
-          );
-        }
-
-        // If the upload is successful, resolve the upload promise with an object containing
-        // at least the "default" URL, pointing to the image on the server.
-        // This URL will be used to display the image in the content. Learn more in the
-        // UploadAdapter#upload documentation.
-        resolve({
-          default: response.url,
-        });
-      });
-
-      // Upload progress when it is supported. The file loader has the #uploadTotal and #uploaded
-      // properties which are used e.g. to display the upload progress bar in the editor
-      // user interface.
-      if (xhr.upload) {
-        xhr.upload.addEventListener("progress", (evt) => {
-          if (evt.lengthComputable) {
-            loader.uploadTotal = evt.total;
-            loader.uploaded = evt.loaded;
-          }
-        });
-      }
-    }
-
-    // Prepares the data and sends the request.
-    _sendRequest(file, awsUrl) {
-      // Prepare the form data.
-      const data = new FormData();
-
-      data.append("upload", file);
-
-      // Important note: This is the right place to implement security mechanisms
-      // like authentication and CSRF protection. For instance, you can use
-      // XMLHttpRequest.setRequestHeader() to set the request headers containing
-      // the CSRF token generated earlier by your application.
-
-      // Send the request.
-      this.xhr.send(awsUrl);
-    }
-  }
-
-  function MyCustomUploadAdapterPlugin(editor) {
-    console.log("editor", editor);
-    editor.plugins.get("FileRepository").createUploadAdapter = (loader) => {
-      console.log("loader", loader);
-      // Configure the URL to the upload script in your back-end here!
-      return new MyUploadAdapter(loader);
-    };
-  }
 
   const placeholder = getPlaceholder();
 
   //console.log('watch("tags"', watch("tags"));
+
+  console.log(" createpost user", errors);
+
+  if (!user) {
+    return (
+      <Stack spacing={2}>
+        <Typography textAlign="center" variant="h1">
+          {loading ? "Verifying login status" : "Please login to continue"}
+        </Typography>
+        <Skeleton variant="rectangular" width="100%" height="40px" />
+        <Skeleton variant="rectangular" width="100%" height="40px" />
+        <Skeleton variant="rectangular" width="100%" height="400px" />
+      </Stack>
+    );
+  }
 
   return (
     <Stack component="form" onSubmit={handleSubmit(onSubmit)} spacing={2}>
       <Typography textAlign="center" variant="h1">
         Create A New Post
       </Typography>
-      
+
       <Controller
         name="title"
         defaultValue=""
@@ -201,7 +133,7 @@ export default function CreatePostComponent() {
             <TextField
               {...rest}
               value={value}
-              onChange={(e) => onChange(trim(e.target.value))}
+              onChange={(e) => onChange(e.target.value)}
               size="small"
               fullWidth
               id="title"
@@ -264,14 +196,16 @@ export default function CreatePostComponent() {
                   variant="outlined"
                   //  label="Size small"
                   placeholder={placeholder}
+                  error={Boolean(errors?.tags)}
                   helperText={
                     <Typography
                       component="span"
                       variant="caption"
+                      color={errors?.tags ? "error" : "primary"}
                       onClick={() => setTagsDialog(true)}
                       sx={{ cursor: "pointer" }}
                     >
-                      Select at most 3 tags
+                      Select 2-3 tags
                       <HelpOutlineOutlinedIcon
                         color="primary"
                         sx={{ fontSize: "12px" }}
@@ -290,7 +224,49 @@ export default function CreatePostComponent() {
         control={control}
         render={({ field }) => {
           const { onChange, value, ...rest } = field;
-          return <Editor onChange={onChange} value={value} />;
+          return (
+            <Box
+              sx={{
+                border: errors?.post ? "1px solid" : "none",
+                borderColor: "error.main",
+              }}
+            >
+              <Editor onChange={onChange} value={value} />
+              <Typography color="error" variant="caption">
+                {errors?.post?.message}
+              </Typography>
+            </Box>
+          );
+        }}
+      />
+      <Controller
+        name="accept"
+        defaultValue={false}
+        control={control}
+        render={({ field }) => {
+          const { onChange, value, ...rest } = field;
+          return (
+            <Stack
+              alignItems="center"
+              divider={<Divider orientation="vertical" flexItem />}
+              spacing={2}
+              direction="row"
+            >
+              <FormControlLabel
+                {...rest}
+                value={value}
+                onChange={onChange}
+                control={<Checkbox required />}
+                label="I agree"
+              />
+              <HelpOutlineOutlinedIcon
+                sx={{ cursor: "pointer" }}
+                onClick={() => setTermsDialog(true)}
+                fontSize="small"
+                color="primary"
+              />
+            </Stack>
+          );
         }}
       />
       <Button type="submit" fullWidth variant="contained">
@@ -306,6 +282,21 @@ export default function CreatePostComponent() {
         most in your post and two other travel related tags. If the post is not
         about a specific country, you can select ALL for the country tag
       </GeneralDialog>
+      <GeneralDialog
+        open={termsDialog}
+        setOpen={setTermsDialog}
+        title="Posting Rules"
+      >
+        <ul>
+          <li>You should always post to educate</li>
+          <li>You should always post to educate</li>
+          <li>You should always post to educate</li>
+          <li>You should always post to educate</li>
+          <li>You should always post to educate</li>
+          <li>You should always post to educate</li>
+        </ul>
+      </GeneralDialog>
+      <Wait />
     </Stack>
   );
 }
