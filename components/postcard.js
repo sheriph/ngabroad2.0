@@ -2,7 +2,7 @@ import { Avatar, Button, Grid, Stack, Typography } from "@mui/material";
 
 export default function PostCard({ post }) {
   return (
-    <Stack spacing={2} direction="row">
+    <Stack spacing={2} direction="row" sx={{ml: `-15px !important`}}>
       <Stack sx={{ display: { xs: "none", sm: "flex" } }}>
         <Typography textAlign="right" sx={{ whiteSpace: "nowrap" }}>
           1240 votes
@@ -25,7 +25,14 @@ export default function PostCard({ post }) {
             <Typography>1240 Comments</Typography>
             <Typography>1240 views</Typography>
           </Stack>
-          <Typography color="primary.main" variant="h1" gutterBottom>
+          <Typography
+            component={Button}
+            sx={{ p: 0 }}
+            color="primary.main"
+            variant="h1"
+            textAlign="left"
+            gutterBottom
+          >
             Making sense of principal component analysis, eigenvectors &
             eigenvalues
           </Typography>
@@ -43,30 +50,10 @@ export default function PostCard({ post }) {
           >
             <Grid item>
               <Stack spacing={1} direction="row">
-                <Button
-                  disableElevation
-                  variant="contained"
-                  color="primary"
-                  sx={{ height: "30px" }}
-                >
-                  canada
-                </Button>
-                <Button
-                  disableElevation
-                  variant="contained"
-                  color="primary"
-                  sx={{ height: "30px" }}
-                >
-                  ticket
-                </Button>
-                <Button
-                  disableElevation
-                  variant="contained"
-                  color="primary"
-                  sx={{ height: "30px" }}
-                >
-                  tours
-                </Button>
+                <Typography variant="caption">Tags :</Typography>
+                <Typography variant="caption">canada</Typography>
+                <Typography variant="caption">ticket</Typography>
+                <Typography variant="caption">tours</Typography>
               </Stack>
             </Grid>
             <Grid item>
@@ -76,7 +63,7 @@ export default function PostCard({ post }) {
                   alt="Remy Sharp"
                   src="/static/images/avatar/1.jpg"
                 />
-                <Typography>
+                <Typography variant="caption">
                   Sheriff Adeniyi on the 27 Aug, 2022 at 10:25pm
                 </Typography>
               </Stack>

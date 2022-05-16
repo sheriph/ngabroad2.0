@@ -15,7 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import ExpandMoreOutlinedIcon from "@mui/icons-material/ExpandMoreOutlined";
-import React from "react";
+import React, { useEffect } from "react";
 import PostCard from "./postcard";
 import NotListedLocationOutlinedIcon from "@mui/icons-material/NotListedLocationOutlined";
 import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
@@ -27,6 +27,8 @@ import OpenInNewOutlinedIcon from "@mui/icons-material/OpenInNewOutlined";
 import { TagCloud } from "react-tagcloud";
 import PostList from "./postlist";
 import { useRouter } from "next/router";
+import { useRecoilState } from "recoil";
+import { pageBreadcrumb_ } from "../lib/recoil";
 
 const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
   "&.Mui-selected": {
@@ -38,34 +40,16 @@ const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
 }));
 
 export default function PostComponent() {
-  const [pageBreadcrumb, setPageBreadcrumb] = React.useState("");
+  const [pageBreadcrumb, setPageBreadcrumb] = useRecoilState(pageBreadcrumb_);
 
-  const handleBreadcrumbChange = (event, index) => {
+  const handlePageBreadcrumb = (event) => {
+    console.log("click", event);
     setPageBreadcrumb(event.target.innerText);
   };
 
-  const router = useRouter()
-
-  const { page, tag } = router.query;
-
-  console.log("page, tag, pageBreadcrumb", page, tag, pageBreadcrumb, router.isReady);
-
-  const handlePageBreadcrumb = (event) => {
-    // @ts-ignore
-    const url = `${router.pathname}/?page=${event.target.innerText}&tag=${tag}`;
-    router.push(url);
-  };
-
-  React.useEffect(() => {
-    // @ts-ignore
-    setPageBreadcrumb(page ? page : "All");
-  }, [page]);
-
-//  console.log("pageBreadcrumb", pageBreadcrumb);
-
-  console.log("router", router.pathname, router.query);
-
-  if(!router.isReady) return <></>
+  useEffect(() => {
+    setPageBreadcrumb("All");
+  }, [null]);
 
   return (
     <Stack
@@ -131,7 +115,7 @@ export default function PostComponent() {
         orientation="vertical"
         flexItem
       />
-      {router.pathname === "/questions" && <PostList />}
+      <PostList />
     </Stack>
   );
 }

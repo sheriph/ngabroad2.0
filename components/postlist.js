@@ -9,55 +9,55 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
 import ExpandMoreOutlinedIcon from "@mui/icons-material/ExpandMoreOutlined";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import PostCard from "./postcard";
 import { Box } from "@mui/system";
 import OpenInNewOutlinedIcon from "@mui/icons-material/OpenInNewOutlined";
 import { TagCloud } from "react-tagcloud";
 import { useRouter } from "next/router";
+import { useRecoilState } from "recoil";
+import { filter_, pageBreadcrumb_ } from "../lib/recoil";
+import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
+import ModeEditOutlineOutlinedIcon from "@mui/icons-material/ModeEditOutlineOutlined";
 
 export default function PostList() {
-  const [filter, setFilter] = React.useState("Newest");
-  const [tag, setTag] = React.useState("All");
+  const [filter, setFilter] = useRecoilState(filter_);
+  const mobile = useMediaQuery("(max-width:900px)");
+
+  // const [tag, setTag] = React.useState("");
+  const [pageBreadcrumb, setPageBreadcrumb] = useRecoilState(pageBreadcrumb_);
 
   const [showTags, setshowTags] = React.useState(false);
 
   const handleFilterChange = (event, newAlignment) => {
-    setFilter(newAlignment);
+    if (newAlignment && newAlignment !== "Tags") setFilter(newAlignment);
   };
 
-  const [menuText, setMenuText] = React.useState("All");
+  // const [menuText, setMenuText] = React.useState("All");
 
   const [breadcrumbAnchorEl, setBreadcrumbAnchorEl] = React.useState(null);
   const openbreadcrumbAnchorEl = Boolean(breadcrumbAnchorEl);
-  const handleBreadcrumbMenu = (event) => {
-    setBreadcrumbAnchorEl(event.currentTarget);
+  const handleBreadcrumbMenu = (e) => {
+    setBreadcrumbAnchorEl(e.currentTarget);
   };
 
-  const router = useRouter();
-
-  const { page, tag: querytag } = router.query;
-
-  console.log("router", router.query, router.pathname);
-
-  React.useEffect(() => {
-    // @ts-ignore
-    setTag(querytag ? querytag : "All");
-    // @ts-ignore
-    setMenuText(page ? page : "All");
-  }, [querytag, page]);
+  React.useEffect(() => {}, [null]);
 
   const handleBreadcrumbMenuClose = (e) => {
-    if (e.target.outerText) {
-      const url = `${router.pathname}/?page=${e.target.outerText}&tag=${querytag}`;
-      router.push(url);
-    }
+    if (e.target.outerText) setPageBreadcrumb(e.target.outerText);
     setBreadcrumbAnchorEl(null);
   };
 
-  console.log("page, menuText, querytag, tag,", page, menuText, querytag, tag);
+  const [typenimation, setTypeAnimation] = useState(true);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setTypeAnimation(false);
+    }, 1000);
+  }, [null]);
 
   return (
     <Box
@@ -83,7 +83,7 @@ export default function PostList() {
               onClick={handleBreadcrumbMenu}
               endIcon={<ExpandMoreOutlinedIcon />}
             >
-              {`${menuText} | 520 results`}
+              {`${pageBreadcrumb} | 520 results`}
             </Button>
             <Menu
               id="basic-menu"
@@ -106,8 +106,22 @@ export default function PostList() {
                 Users
               </MenuItem>
             </Menu>
-            <Button disableElevation variant="contained">
-              Ask Question
+            <Button
+              size="small"
+              sx={{
+                height: "30px",
+                minWidth: "20px",
+                width: typenimation ? "120px" : "40px",
+                transition: "width 1s",
+              }}
+              disableElevation
+              variant="contained"
+            >
+              {typenimation ? (
+                "Ask Questions"
+              ) : (
+                <ModeEditOutlineOutlinedIcon color="inherit" fontSize="small" />
+              )}
             </Button>
           </Stack>
           <Stack justifyContent="space-between" direction="row" spacing={2}>
@@ -121,6 +135,7 @@ export default function PostList() {
               <ToggleButton value="Newest">Newest</ToggleButton>
               <ToggleButton value="Popular">Popular</ToggleButton>
               <ToggleButton
+                selected={filter !== "Newest" && filter !== "Popular"}
                 component={Button}
                 endIcon={
                   <ExpandMoreOutlinedIcon
@@ -133,7 +148,9 @@ export default function PostList() {
                 value="Tags"
                 onClick={() => setshowTags(!showTags)}
               >
-                {`Tags : ${tag}`}
+                {`${
+                  filter !== "Newest" && filter !== "Popular" ? filter : "Tags"
+                }`}
               </ToggleButton>
             </ToggleButtonGroup>
           </Stack>
@@ -145,7 +162,7 @@ export default function PostList() {
           justifyContent="space-between"
           sx={{ display: { xs: "none", md: "flex" } }}
         >
-          <Typography>2345 Questions</Typography>
+          <Typography>523 results</Typography>
           <Stack direction="row" spacing={2}>
             <ToggleButtonGroup
               color="primary"
@@ -160,12 +177,17 @@ export default function PostList() {
                 component={Button}
                 endIcon={<ExpandMoreOutlinedIcon />}
                 value="Tags"
+                selected={filter !== "Newest" && filter !== "Popular"}
                 onClick={() => setshowTags(!showTags)}
               >
-                {`Tags : ${tag}`}
+                {`${
+                  filter !== "Newest" && filter !== "Popular" ? filter : "Tags"
+                }`}
               </ToggleButton>
             </ToggleButtonGroup>
-            <Button disableElevation variant="contained">Ask Question</Button>
+            <Button disableElevation variant="contained">
+              Ask Question
+            </Button>
           </Stack>
         </Stack>
         <Collapse in={showTags} timeout={1000}>
@@ -177,10 +199,7 @@ export default function PostList() {
             tags={generatedTags}
             renderer={customRenderer}
             onClick={(tag) => {
-              //  console.log("tag", tag);
-              // setTag(tag.value);
-              const url = `${router.pathname}/?page=${page}&tag=${tag.value}`;
-              router.push(url);
+              handleFilterChange(event, tag.value);
               setshowTags(false);
             }}
           />
