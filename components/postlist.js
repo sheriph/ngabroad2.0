@@ -97,14 +97,14 @@ export default function PostList() {
               <MenuItem onClick={handleBreadcrumbMenuClose}>All</MenuItem>
               <MenuItem onClick={handleBreadcrumbMenuClose}>Questions</MenuItem>
               <MenuItem onClick={handleBreadcrumbMenuClose}>Posts</MenuItem>
-              <Divider sx={{}} orientation="horizontal" flexItem />
+              {/* <Divider sx={{}} orientation="horizontal" flexItem />
               <MenuItem
                 component={Button}
                 endIcon={<OpenInNewOutlinedIcon />}
                 onClick={handleBreadcrumbMenuClose}
               >
                 Users
-              </MenuItem>
+              </MenuItem> */}
             </Menu>
             <Button
               size="small"
