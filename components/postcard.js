@@ -2,7 +2,7 @@ import { Avatar, Button, Grid, Stack, Typography } from "@mui/material";
 
 export default function PostCard({ post }) {
   return (
-    <Stack spacing={2} direction="row" sx={{ml: `-15px !important`}}>
+    <Stack spacing={2} direction="row" sx={{ ml: `-15px !important` }}>
       <Stack sx={{ display: { xs: "none", sm: "flex" } }}>
         <Typography textAlign="right" sx={{ whiteSpace: "nowrap" }}>
           1240 votes
@@ -17,7 +17,10 @@ export default function PostCard({ post }) {
       <Stack>
         <Stack>
           <Stack
-            sx={{ pb: 1, display: { xs: "flex", sm: "none" } }}
+            sx={{
+              pb: 1,
+              display: { xs: "flex", sm: "none" },
+            }}
             direction="row"
             spacing={2}
           >
@@ -27,7 +30,10 @@ export default function PostCard({ post }) {
           </Stack>
           <Typography
             component={Button}
-            sx={{ p: 0 }}
+            sx={{
+              p: 0,
+              justifyContent: "flex-start",
+            }}
             color="primary.main"
             variant="h1"
             textAlign="left"
@@ -44,18 +50,9 @@ export default function PostCard({ post }) {
           <Grid
             container
             justifyContent="space-between"
-            spacing={1}
             direction="row"
             sx={{ mt: 0.5 }}
           >
-            <Grid item>
-              <Stack spacing={1} direction="row">
-                <Typography variant="caption">Tags :</Typography>
-                <Typography variant="caption">canada</Typography>
-                <Typography variant="caption">ticket</Typography>
-                <Typography variant="caption">tours</Typography>
-              </Stack>
-            </Grid>
             <Grid item>
               <Stack alignItems="center" spacing={1} direction="row">
                 <Avatar

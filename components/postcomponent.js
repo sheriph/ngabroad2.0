@@ -29,6 +29,7 @@ import PostList from "./postlist";
 import { useRouter } from "next/router";
 import { useRecoilState } from "recoil";
 import { pageBreadcrumb_ } from "../lib/recoil";
+import SingleQuestionCard from "./singlequestioncard";
 
 const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
   "&.Mui-selected": {
@@ -93,7 +94,7 @@ export default function PostComponent() {
               </ListItemIcon>
               <ListItemText primary="Posts" />
             </CustomListItemButton>
-            <CustomListItemButton
+            {/*  <CustomListItemButton
               selected={pageBreadcrumb === "Users"}
               onClick={handlePageBreadcrumb}
             >
@@ -101,7 +102,7 @@ export default function PostComponent() {
                 <PeopleAltOutlinedIcon />
               </ListItemIcon>
               <ListItemText primary="Users" />
-            </CustomListItemButton>
+            </CustomListItemButton> */}
           </List>
         </Stack>
       </Box>
@@ -115,7 +116,8 @@ export default function PostComponent() {
         orientation="vertical"
         flexItem
       />
-      <PostList />
+      {/* <PostList /> */}
+      <SingleQuestionCard />
     </Stack>
   );
 }
