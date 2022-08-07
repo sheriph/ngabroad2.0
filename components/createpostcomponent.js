@@ -10,7 +10,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Editor from "./others/editor";
 import { countries, getAwsUrl, postTags, useUser, Wait } from "../lib/utility";
 import GeneralDialog from "./others/generaldialog";
@@ -63,6 +63,7 @@ export default function CreatePostComponent() {
 
   useEffect(() => {
     const options = getValues("tags").length === 0 ? countries : postTags;
+    // @ts-ignore
     getValues("tags").length === 3 ? setOptions([]) : setOptions(options);
   }, [watch("tags").toString()]);
 
@@ -84,13 +85,14 @@ export default function CreatePostComponent() {
     try {
       setLoading(true);
       const { title, tags, post } = data;
-      const insert = await axios.post("/api/createpost", {
+      /*  const insert = await axios.post("/api/createpost", {
         user,
         title,
         tags: tags.map((t) => t.name),
         post,
-      });
-      console.log("insert", insert.data);
+      }); */
+      // @ts-ignore
+      // console.log("insert", insert.data);
       setLoading(false);
     } catch (error) {
       console.log(error.response.data);
@@ -104,7 +106,7 @@ export default function CreatePostComponent() {
 
   console.log(" createpost user", errors);
 
-  if (!user) {
+  /* if (!user) {
     return (
       <Stack spacing={2}>
         <Typography textAlign="center" variant="h1">
@@ -115,7 +117,7 @@ export default function CreatePostComponent() {
         <Skeleton variant="rectangular" width="100%" height="400px" />
       </Stack>
     );
-  }
+  } */
 
   return (
     <Stack component="form" onSubmit={handleSubmit(onSubmit)} spacing={2}>
@@ -173,13 +175,16 @@ export default function CreatePostComponent() {
                 if (r === "removeOption") {
                   if (
                     countries
+                      // @ts-ignore
                       .map((country) => country.name)
+                      // @ts-ignore
                       .includes(e.currentTarget.parentElement.innerText) &&
                     getValues("tags").length > 1
                   ) {
                     console.log(
                       "remove",
                       v,
+                      // @ts-ignore
                       e.currentTarget.parentElement.innerText
                     );
                     onChange([]);
@@ -189,6 +194,7 @@ export default function CreatePostComponent() {
                 onChange(v);
               }}
               ChipProps={{ variant: "outlined" }}
+              // @ts-ignore
               getOptionLabel={(option) => option.name}
               renderInput={(params) => (
                 <TextField
