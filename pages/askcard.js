@@ -1,3 +1,4 @@
+import React from "react";
 import { Avatar, Button, Grid, Stack, Typography } from "@mui/material";
 
 export default function Ask() {
@@ -76,7 +77,9 @@ export default function Ask() {
                   alt="Remy Sharp"
                   src="/static/images/avatar/1.jpg"
                 />
-                <Typography>Sheriff Adeniyi on the 27 Aug, 2022 at 10:25pm</Typography>
+                <Typography>
+                  Sheriff Adeniyi on the 27 Aug, 2022 at 10:25pm
+                </Typography>
               </Stack>
             </Grid>
           </Grid>

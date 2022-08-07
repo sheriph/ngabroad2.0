@@ -1,17 +1,21 @@
 import {
+  Autocomplete,
   Avatar,
   Button,
+  ButtonGroup,
   Divider,
   Menu,
   MenuItem,
   Stack,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
 } from "@mui/material";
 import ExpandMoreOutlinedIcon from "@mui/icons-material/ExpandMoreOutlined";
 import React, { useEffect, useState } from "react";
 import { Box } from "@mui/system";
 import { useRecoilState } from "recoil";
-import { filter_, pageBreadcrumb_ } from "../lib/recoil";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
 import ModeEditOutlineOutlinedIcon from "@mui/icons-material/ModeEditOutlineOutlined";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
@@ -20,27 +24,23 @@ import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ShareIcon from "@mui/icons-material/Share";
 import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 import ArrowLeftIcon from "@mui/icons-material/ArrowLeft";
+import ReplyIcon from "@mui/icons-material/Reply";
+import AddIcon from "@mui/icons-material/Add";
+import { filter_, selectCategory_, selectCountry_ } from "../lib/recoil";
+import { countries, postTags } from "../lib/utility";
+import PostCard from "./postcard";
+import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
+import SinglePostCard from "./singlepostcard";
 
 export default function SingleQuestionCard() {
-  const [pageBreadcrumb, setPageBreadcrumb] = useRecoilState(pageBreadcrumb_);
-  const [breadcrumbAnchorEl, setBreadcrumbAnchorEl] = React.useState(null);
-  const openbreadcrumbAnchorEl = Boolean(breadcrumbAnchorEl);
-  const handleBreadcrumbMenu = (e) => {
-    setBreadcrumbAnchorEl(e.currentTarget);
+  const [filter, setFilter] = useRecoilState(filter_);
+  const [selectCategory, setSelelectedCategory] =
+    useRecoilState(selectCategory_);
+  const [selectCountry, setSelelectedCountry] = useRecoilState(selectCountry_);
+
+  const handleFilterChange = (event, newAlignment) => {
+    if (newAlignment) setFilter(newAlignment);
   };
-
-  const handleBreadcrumbMenuClose = (e) => {
-    if (e.target.outerText) setPageBreadcrumb(e.target.outerText);
-    setBreadcrumbAnchorEl(null);
-  };
-
-  const [typenimation, setTypeAnimation] = useState(true);
-
-  useEffect(() => {
-    setTimeout(() => {
-      setTypeAnimation(false);
-    }, 1000);
-  }, [null]);
 
   return (
     <Box
@@ -51,174 +51,43 @@ export default function SingleQuestionCard() {
         marginLeft: { xs: `0 !important`, md: `16px !important` },
       }}
     >
-      <Stack
-        spacing={1}
-        //  divider={<Divider orientation="horizontal" flexItem />}
-      >
-        {/* Mobile Head */}
-        <Stack spacing={1} sx={{ display: { xs: "flex", md: "none" } }}>
-          <Stack justifyContent="space-between" direction="row">
-            <Button
-              id="basic-button"
-              aria-controls={openbreadcrumbAnchorEl ? "basic-menu" : undefined}
-              aria-haspopup="true"
-              aria-expanded={openbreadcrumbAnchorEl ? "true" : undefined}
-              onClick={handleBreadcrumbMenu}
-              endIcon={<ExpandMoreOutlinedIcon />}
-            >
-              {pageBreadcrumb}
-            </Button>
-            <Menu
-              id="basic-menu"
-              anchorEl={breadcrumbAnchorEl}
-              open={openbreadcrumbAnchorEl}
-              onClose={handleBreadcrumbMenuClose}
-              MenuListProps={{
-                "aria-labelledby": "basic-button",
-              }}
-            >
-              <MenuItem onClick={handleBreadcrumbMenuClose}>All</MenuItem>
-              <MenuItem onClick={handleBreadcrumbMenuClose}>Questions</MenuItem>
-              <MenuItem onClick={handleBreadcrumbMenuClose}>Posts</MenuItem>
-              {/* <Divider sx={{}} orientation="horizontal" flexItem />
-                <MenuItem
-                  component={Button}
-                  endIcon={<OpenInNewOutlinedIcon />}
-                  onClick={handleBreadcrumbMenuClose}
-                >
-                  Users
-                </MenuItem> */}
-            </Menu>
-            <Button
-              size="small"
-              sx={{
-                height: "30px",
-                minWidth: "20px",
-                width: typenimation ? "120px" : "40px",
-                transition: "width 1s",
-              }}
-              disableElevation
-              variant="contained"
-            >
-              {typenimation ? (
-                "Ask Questions"
-              ) : (
-                <ModeEditOutlineOutlinedIcon color="inherit" fontSize="small" />
-              )}
-            </Button>
-          </Stack>
-          <Typography variant="h1">
-            How can I deal with students that are too sensitive when they are
-            simply wrong? Particularly when they answer simple questions wrongly
-            during class?
-          </Typography>
-          <Stack spacing={1} direction="row">
-            <Typography variant="caption">Asked Yesterday</Typography>
-            <Typography variant="caption">Modified Today</Typography>
-            <Typography variant="caption">Views 234 times</Typography>
-          </Stack>
-          <Divider orientation="horizontal" flexItem />
-          <Stack direction="row">
-            <Stack>
-              <Typography>{text}</Typography>
-              <Stack
-                sx={{ mt: 2 }}
-                justifyContent="space-between"
-                spacing={1}
-                direction="row"
-              >
-                <Button
-                  // sx={{ height: "30px", width: "fit-content" }}
-                  variant="contained"
-                  disableElevation
-                  // endIcon={}
-                >
-                  <ShareIcon />
-                </Button>
-                <Stack direction="row" alignItems="center">
-                  <ArrowLeftIcon fontSize="large" />
-                  <Typography>31</Typography>
-                  <ArrowRightIcon fontSize="large" />
-                </Stack>
-                <Stack spacing={1} direction="row">
-                  <Avatar
-                    variant="rounded"
-                    alt="Remy Sharp"
-                    src="/static/images/avatar/1.jpg"
-                  />
-                  <Stack>
-                    <Typography variant="caption">Sheriff Adeniyi</Typography>
-                    <Typography variant="caption">Travel Consultant</Typography>
-                  </Stack>
-                </Stack>
-              </Stack>
-            </Stack>
-          </Stack>
-        </Stack>
-
-        {/* Desktop head */}
-        <Stack sx={{ display: { xs: "none", md: "flex" } }} spacing={1}>
+      <Stack spacing={1}>
+        <Stack spacing={1}>
           <Stack
             alignItems="center"
             justifyContent="space-between"
             direction="row"
-            spacing={1}
+            spacing={2}
           >
-            <Typography variant="h1">
-              How can I deal with students that are too sensitive when they are
-              simply wrong? Particularly when they answer simple questions
-              wrongly during class?
-            </Typography>
             <Button
-              sx={{ minWidth: "150px" }}
+              size="small"
+              //  sx={{ height: "38px" }}
+              disableElevation
+              variant="contained"
+              startIcon={<KeyboardBackspaceIcon />}
+            >
+              Back
+            </Button>
+
+            <Button
+              size="small"
+              //   sx={{ height: "38px" }}
               disableElevation
               variant="contained"
             >
-              Ask Question
+              Comment
             </Button>
           </Stack>
-          <Stack spacing={1} direction="row">
-            <Typography variant="caption">Asked Yesterday</Typography>
-            <Typography variant="caption">Modified Today</Typography>
-            <Typography variant="caption">Views 234 times</Typography>
-          </Stack>
-          <Divider orientation="horizontal" flexItem />
-          <Stack direction="row">
-            <Stack alignItems="center">
-              <ArrowDropUpOutlinedIcon fontSize="large" />
-              <Typography>31</Typography>
-              <ArrowDropDownIcon fontSize="large" />
-            </Stack>
-            <Stack>
-              <Typography>{text}</Typography>
-              <Stack
-                sx={{ mt: 2 }}
-                justifyContent="space-between"
-                spacing={1}
-                direction="row"
-              >
-                <Button
-                  // sx={{ height: "30px", width: "fit-content" }}
-                  variant="contained"
-                  disableElevation
-                  endIcon={<ShareIcon />}
-                >
-                  share content
-                </Button>
-                <Stack spacing={1} direction="row">
-                  <Avatar
-                    variant="rounded"
-                    alt="Remy Sharp"
-                    src="/static/images/avatar/1.jpg"
-                  />
-                  <Stack>
-                    <Typography variant="caption">Sheriff Adeniyi</Typography>
-                    <Typography variant="caption">Travel Consultant</Typography>
-                  </Stack>
-                </Stack>
-              </Stack>
-            </Stack>
-          </Stack>
+        </Stack>
+
+        <Divider orientation="horizontal" flexItem />
+        <Stack
+          divider={<Divider orientation="horizontal" flexItem />}
+          spacing={3}
+        >
+          <SinglePostCard post={null} />
+          <SinglePostCard post={null} />
+          <SinglePostCard post={null} />
         </Stack>
       </Stack>
     </Box>

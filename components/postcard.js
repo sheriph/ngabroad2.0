@@ -1,18 +1,31 @@
+import React from "react";
 import { Avatar, Button, Grid, Stack, Typography } from "@mui/material";
+import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
+import CommentIcon from "@mui/icons-material/Comment";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 
 export default function PostCard({ post }) {
   return (
     <Stack spacing={2} direction="row" sx={{ ml: `-15px !important` }}>
       <Stack sx={{ display: { xs: "none", sm: "flex" } }}>
-        <Typography textAlign="right" sx={{ whiteSpace: "nowrap" }}>
-          1240 votes
-        </Typography>
-        <Typography textAlign="right" sx={{ whiteSpace: "nowrap" }}>
-          1240 Comments
-        </Typography>
-        <Typography textAlign="right" sx={{ whiteSpace: "nowrap" }}>
-          1240 views
-        </Typography>
+        <Stack
+          justifyContent="flex-start"
+          alignItems="center"
+          spacing={1}
+          direction="row"
+          sx={{ ml: 2 }}
+        >
+          <CommentIcon fontSize="small" /> <Typography>12</Typography>
+        </Stack>
+        <Stack
+          justifyContent="flex-start"
+          alignItems="center"
+          spacing={1}
+          direction="row"
+          sx={{ ml: 2 }}
+        >
+          <VisibilityIcon fontSize="small" /> <Typography>1240</Typography>
+        </Stack>
       </Stack>
       <Stack>
         <Stack>
@@ -24,17 +37,20 @@ export default function PostCard({ post }) {
             direction="row"
             spacing={2}
           >
-            <Typography>1240 votes</Typography>
-            <Typography>1240 Comments</Typography>
-            <Typography>1240 views</Typography>
+            <Stack alignItems="center" spacing={1} direction="row">
+              <CommentIcon fontSize="small" /> <Typography>12</Typography>
+            </Stack>
+            <Stack alignItems="center" spacing={1} direction="row">
+              <VisibilityIcon fontSize="small" /> <Typography>1240</Typography>
+            </Stack>
           </Stack>
           <Typography
-            component={Button}
+            component="a"
             sx={{
               p: 0,
               justifyContent: "flex-start",
+              cursor: "pointer",
             }}
-            color="primary.main"
             variant="h1"
             textAlign="left"
             gutterBottom
@@ -56,7 +72,7 @@ export default function PostCard({ post }) {
             <Grid item>
               <Stack alignItems="center" spacing={1} direction="row">
                 <Avatar
-                  sx={{ height: "25px", width: "25px" }}
+                  sx={{ height: "20px", width: "20px" }}
                   alt="Remy Sharp"
                   src="/static/images/avatar/1.jpg"
                 />
