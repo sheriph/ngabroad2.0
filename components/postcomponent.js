@@ -1,4 +1,5 @@
 import {
+  Autocomplete,
   Button,
   ButtonGroup,
   Collapse,
@@ -10,47 +11,34 @@ import {
   Menu,
   MenuItem,
   Stack,
+  TextField,
   ToggleButton,
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
-import ExpandMoreOutlinedIcon from "@mui/icons-material/ExpandMoreOutlined";
 import React, { useEffect } from "react";
-import PostCard from "./postcard";
-import NotListedLocationOutlinedIcon from "@mui/icons-material/NotListedLocationOutlined";
-import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
-import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
-import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
-import { styled } from "@mui/styles";
 import { Box } from "@mui/system";
-import OpenInNewOutlinedIcon from "@mui/icons-material/OpenInNewOutlined";
-import { TagCloud } from "react-tagcloud";
 import PostList from "./postlist";
 import { useRouter } from "next/router";
 import { useRecoilState } from "recoil";
-import { pageBreadcrumb_ } from "../lib/recoil";
-import SingleQuestionCard from "./singlequestioncard";
+import { selectCategoryString_, selectCountry_ } from "../lib/recoil";
+import { countries, postTags } from "../lib/utility";
+import dynamic from "next/dynamic";
 
-const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
-  "&.Mui-selected": {
-    borderTopRightRadius: 0,
-    borderBottomRightRadius: 0,
-    borderRight: "5px solid",
-    borderColor: "primary.main",
-  },
-}));
+const CategoryJsxNoSsr = dynamic(() => import("./others/sidecategory.js"), {
+  ssr: false,
+});
 
 export default function PostComponent() {
-  const [pageBreadcrumb, setPageBreadcrumb] = useRecoilState(pageBreadcrumb_);
+  const [category, setCategory] = useRecoilState(selectCategoryString_);
+  const [selectCountry, setSelelectedCountry] = useRecoilState(selectCountry_);
 
-  const handlePageBreadcrumb = (event) => {
+  const handleCategory = (event) => {
     console.log("click", event);
-    setPageBreadcrumb(event.target.innerText);
+    setCategory(event.target.innerText);
   };
 
-  useEffect(() => {
-    setPageBreadcrumb("All");
-  }, [null]);
+  console.log("category", category);
 
   return (
     <Stack
@@ -66,44 +54,47 @@ export default function PostComponent() {
         }}
       >
         <Stack>
-          <List dense component="nav" aria-label="pageBreadcrumb">
-            <CustomListItemButton
-              selected={pageBreadcrumb === "All"}
-              onClick={handlePageBreadcrumb}
-            >
-              <ListItemIcon>
-                <HomeOutlinedIcon />
-              </ListItemIcon>
-              <ListItemText primary="All" />
-            </CustomListItemButton>
-            <CustomListItemButton
-              selected={pageBreadcrumb === "Questions"}
-              onClick={handlePageBreadcrumb}
-            >
-              <ListItemIcon>
-                <NotListedLocationOutlinedIcon />
-              </ListItemIcon>
-              <ListItemText primary="Questions" />
-            </CustomListItemButton>
-            <CustomListItemButton
-              selected={pageBreadcrumb === "Posts"}
-              onClick={handlePageBreadcrumb}
-            >
-              <ListItemIcon>
-                <ArticleOutlinedIcon />
-              </ListItemIcon>
-              <ListItemText primary="Posts" />
-            </CustomListItemButton>
-            {/*  <CustomListItemButton
-              selected={pageBreadcrumb === "Users"}
-              onClick={handlePageBreadcrumb}
-            >
-              <ListItemIcon>
-                <PeopleAltOutlinedIcon />
-              </ListItemIcon>
-              <ListItemText primary="Users" />
-            </CustomListItemButton> */}
-          </List>
+          <Autocomplete
+            disablePortal
+            id="combo-box-demo"
+            options={countries}
+            size="small"
+            // @ts-ignore
+            getOptionLabel={(option) => option?.name}
+            sx={{
+              width: 150,
+              fontSize: { ".MuiInput-input": { fontSize: "14px" } },
+              pl: 2,
+            }}
+            clearIcon=""
+            // @ts-ignore
+            value={selectCountry}
+            onChange={(e, v, r) => {
+              console.log("cv country", v);
+              // @ts-ignore
+              setSelelectedCountry(v);
+            }}
+            renderOption={(props, option, state) => {
+              console.log("option", option);
+              return (
+                <Typography {...props} component="li" variant="caption">
+                  {option.name}
+                </Typography>
+              );
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                InputProps={{ ...params.InputProps, disableUnderline: true }}
+                variant="standard"
+                placeholder="All Countries"
+              />
+            )}
+          />
+          <CategoryJsxNoSsr
+            category={category}
+            handleCategory={handleCategory}
+          />
         </Stack>
       </Box>
       <Divider
@@ -116,8 +107,7 @@ export default function PostComponent() {
         orientation="vertical"
         flexItem
       />
-      {/* <PostList /> */}
-      <SingleQuestionCard />
+      <PostList />
     </Stack>
   );
 }
