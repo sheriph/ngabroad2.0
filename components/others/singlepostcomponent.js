@@ -24,12 +24,18 @@ import { useRouter } from "next/router";
 import { useRecoilState } from "recoil";
 import dynamic from "next/dynamic";
 import { selectCategoryString_, selectCountry_ } from "../../lib/recoil";
-import { countries } from "../../lib/utility";
+import { countries, postTags } from "../../lib/utility";
 import SingleQuestionCard from "../singlequestioncard";
+import DesktopSideBar from "./desktopsidebar";
 
-const CategoryJsxNoSsr = dynamic(() => import("../others/sidecategory"), {
-  ssr: false,
-});
+const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
+  "&.Mui-selected": {
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0,
+    borderRight: "5px solid",
+    borderColor: "primary.main",
+  },
+}));
 
 export default function SinglePostComponent() {
   const [category, setCategory] = useRecoilState(selectCategoryString_);
@@ -42,25 +48,8 @@ export default function SinglePostComponent() {
   console.log("category", category);
 
   return (
-    <Stack
-      sx={{ backgroundColor: "common.white", p: { xs: 1, sm: 2 } }}
-      direction="row"
-      spacing={2}
-    >
-      <Box
-        sx={{
-          width: "250px",
-          position: "fixed",
-          display: { xs: "none", md: "block" },
-        }}
-      >
-        <Stack>
-          <CategoryJsxNoSsr
-            category={category}
-            handleCategory={handleCategory}
-          />
-        </Stack>
-      </Box>
+    <Stack sx={{ p: { xs: 1, sm: 2 } }} direction="row" spacing={2}>
+      <DesktopSideBar />
       <Divider
         sx={{
           position: "relative",

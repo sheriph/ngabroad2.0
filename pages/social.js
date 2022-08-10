@@ -8,7 +8,6 @@ const PostComponentNossr = dynamic(
   () => import("../components/postcomponent"),
   {
     ssr: false,
-    
   }
 );
 
@@ -17,6 +16,8 @@ export default function Questions() {
     <Stack spacing={1}>
       <Box component={Container}>
         <Header />
+        {/* // 
+        @ts-ignore */}
         <PostComponentNossr />
       </Box>
       <Footer />

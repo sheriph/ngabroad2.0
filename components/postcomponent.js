@@ -23,11 +23,19 @@ import { useRouter } from "next/router";
 import { useRecoilState } from "recoil";
 import { selectCategoryString_, selectCountry_ } from "../lib/recoil";
 import { countries, postTags } from "../lib/utility";
-import dynamic from "next/dynamic";
+import { styled } from "@mui/styles";
+import ContactSupportIcon from "@mui/icons-material/ContactSupport";
+import ViewTimelineOutlinedIcon from "@mui/icons-material/ViewTimelineOutlined";
+import DesktopSideBar from "./others/desktopsidebar";
 
-const CategoryJsxNoSsr = dynamic(() => import("./others/sidecategory.js"), {
-  ssr: false,
-});
+const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
+  "&.Mui-selected": {
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0,
+    borderRight: "5px solid",
+    borderColor: "primary.main",
+  },
+}));
 
 export default function PostComponent() {
   const [category, setCategory] = useRecoilState(selectCategoryString_);
@@ -41,62 +49,8 @@ export default function PostComponent() {
   console.log("category", category);
 
   return (
-    <Stack
-      sx={{ backgroundColor: "common.white", p: { xs: 1, sm: 2 } }}
-      direction="row"
-      spacing={2}
-    >
-      <Box
-        sx={{
-          width: "250px",
-          position: "fixed",
-          display: { xs: "none", md: "block" },
-        }}
-      >
-        <Stack>
-          <Autocomplete
-            disablePortal
-            id="combo-box-demo"
-            options={countries}
-            size="small"
-            // @ts-ignore
-            getOptionLabel={(option) => option?.name}
-            sx={{
-              width: 150,
-              fontSize: { ".MuiInput-input": { fontSize: "14px" } },
-              pl: 2,
-            }}
-            clearIcon=""
-            // @ts-ignore
-            value={selectCountry}
-            onChange={(e, v, r) => {
-              console.log("cv country", v);
-              // @ts-ignore
-              setSelelectedCountry(v);
-            }}
-            renderOption={(props, option, state) => {
-              console.log("option", option);
-              return (
-                <Typography {...props} component="li" variant="caption">
-                  {option.name}
-                </Typography>
-              );
-            }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                InputProps={{ ...params.InputProps, disableUnderline: true }}
-                variant="standard"
-                placeholder="All Countries"
-              />
-            )}
-          />
-          <CategoryJsxNoSsr
-            category={category}
-            handleCategory={handleCategory}
-          />
-        </Stack>
-      </Box>
+    <Stack sx={{ p: { xs: 1, sm: 2 } }} direction="row" spacing={2}>
+      <DesktopSideBar />
       <Divider
         sx={{
           position: "relative",

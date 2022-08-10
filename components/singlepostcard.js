@@ -1,8 +1,10 @@
 import React from "react";
 import {
   Avatar,
+  Box,
   Button,
   Divider,
+  Fab,
   Grid,
   Stack,
   Typography,
@@ -14,6 +16,8 @@ import ThumbDownIcon from "@mui/icons-material/ThumbDown";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { LinkTypography } from "../lib/utility";
 import ReplyIcon from "@mui/icons-material/Reply";
+import EditIcon from "@mui/icons-material/Edit";
+
 import ShareIcon from "@mui/icons-material/Share";
 
 export default function SinglePostCard({ post }) {

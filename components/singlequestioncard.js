@@ -52,7 +52,7 @@ export default function SingleQuestionCard() {
       }}
     >
       <Stack spacing={1}>
-        <Stack spacing={1}>
+        {/* <Stack spacing={1}>
           <Stack
             alignItems="center"
             justifyContent="space-between"
@@ -61,32 +61,20 @@ export default function SingleQuestionCard() {
           >
             <Button
               size="small"
-              //  sx={{ height: "38px" }}
-              disableElevation
-              variant="contained"
-              startIcon={<KeyboardBackspaceIcon />}
-            >
-              Back
-            </Button>
-
-            <Button
-              size="small"
               //   sx={{ height: "38px" }}
               disableElevation
-              variant="contained"
+              variant="outlined"
             >
               Comment
             </Button>
           </Stack>
         </Stack>
 
-        <Divider orientation="horizontal" flexItem />
+        <Divider orientation="horizontal" flexItem /> */}
         <Stack
           divider={<Divider orientation="horizontal" flexItem />}
           spacing={3}
         >
-          <SinglePostCard post={null} />
-          <SinglePostCard post={null} />
           <SinglePostCard post={null} />
         </Stack>
       </Stack>

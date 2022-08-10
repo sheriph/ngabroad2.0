@@ -17,6 +17,7 @@ import { Box } from "@mui/system";
 import { useRecoilState } from "recoil";
 import { filter_, selectCategory_, selectCountry_ } from "../lib/recoil";
 import { countries, postTags } from "../lib/utility";
+import ContactSupportIcon from "@mui/icons-material/ContactSupport";
 
 export default function PostList() {
   const [filter, setFilter] = useRecoilState(filter_);
@@ -29,7 +30,7 @@ export default function PostList() {
     if (newAlignment) setFilter(newAlignment);
   };
 
-  console.log('filter', filter)
+  console.log("filter", filter);
 
   return (
     <Box
@@ -44,7 +45,7 @@ export default function PostList() {
         {/* Mobile Head */}
         <Stack spacing={1} sx={{ display: { xs: "flex", md: "none" } }}>
           <Stack spacing={2} direction="row">
-            <Autocomplete
+            {/*  <Autocomplete
               disablePortal
               id="combo-box-demo"
               options={countries}
@@ -116,9 +117,17 @@ export default function PostList() {
                   placeholder="All Categories"
                 />
               )}
-            />
+            /> */}
           </Stack>
           <Stack justifyContent="space-between" direction="row" spacing={2}>
+            <Button
+              startIcon={<ContactSupportIcon />}
+              disableElevation
+              sx={{ justifyContent: "flex-start" }}
+              // variant="outlined"
+            >
+              Ask a Question
+            </Button>
             <ToggleButtonGroup
               color="primary"
               value={filter}
@@ -129,14 +138,6 @@ export default function PostList() {
               <ToggleButton value="Newest">Newest</ToggleButton>
               <ToggleButton value="Popular">Popular</ToggleButton>
             </ToggleButtonGroup>
-            <Button
-              size="small"
-              sx={{ height: "38px" }}
-              disableElevation
-              variant="contained"
-            >
-              Ask Questions
-            </Button>
           </Stack>
         </Stack>
         {/* Desktop head */}
@@ -158,9 +159,6 @@ export default function PostList() {
               <ToggleButton value="Newest">Newest</ToggleButton>
               <ToggleButton value="Popular">Popular</ToggleButton>
             </ToggleButtonGroup>
-            <Button disableElevation variant="contained">
-              Ask Question
-            </Button>
           </Stack>
         </Stack>
         <Divider orientation="horizontal" flexItem />
