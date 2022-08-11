@@ -1,9 +1,44 @@
-import { Box, Button, Stack } from "@mui/material";
+import {
+  Box,
+  Button,
+  Divider,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Stack,
+} from "@mui/material";
 import React from "react";
 import ContactSupportIcon from "@mui/icons-material/ContactSupport";
 import ViewTimelineOutlinedIcon from "@mui/icons-material/ViewTimelineOutlined";
+import { useRecoilState } from "recoil";
+import { category_ } from "../../lib/recoil";
+import { styled } from "@mui/styles";
+import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
+import PostAddOutlinedIcon from "@mui/icons-material/PostAddOutlined";
+import Link from "next/link";
+import { useRouter } from "next/router";
+
+const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
+  "&.Mui-selected": {
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0,
+    borderRight: "5px solid",
+    borderColor: "primary.main",
+  },
+}));
 
 export default function DesktopSideBar() {
+  const [category, setCategory] = useRecoilState(category_);
+  const router = useRouter();
+
+  console.log("router", router.pathname);
+
+  const handleCategory = (e) => {
+    console.log("e", e);
+    setCategory(e.target.innerText);
+  };
+
   return (
     <Box
       sx={{
@@ -13,22 +48,54 @@ export default function DesktopSideBar() {
       }}
     >
       <Stack>
-        <Button
-          startIcon={<ContactSupportIcon />}
-          disableElevation
-          sx={{ justifyContent: "flex-start" }}
-          // variant="outlined"
-        >
-          Ask a Question
-        </Button>
-        <Button
-          startIcon={<ViewTimelineOutlinedIcon />}
-          disableElevation
-          sx={{ justifyContent: "flex-start" }}
-          // variant="outlined"
-        >
-          My Timeline
-        </Button>
+        <Stack>
+          <List dense component="nav" aria-label="category">
+            <Link href="/social">
+              <CustomListItemButton
+                selected={category === "All Posts"}
+                onClick={handleCategory}
+              >
+                <ListItemIcon>
+                  <HomeOutlinedIcon />
+                </ListItemIcon>
+                <ListItemText primary="All Posts" />
+              </CustomListItemButton>
+            </Link>
+            <Link href="/social">
+              <CustomListItemButton
+                selected={category === "My Timeline"}
+                onClick={handleCategory}
+              >
+                <ListItemIcon>
+                  <ViewTimelineOutlinedIcon />
+                </ListItemIcon>
+                <ListItemText primary="My Timeline" />
+              </CustomListItemButton>
+            </Link>
+          </List>
+
+          <Divider sx={{ my: 2 }} />
+
+          <Button
+            startIcon={<ContactSupportIcon sx={{ mr: 3 }} />}
+            disableElevation
+            sx={{ justifyContent: "flex-start", pl: 3 }}
+            // variant="outlined"
+          >
+            Ask a Question
+          </Button>
+        </Stack>
+
+        {router.pathname !== "/social" && (
+          <Button
+            startIcon={<PostAddOutlinedIcon sx={{ mr: 3 }} />}
+            disableElevation
+            sx={{ justifyContent: "flex-start", pl: 3 }}
+            // variant="outlined"
+          >
+            Add Comment
+          </Button>
+        )}
 
         {/*    <Autocomplete
       disablePortal

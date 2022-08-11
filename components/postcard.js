@@ -13,7 +13,7 @@ import BookmarkAddOutlinedIcon from "@mui/icons-material/BookmarkAddOutlined";
 import BookmarkBorderOutlinedIcon from "@mui/icons-material/BookmarkBorderOutlined";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
-import QuestionAnswerOutlinedIcon from '@mui/icons-material/QuestionAnswerOutlined';
+import QuestionAnswerOutlinedIcon from "@mui/icons-material/QuestionAnswerOutlined";
 
 export default function PostCard({ post }) {
   const answer = false;
@@ -145,7 +145,7 @@ export default function PostCard({ post }) {
                   sx={{ fontSize: "1rem" }}
                   fontSize="small"
                 />
-                <LinkTypography variant="caption">Follow Thread</LinkTypography>
+                <Typography variant="caption">Follow Thread</Typography>
               </Stack>
             </Grid>
           </Grid>

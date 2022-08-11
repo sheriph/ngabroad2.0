@@ -16,6 +16,8 @@ import ThumbDownIcon from "@mui/icons-material/ThumbDown";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { LinkTypography } from "../lib/utility";
 import ReplyIcon from "@mui/icons-material/Reply";
+import BookmarkAddOutlinedIcon from "@mui/icons-material/BookmarkAddOutlined";
+
 import EditIcon from "@mui/icons-material/Edit";
 
 import ShareIcon from "@mui/icons-material/Share";
@@ -31,10 +33,10 @@ export default function SinglePostCard({ post }) {
               p: 0,
               justifyContent: "flex-start",
               cursor: "pointer",
+              pb: 2,
             }}
             variant="h1"
             textAlign="left"
-            gutterBottom
           >
             Making sense of principal component analysis, eigenvectors &
             eigenvalues
@@ -132,6 +134,13 @@ export default function SinglePostCard({ post }) {
               <Stack sx={{ cursor: "pointer" }} spacing={1} direction="row">
                 <ReplyIcon fontSize="small" />
                 <Typography variant="caption">Reply</Typography>
+              </Stack>
+              <Stack spacing={0.5} alignItems="center" direction="row">
+                <BookmarkAddOutlinedIcon
+                  sx={{ fontSize: "1rem" }}
+                  fontSize="small"
+                />
+                <Typography variant="caption">Follow Thread</Typography>
               </Stack>
             </Stack>
           </Stack>

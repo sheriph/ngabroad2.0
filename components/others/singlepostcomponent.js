@@ -19,12 +19,6 @@ import {
 import React, { useEffect } from "react";
 
 import { styled } from "@mui/styles";
-import { Box } from "@mui/system";
-import { useRouter } from "next/router";
-import { useRecoilState } from "recoil";
-import dynamic from "next/dynamic";
-import { selectCategoryString_, selectCountry_ } from "../../lib/recoil";
-import { countries, postTags } from "../../lib/utility";
 import SingleQuestionCard from "../singlequestioncard";
 import DesktopSideBar from "./desktopsidebar";
 
@@ -38,14 +32,8 @@ const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
 }));
 
 export default function SinglePostComponent() {
-  const [category, setCategory] = useRecoilState(selectCategoryString_);
 
-  const handleCategory = (event) => {
-    console.log("click", event);
-    setCategory(event.target.innerText);
-  };
 
-  console.log("category", category);
 
   return (
     <Stack sx={{ p: { xs: 1, sm: 2 } }} direction="row" spacing={2}>

@@ -26,22 +26,24 @@ import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 import ArrowLeftIcon from "@mui/icons-material/ArrowLeft";
 import ReplyIcon from "@mui/icons-material/Reply";
 import AddIcon from "@mui/icons-material/Add";
-import { filter_, selectCategory_, selectCountry_ } from "../lib/recoil";
+import { category_, filter_, selectCountry_ } from "../lib/recoil";
 import { countries, postTags } from "../lib/utility";
 import PostCard from "./postcard";
 import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
 import SinglePostCard from "./singlepostcard";
 
 export default function SingleQuestionCard() {
-  const [filter, setFilter] = useRecoilState(filter_);
-  const [selectCategory, setSelelectedCategory] =
-    useRecoilState(selectCategory_);
-  const [selectCountry, setSelelectedCountry] = useRecoilState(selectCountry_);
-
-  const handleFilterChange = (event, newAlignment) => {
-    if (newAlignment) setFilter(newAlignment);
+  const [category, setCategory] = useRecoilState(category_);
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const openMenu = Boolean(anchorEl);
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
   };
-
+  const handleMenuClose = (e) => {
+    console.log("e", e.target.innerText);
+    setAnchorEl(null);
+    setCategory(e.target.innerText);
+  };
   return (
     <Box
       sx={{
@@ -52,25 +54,51 @@ export default function SingleQuestionCard() {
       }}
     >
       <Stack spacing={1}>
-        {/* <Stack spacing={1}>
-          <Stack
-            alignItems="center"
-            justifyContent="space-between"
-            direction="row"
-            spacing={2}
-          >
+        <Stack
+          sx={{ display: { xs: "flex", md: "none" } }}
+          alignItems="center"
+          spacing={1}
+          direction="row"
+        >
+          <Typography>Back to :</Typography>
+          <Stack>
             <Button
-              size="small"
-              //   sx={{ height: "38px" }}
-              disableElevation
-              variant="outlined"
+              id="basic-button"
+              aria-controls={openMenu ? "basic-menu" : undefined}
+              aria-haspopup="true"
+              aria-expanded={openMenu ? "true" : undefined}
+              onClick={handleClick}
+              // startIcon={<StartIcon />}
+              sx={{ "&.MuiButtonBase-root": { pl: 0 } }}
+              endIcon={
+                <ExpandMoreOutlinedIcon
+                  sx={{
+                    transform: openMenu ? "rotate(180deg)" : "rotate(0deg)",
+                  }}
+                />
+              }
             >
-              Comment
+              {category}
             </Button>
+            <Menu
+              id="basic-menu"
+              anchorEl={anchorEl}
+              open={openMenu}
+              onClose={handleMenuClose}
+              MenuListProps={{
+                "aria-labelledby": "basic-button",
+              }}
+            >
+              <MenuItem onClick={handleMenuClose}>All Posts</MenuItem>
+              <MenuItem onClick={handleMenuClose}>My Timeline</MenuItem>
+            </Menu>
           </Stack>
         </Stack>
-
-        <Divider orientation="horizontal" flexItem /> */}
+        <Divider
+          sx={{ display: { xs: "block", md: "none" } }}
+          orientation="horizontal"
+          flexItem
+        />
         <Stack
           divider={<Divider orientation="horizontal" flexItem />}
           spacing={3}

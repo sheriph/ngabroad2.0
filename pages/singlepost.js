@@ -13,10 +13,18 @@ export default function Questions() {
         <SinglePostComponent />
         <Snackbar
           open={true}
-          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "right",
+          }}
           autoHideDuration={null}
         >
-          <Box sx={{ "& > :not(style)": { m: 1 } }}>
+          <Box
+            sx={{
+              "& > :not(style)": { m: 1 },
+              display: { xs: "flex", md: "none" },
+            }}
+          >
             <Fab
               size="small"
               variant="circular"
