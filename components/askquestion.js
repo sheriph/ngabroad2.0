@@ -1,4 +1,6 @@
 import {
+  Alert,
+  AlertTitle,
   Autocomplete,
   Box,
   Button,
@@ -18,27 +20,26 @@ import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import Script from "next/script";
 import { toast } from "react-toastify";
 import { Controller, useForm } from "react-hook-form";
-import { trim } from "lodash";
+import { get, trim } from "lodash";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import axios from "axios";
 import { useSetRecoilState } from "recoil";
 import { isLoading_ } from "../lib/recoil";
+import SendOutlinedIcon from "@mui/icons-material/SendOutlined";
 
-export default function CreatePostComponent() {
-  const { loading, user, mutate } = useUser();
-
+export default function AskQuestion() {
   const schema = Yup.object().shape({
     title: Yup.string()
       .required("Please enter the title")
-      .min(20, "Title is too short")
+      .min(50, "Question is too short")
       .matches(/^[aA-zZ\s\d]+$/, "Only alphanumeric characters"),
-    post: Yup.string()
+    /*  post: Yup.string()
       .required("Content is required")
       .min(20, "Content is too short. Please write some content"),
     tags: Yup.array()
       .required("Please select atleat 2 tags")
-      .min(2, "Please select atleat 2 tags"),
+      .min(2, "Please select atleat 2 tags"), */
   });
 
   const {
@@ -49,36 +50,11 @@ export default function CreatePostComponent() {
     watch,
     formState: { errors },
   } = useForm({
-    defaultValues: { tags: [], title: "", post: "", accept: false },
     resolver: yupResolver(schema),
+    defaultValues: { title: "", accept: false },
   });
-  const [options, setOptions] = useState([]);
-  const [tagsDialog, setTagsDialog] = useState(false);
   const [termsDialog, setTermsDialog] = useState(false);
   const setLoading = useSetRecoilState(isLoading_);
-
-  useEffect(() => {
-    // setAuotComleteValue(getValues("tags"));
-  }, [null]);
-
-  useEffect(() => {
-    const options = getValues("tags").length === 0 ? countries : postTags;
-    // @ts-ignore
-    getValues("tags").length === 3 ? setOptions([]) : setOptions(options);
-  }, [watch("tags").toString()]);
-
-  const getPlaceholder = () => {
-    switch (getValues("tags").length) {
-      case 0:
-        return "Select Tag 1";
-      case 1:
-        return "Select Tag 2";
-      case 2:
-        return "Select Tag 3";
-      default:
-        return "";
-    }
-  };
 
   const onSubmit = async (data) => {
     console.log("data", data);
@@ -100,30 +76,35 @@ export default function CreatePostComponent() {
     }
   };
 
-  const placeholder = getPlaceholder();
-
   //console.log('watch("tags"', watch("tags"));
 
-  console.log(" createpost user", errors);
-
-  /* if (!user) {
-    return (
-      <Stack spacing={2}>
-        <Typography textAlign="center" variant="h1">
-          {loading ? "Verifying login status" : "Please login to continue"}
-        </Typography>
-        <Skeleton variant="rectangular" width="100%" height="40px" />
-        <Skeleton variant="rectangular" width="100%" height="40px" />
-        <Skeleton variant="rectangular" width="100%" height="400px" />
-      </Stack>
-    );
-  } */
+  console.log("eror", errors);
 
   return (
-    <Stack component="form" onSubmit={handleSubmit(onSubmit)} spacing={2}>
+    <Stack
+      sx={{ p: 2 }}
+      component="form"
+      onSubmit={handleSubmit(onSubmit)}
+      spacing={2}
+    >
       <Typography textAlign="center" variant="h1">
-        Create A New Post
+        Ask a Question
       </Typography>
+
+      <Alert severity="warning">
+        <AlertTitle>
+          Tips to writing a good question that get answered sooner
+        </AlertTitle>
+        <Stack component="ul">
+          <li>Summarise your question perfectly</li>
+          <li>Avoid spelling errors</li>
+          <li>Use correct grammar</li>
+          <li>
+            Use the search option to find similar question. Do not post repeated
+            questions. You may follow a similar question thread.
+          </li>
+        </Stack>
+      </Alert>
 
       <Controller
         name="title"
@@ -138,20 +119,40 @@ export default function CreatePostComponent() {
               onChange={(e) => onChange(e.target.value)}
               size="small"
               fullWidth
+              multiline
+              minRows={3}
               id="title"
-              placeholder="Title"
+              placeholder="Start Typing ..."
               variant="outlined"
               required
+              inputProps={{ maxLength: 250 }}
+              sx={{
+                [`& fieldset`]: {
+                  borderRadius: 1,
+                },
+              }}
               error={Boolean(errors?.title?.message)}
               helperText={
-                <Typography variant="caption">
-                  {errors?.title?.message}
-                </Typography>
+                <Stack component="span" direction="row" spacing={2}>
+                  <Typography
+                    color={
+                      250 - watch("title").length < 21 ? "error" : "primary"
+                    }
+                    variant="caption"
+                  >
+                    Remaining : {250 - watch("title").length}
+                  </Typography>
+                  <Typography variant="caption">
+                    {get(errors, "title.message")}
+                  </Typography>
+                </Stack>
               }
             />
           );
         }}
       />
+
+      {/* 
       <Controller
         name="tags"
         defaultValue={[]}
@@ -223,8 +224,9 @@ export default function CreatePostComponent() {
             />
           );
         }}
-      />
-      <Controller
+      /> */}
+
+      {/*  <Controller
         name="post"
         defaultValue=""
         control={control}
@@ -244,50 +246,42 @@ export default function CreatePostComponent() {
             </Box>
           );
         }}
-      />
-      <Controller
-        name="accept"
-        defaultValue={false}
-        control={control}
-        render={({ field }) => {
-          const { onChange, value, ...rest } = field;
-          return (
-            <Stack
-              alignItems="center"
-              divider={<Divider orientation="vertical" flexItem />}
-              spacing={2}
-              direction="row"
-            >
-              <FormControlLabel
-                {...rest}
-                value={value}
-                onChange={onChange}
-                control={<Checkbox required />}
-                label="I agree"
-              />
-              <HelpOutlineOutlinedIcon
-                sx={{ cursor: "pointer" }}
-                onClick={() => setTermsDialog(true)}
-                fontSize="small"
-                color="primary"
-              />
-            </Stack>
-          );
-        }}
-      />
-      <Button type="submit" fullWidth variant="contained">
-        Submit
-      </Button>
-      <GeneralDialog
-        open={tagsDialog}
-        setOpen={setTagsDialog}
-        title="About Tags"
-      >
-        Tags consist of keywords that are related to this post. It allows people
-        to find your post quicker. Tags consist of a country that is repeated
-        most in your post and two other travel related tags. If the post is not
-        about a specific country, you can select ALL for the country tag
-      </GeneralDialog>
+      /> */}
+      <Stack justifyContent="space-between" direction="row">
+        <Controller
+          name="accept"
+          defaultValue={false}
+          control={control}
+          render={({ field }) => {
+            const { onChange, value, ...rest } = field;
+            return (
+              <Stack alignItems="center" spacing={1} direction="row">
+                <FormControlLabel
+                  {...rest}
+                  value={value}
+                  onChange={onChange}
+                  control={<Checkbox required />}
+                  label="I agree"
+                />
+                <HelpOutlineOutlinedIcon
+                  sx={{ cursor: "pointer" }}
+                  onClick={() => setTermsDialog(true)}
+                  fontSize="small"
+                  color="primary"
+                />
+              </Stack>
+            );
+          }}
+        />
+        <Button
+          endIcon={<SendOutlinedIcon />}
+          type="submit"
+          size="small"
+          variant="contained"
+        >
+          Submit
+        </Button>
+      </Stack>
       <GeneralDialog
         open={termsDialog}
         setOpen={setTermsDialog}
@@ -302,7 +296,6 @@ export default function CreatePostComponent() {
           <li>You should always post to educate</li>
         </ul>
       </GeneralDialog>
-      <Wait />
     </Stack>
   );
 }

@@ -386,7 +386,7 @@ export default function Header() {
       </Menu>
       <Dialog
         // @ts-ignore
-        TransitionComponent={TransitionComponent}
+       // TransitionComponent={TransitionComponent}
         open={openLoginDialog}
       >
         <Stack
@@ -644,7 +644,7 @@ export default function Header() {
       </Dialog>
       <Dialog
         // @ts-ignore
-        TransitionComponent={TransitionComponent}
+       // TransitionComponent={TransitionComponent}
         open={openOtpDialog}
       >
         <Stack alignSelf="center" spacing={2} sx={{ p: 2, width: "100%" }}>
@@ -686,7 +686,7 @@ export default function Header() {
       </Dialog>
       <Dialog
         // @ts-ignore
-        TransitionComponent={TransitionComponent}
+      //  TransitionComponent={TransitionComponent}
         open={passwordForgotDialog}
       >
         <Stack alignSelf="center" spacing={2} sx={{ p: 2, width: "100%" }}>

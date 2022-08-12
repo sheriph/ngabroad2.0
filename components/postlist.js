@@ -19,26 +19,13 @@ import PostCard from "./postcard";
 import { Box } from "@mui/system";
 import { useRecoilState } from "recoil";
 import { category_, filter_, selectCountry_ } from "../lib/recoil";
-import { countries, postTags } from "../lib/utility";
-import ContactSupportIcon from "@mui/icons-material/ContactSupport";
-import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
-import ViewTimelineOutlinedIcon from "@mui/icons-material/ViewTimelineOutlined";
-import ExpandMoreOutlinedIcon from "@mui/icons-material/ExpandMoreOutlined";
-import EditIcon from "@mui/icons-material/Edit";
+
+import MobileFab from "./others/mobilefab";
+import MobileCategoryChanger from "./others/mobilecategorychanger";
 
 export default function PostList() {
   const [filter, setFilter] = useRecoilState(filter_);
-  const [category, setCategory] = useRecoilState(category_);
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const openMenu = Boolean(anchorEl);
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleMenuClose = (e) => {
-    console.log("e", e.target.innerText);
-    setAnchorEl(null);
-    setCategory(e.target.innerText);
-  };
+
   const handleFilterChange = (event, newAlignment) => {
     console.log("newAlignment", newAlignment);
     if (newAlignment) setFilter(newAlignment);
@@ -56,22 +43,7 @@ export default function PostList() {
       <Stack spacing={1}>
         {/* Mobile Head */}
         <Stack spacing={1} sx={{ display: { xs: "flex", md: "none" } }}>
-          <Snackbar
-            open={true}
-            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-            autoHideDuration={null}
-          >
-            <Box sx={{ "& > :not(style)": { m: 1 } }}>
-              <Fab
-                size="small"
-                variant="circular"
-                color="primary"
-                aria-label="edit"
-              >
-                <EditIcon />
-              </Fab>
-            </Box>
-          </Snackbar>
+          <MobileFab />
           <Stack spacing={2} direction="row">
             {/*  <Autocomplete
               disablePortal
@@ -148,38 +120,7 @@ export default function PostList() {
             /> */}
           </Stack>
           <Stack justifyContent="space-between" direction="row" spacing={2}>
-            <Stack>
-              <Button
-                id="basic-button"
-                aria-controls={openMenu ? "basic-menu" : undefined}
-                aria-haspopup="true"
-                aria-expanded={openMenu ? "true" : undefined}
-                onClick={handleClick}
-                // startIcon={<StartIcon />}
-                sx={{ "&.MuiButtonBase-root": { pl: 0 } }}
-                endIcon={
-                  <ExpandMoreOutlinedIcon
-                    sx={{
-                      transform: openMenu ? "rotate(180deg)" : "rotate(0deg)",
-                    }}
-                  />
-                }
-              >
-                {category}
-              </Button>
-              <Menu
-                id="basic-menu"
-                anchorEl={anchorEl}
-                open={openMenu}
-                onClose={handleMenuClose}
-                MenuListProps={{
-                  "aria-labelledby": "basic-button",
-                }}
-              >
-                <MenuItem onClick={handleMenuClose}>All Posts</MenuItem>
-                <MenuItem onClick={handleMenuClose}>My Timeline</MenuItem>
-              </Menu>
-            </Stack>
+            <MobileCategoryChanger />
             {/* <Button
               startIcon={<ContactSupportIcon />}
               disableElevation

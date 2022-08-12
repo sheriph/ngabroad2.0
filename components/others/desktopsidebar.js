@@ -18,6 +18,7 @@ import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import PostAddOutlinedIcon from "@mui/icons-material/PostAddOutlined";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
 
 const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
   "&.Mui-selected": {
@@ -48,43 +49,50 @@ export default function DesktopSideBar() {
       }}
     >
       <Stack>
-        <Stack>
-          <List dense component="nav" aria-label="category">
-            <Link href="/social">
-              <CustomListItemButton
-                selected={category === "All Posts"}
-                onClick={handleCategory}
-              >
-                <ListItemIcon>
-                  <HomeOutlinedIcon />
-                </ListItemIcon>
-                <ListItemText primary="All Posts" />
-              </CustomListItemButton>
-            </Link>
-            <Link href="/social">
-              <CustomListItemButton
-                selected={category === "My Timeline"}
-                onClick={handleCategory}
-              >
-                <ListItemIcon>
-                  <ViewTimelineOutlinedIcon />
-                </ListItemIcon>
-                <ListItemText primary="My Timeline" />
-              </CustomListItemButton>
-            </Link>
-          </List>
+        <List dense component="nav" aria-label="category">
+          <Link href="/social">
+            <CustomListItemButton
+              selected={category === "All Posts"}
+              onClick={handleCategory}
+            >
+              <ListItemIcon>
+                <HomeOutlinedIcon />
+              </ListItemIcon>
+              <ListItemText primary="All Posts" />
+            </CustomListItemButton>
+          </Link>
+          <Link href="/social">
+            <CustomListItemButton
+              selected={category === "My Timeline"}
+              onClick={handleCategory}
+            >
+              <ListItemIcon>
+                <ViewTimelineOutlinedIcon />
+              </ListItemIcon>
+              <ListItemText primary="My Timeline" />
+            </CustomListItemButton>
+          </Link>
+        </List>
 
-          <Divider sx={{ my: 2 }} />
+        <Divider sx={{ my: 2 }} />
 
-          <Button
-            startIcon={<ContactSupportIcon sx={{ mr: 3 }} />}
-            disableElevation
-            sx={{ justifyContent: "flex-start", pl: 3 }}
-            // variant="outlined"
-          >
-            Ask a Question
-          </Button>
-        </Stack>
+        <Button
+          startIcon={<ContactSupportIcon sx={{ mr: 3 }} />}
+          disableElevation
+          sx={{ justifyContent: "flex-start", pl: 3 }}
+          // variant="outlined"
+        >
+          Ask a Question
+        </Button>
+
+        <Button
+          startIcon={<AssignmentOutlinedIcon sx={{ mr: 3 }} />}
+          disableElevation
+          sx={{ justifyContent: "flex-start", pl: 3 }}
+          // variant="outlined"
+        >
+          Create a Post
+        </Button>
 
         {router.pathname !== "/social" && (
           <Button
