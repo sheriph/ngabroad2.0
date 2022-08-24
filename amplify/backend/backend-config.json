@@ -1,12 +1,15 @@
 {
   "auth": {
-    "ngav217a5d7898": {
+    "ngav21dda11bda": {
       "service": "Cognito",
       "providerPlugin": "awscloudformation",
       "dependsOn": [],
       "customAuth": false,
       "frontendAuthConfig": {
-        "socialProviders": [],
+        "socialProviders": [
+          "FACEBOOK",
+          "GOOGLE"
+        ],
         "usernameAttributes": [
           "EMAIL"
         ],
@@ -28,7 +31,7 @@
     }
   },
   "storage": {
-    "ngav21s3": {
+    "ngastorage": {
       "service": "S3",
       "providerPlugin": "awscloudformation",
       "dependsOn": []

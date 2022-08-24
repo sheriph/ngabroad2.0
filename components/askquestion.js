@@ -7,6 +7,7 @@ import {
   Checkbox,
   Divider,
   FormControlLabel,
+  Grid,
   Skeleton,
   Stack,
   TextField,
@@ -24,9 +25,10 @@ import { get, trim } from "lodash";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import axios from "axios";
-import { useSetRecoilState } from "recoil";
-import { isLoading_ } from "../lib/recoil";
+import { useRecoilState, useSetRecoilState } from "recoil";
+import { askQuestion_, isLoading_ } from "../lib/recoil";
 import SendOutlinedIcon from "@mui/icons-material/SendOutlined";
+import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 
 export default function AskQuestion() {
   const schema = Yup.object().shape({
@@ -55,6 +57,7 @@ export default function AskQuestion() {
   });
   const [termsDialog, setTermsDialog] = useState(false);
   const setLoading = useSetRecoilState(isLoading_);
+  const [askQuestion, setAddQuestion] = useRecoilState(askQuestion_);
 
   const onSubmit = async (data) => {
     console.log("data", data);
@@ -81,78 +84,100 @@ export default function AskQuestion() {
   console.log("eror", errors);
 
   return (
-    <Stack
-      sx={{ p: 2 }}
-      component="form"
-      onSubmit={handleSubmit(onSubmit)}
-      spacing={2}
-    >
-      <Typography textAlign="center" variant="h1">
-        Ask a Question
-      </Typography>
+    <Stack>
+      <Stack
+        color="primary"
+        sx={{ backgroundColor: "primary.main", py: 1, px: 2 }}
+        alignItems="center"
+        direction="row"
+      >
+        <Grid container alignItems="center">
+          <Grid item xs></Grid>
+          <Grid item xs="auto">
+            <Typography color="white" textAlign="center" variant="h1">
+              Ask a Question
+            </Typography>
+          </Grid>
+          <Grid
+          item
+            sx={{ cursor: "pointer" }}
+            onClick={() => setAddQuestion(false)}
+            xs
+            container
+            justifyContent="flex-end"
+          >
+            <CloseOutlinedIcon sx={{ color: "white" }} />
+          </Grid>
+        </Grid>
+      </Stack>
+      <Stack
+        sx={{ p: 2 }}
+        component="form"
+        onSubmit={handleSubmit(onSubmit)}
+        spacing={2}
+      >
+        <Alert severity="warning">
+          <AlertTitle>
+            Tips to writing a good question that get answered sooner
+          </AlertTitle>
+          <Stack component="ul">
+            <li>Summarise your question perfectly</li>
+            <li>Avoid spelling errors</li>
+            <li>Use correct grammar</li>
+            <li>
+              Use the search option to find similar question. Do not post
+              repeated questions. You may follow a similar question thread.
+            </li>
+          </Stack>
+        </Alert>
 
-      <Alert severity="warning">
-        <AlertTitle>
-          Tips to writing a good question that get answered sooner
-        </AlertTitle>
-        <Stack component="ul">
-          <li>Summarise your question perfectly</li>
-          <li>Avoid spelling errors</li>
-          <li>Use correct grammar</li>
-          <li>
-            Use the search option to find similar question. Do not post repeated
-            questions. You may follow a similar question thread.
-          </li>
-        </Stack>
-      </Alert>
+        <Controller
+          name="title"
+          defaultValue=""
+          control={control}
+          render={({ field }) => {
+            const { onChange, value, ...rest } = field;
+            return (
+              <TextField
+                {...rest}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                size="small"
+                fullWidth
+                multiline
+                minRows={3}
+                id="title"
+                placeholder="Start Typing ..."
+                variant="outlined"
+                required
+                inputProps={{ maxLength: 250 }}
+                sx={{
+                  [`& fieldset`]: {
+                    borderRadius: 1,
+                  },
+                }}
+                error={Boolean(errors?.title?.message)}
+                helperText={
+                  <Stack component="span" direction="row" spacing={2}>
+                    <Typography
+                      color={
+                        250 - watch("title").length < 21 ? "error" : "primary"
+                      }
+                      variant="caption"
+                    >
+                      Remaining : {250 - watch("title").length}
+                    </Typography>
+                    <Typography variant="caption">
+                      {get(errors, "title.message")}
+                    </Typography>
+                  </Stack>
+                }
+              />
+            );
+          }}
+        />
 
-      <Controller
-        name="title"
-        defaultValue=""
-        control={control}
-        render={({ field }) => {
-          const { onChange, value, ...rest } = field;
-          return (
-            <TextField
-              {...rest}
-              value={value}
-              onChange={(e) => onChange(e.target.value)}
-              size="small"
-              fullWidth
-              multiline
-              minRows={3}
-              id="title"
-              placeholder="Start Typing ..."
-              variant="outlined"
-              required
-              inputProps={{ maxLength: 250 }}
-              sx={{
-                [`& fieldset`]: {
-                  borderRadius: 1,
-                },
-              }}
-              error={Boolean(errors?.title?.message)}
-              helperText={
-                <Stack component="span" direction="row" spacing={2}>
-                  <Typography
-                    color={
-                      250 - watch("title").length < 21 ? "error" : "primary"
-                    }
-                    variant="caption"
-                  >
-                    Remaining : {250 - watch("title").length}
-                  </Typography>
-                  <Typography variant="caption">
-                    {get(errors, "title.message")}
-                  </Typography>
-                </Stack>
-              }
-            />
-          );
-        }}
-      />
-
-      {/* 
+        {/* 
       <Controller
         name="tags"
         defaultValue={[]}
@@ -226,7 +251,7 @@ export default function AskQuestion() {
         }}
       /> */}
 
-      {/*  <Controller
+        {/*  <Controller
         name="post"
         defaultValue=""
         control={control}
@@ -247,55 +272,56 @@ export default function AskQuestion() {
           );
         }}
       /> */}
-      <Stack justifyContent="space-between" direction="row">
-        <Controller
-          name="accept"
-          defaultValue={false}
-          control={control}
-          render={({ field }) => {
-            const { onChange, value, ...rest } = field;
-            return (
-              <Stack alignItems="center" spacing={1} direction="row">
-                <FormControlLabel
-                  {...rest}
-                  value={value}
-                  onChange={onChange}
-                  control={<Checkbox required />}
-                  label="I agree"
-                />
-                <HelpOutlineOutlinedIcon
-                  sx={{ cursor: "pointer" }}
-                  onClick={() => setTermsDialog(true)}
-                  fontSize="small"
-                  color="primary"
-                />
-              </Stack>
-            );
-          }}
-        />
-        <Button
-          endIcon={<SendOutlinedIcon />}
-          type="submit"
-          size="small"
-          variant="contained"
+        <Stack justifyContent="space-between" direction="row">
+          <Controller
+            name="accept"
+            defaultValue={false}
+            control={control}
+            render={({ field }) => {
+              const { onChange, value, ...rest } = field;
+              return (
+                <Stack alignItems="center" spacing={1} direction="row">
+                  <FormControlLabel
+                    {...rest}
+                    value={value}
+                    onChange={onChange}
+                    control={<Checkbox required />}
+                    label="I agree"
+                  />
+                  <HelpOutlineOutlinedIcon
+                    sx={{ cursor: "pointer" }}
+                    onClick={() => setTermsDialog(true)}
+                    fontSize="small"
+                    color="primary"
+                  />
+                </Stack>
+              );
+            }}
+          />
+          <Button
+            endIcon={<SendOutlinedIcon />}
+            type="submit"
+            size="small"
+            variant="contained"
+          >
+            Submit
+          </Button>
+        </Stack>
+        <GeneralDialog
+          open={termsDialog}
+          setOpen={setTermsDialog}
+          title="Posting Rules"
         >
-          Submit
-        </Button>
+          <ul>
+            <li>You should always post to educate</li>
+            <li>You should always post to educate</li>
+            <li>You should always post to educate</li>
+            <li>You should always post to educate</li>
+            <li>You should always post to educate</li>
+            <li>You should always post to educate</li>
+          </ul>
+        </GeneralDialog>
       </Stack>
-      <GeneralDialog
-        open={termsDialog}
-        setOpen={setTermsDialog}
-        title="Posting Rules"
-      >
-        <ul>
-          <li>You should always post to educate</li>
-          <li>You should always post to educate</li>
-          <li>You should always post to educate</li>
-          <li>You should always post to educate</li>
-          <li>You should always post to educate</li>
-          <li>You should always post to educate</li>
-        </ul>
-      </GeneralDialog>
     </Stack>
   );
 }

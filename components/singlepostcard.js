@@ -21,8 +21,11 @@ import BookmarkAddOutlinedIcon from "@mui/icons-material/BookmarkAddOutlined";
 import EditIcon from "@mui/icons-material/Edit";
 
 import ShareIcon from "@mui/icons-material/Share";
+import { useRecoilState } from "recoil";
+import { replyPost_ } from "../lib/recoil";
 
 export default function SinglePostCard({ post }) {
+  const [replyPost, setReplyPost] = useRecoilState(replyPost_);
   return (
     <Stack spacing={2} direction="row">
       <Stack>
@@ -131,7 +134,12 @@ export default function SinglePostCard({ post }) {
                 <ShareIcon fontSize="small" />
                 <Typography variant="caption">Share</Typography>
               </Stack>
-              <Stack sx={{ cursor: "pointer" }} spacing={1} direction="row">
+              <Stack
+                onClick={() => setReplyPost(true)}
+                sx={{ cursor: "pointer" }}
+                spacing={1}
+                direction="row"
+              >
                 <ReplyIcon fontSize="small" />
                 <Typography variant="caption">Reply</Typography>
               </Stack>
@@ -140,7 +148,15 @@ export default function SinglePostCard({ post }) {
                   sx={{ fontSize: "1rem" }}
                   fontSize="small"
                 />
-                <Typography variant="caption">Follow Thread</Typography>
+                <Typography
+                  onClick={() => {
+                    console.log("clicked ");
+                    //setReplyPost(true);
+                  }}
+                  variant="caption"
+                >
+                  Follow
+                </Typography>
               </Stack>
             </Stack>
           </Stack>

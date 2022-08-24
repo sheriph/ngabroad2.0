@@ -1,9 +1,11 @@
 import {
   Autocomplete,
   Avatar,
+  Breadcrumbs,
   Button,
   ButtonGroup,
   Divider,
+  Link,
   Menu,
   MenuItem,
   Stack,
@@ -17,6 +19,9 @@ import React, { useEffect, useState } from "react";
 import { Box } from "@mui/system";
 import SinglePostCard from "./singlepostcard";
 import MobileCategoryChanger from "./others/mobilecategorychanger";
+import { truncate } from "lodash";
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+
 
 export default function SingleQuestionCard() {
   return (
@@ -35,14 +40,29 @@ export default function SingleQuestionCard() {
           spacing={1}
           direction="row"
         >
-          <Typography>Back to :</Typography>
-          <MobileCategoryChanger />
+          {/* <Typography>Back to :</Typography>
+          <MobileCategoryChanger /> */}
+          <Breadcrumbs
+            separator={<NavigateNextIcon fontSize="small" />}
+            aria-label="breadcrumb"
+          >
+            <Link underline="hover" color="inherit" href="/forum">
+              Forum
+            </Link>
+            <Link
+              underline="hover"
+              color="black"
+              href="/material-ui/getting-started/installation/"
+            >
+              {truncate(text, { length: 20 })}
+            </Link>
+          </Breadcrumbs>
         </Stack>
-        <Divider
+        {/* <Divider
           sx={{ display: { xs: "block", md: "none" } }}
           orientation="horizontal"
           flexItem
-        />
+        /> */}
         <Stack
           divider={<Divider orientation="horizontal" flexItem />}
           spacing={3}

@@ -1,14 +1,16 @@
 import { Stack } from "@mui/material";
 import { Box } from "@mui/system";
 import Script from "next/script";
-import { useSetRecoilState } from "recoil";
-import { isLoading_ } from "../../lib/recoil";
+import { useRecoilState, useSetRecoilState } from "recoil";
+import { editorLoaded_, isLoading_ } from "../../lib/recoil";
 import { getAwsUrl } from "../../lib/utility";
 import React from "react";
 
 export default function Editor({ onChange, value }) {
   let editor;
-  const setLoading = useSetRecoilState(isLoading_);
+  const [editorLoaded, seteditorLoaded] = useRecoilState(editorLoaded_);
+
+  console.log("editorLoaded", editorLoaded);
 
   class MyUploadAdapter {
     constructor(loader) {
@@ -127,6 +129,36 @@ export default function Editor({ onChange, value }) {
     };
   }
 
+  const runCkEditor = () => {
+    // @ts-ignore
+    ClassicEditor.create(document.querySelector("#editor"), {
+      //  toolbar:[],
+      extraPlugins: [MyCustomUploadAdapterPlugin],
+      initialData: myData,
+    })
+      .then((newEditor) => {
+        editor = newEditor;
+        newEditor.model.document.on("change", () => {
+          console.log("The Document has changed!");
+          onChange(editor.getData());
+        });
+      })
+      .catch((error) => {
+        console.error(error);
+      })
+      .finally(() => {
+        console.log("done and style");
+      });
+
+    // Assuming there is a <button id="submit">Submit</button> in your application.
+    // document
+    //   .querySelector("#submit")
+    //   .addEventListener("click", onSubmit);
+  };
+
+  React.useEffect(() => {
+    if (editorLoaded) runCkEditor();
+  }, [null]);
   // const mydata = `<p>asdfd</p><blockquote><p>dfdffgffggfg</p></blockquote><figure class="image"><img src="https://ngav21e78a8b3cc4f543578f719d56dc031e1c170205-dev.s3.eu-west-2.amazonaws.com/public/WhatsApp+Image+2021-07-30+at+11.54.17+AM.jpeg"></figure><p>&nbsp;</p>`;
 
   return (
@@ -135,8 +167,12 @@ export default function Editor({ onChange, value }) {
         <Box id="editor"></Box>
         <Script
           src="https://cdn.ckeditor.com/ckeditor5/34.0.0/classic/ckeditor.js"
-          strategy="lazyOnload"
+          strategy="afterInteractive"
+          onError={(e) => {
+            console.error("Script failed to load", e);
+          }}
           onLoad={() => {
+            seteditorLoaded(true);
             // @ts-ignore
             ClassicEditor.create(document.querySelector("#editor"), {
               //  toolbar:[],

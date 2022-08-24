@@ -43,7 +43,7 @@ export default function PostList() {
       <Stack spacing={1}>
         {/* Mobile Head */}
         <Stack spacing={1} sx={{ display: { xs: "flex", md: "none" } }}>
-          <MobileFab />
+          {/* <MobileFab /> */}
           <Stack spacing={2} direction="row">
             {/*  <Autocomplete
               disablePortal

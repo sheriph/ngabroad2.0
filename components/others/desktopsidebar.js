@@ -12,7 +12,12 @@ import React from "react";
 import ContactSupportIcon from "@mui/icons-material/ContactSupport";
 import ViewTimelineOutlinedIcon from "@mui/icons-material/ViewTimelineOutlined";
 import { useRecoilState } from "recoil";
-import { category_ } from "../../lib/recoil";
+import {
+  addComment_,
+  addPost_,
+  askQuestion_,
+  category_,
+} from "../../lib/recoil";
 import { styled } from "@mui/styles";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import PostAddOutlinedIcon from "@mui/icons-material/PostAddOutlined";
@@ -32,7 +37,9 @@ const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
 export default function DesktopSideBar() {
   const [category, setCategory] = useRecoilState(category_);
   const router = useRouter();
-
+  const [askQuestion, setAddQuestion] = useRecoilState(askQuestion_);
+  const [addPost, setAddPost] = useRecoilState(addPost_);
+  const [addComment, setAddComment] = useRecoilState(addComment_);
   console.log("router", router.pathname);
 
   const handleCategory = (e) => {
@@ -50,7 +57,7 @@ export default function DesktopSideBar() {
     >
       <Stack>
         <List dense component="nav" aria-label="category">
-          <Link href="/social">
+          <Link href="/forum">
             <CustomListItemButton
               selected={category === "All Posts"}
               onClick={handleCategory}
@@ -61,7 +68,7 @@ export default function DesktopSideBar() {
               <ListItemText primary="All Posts" />
             </CustomListItemButton>
           </Link>
-          <Link href="/social">
+          <Link href="/forum">
             <CustomListItemButton
               selected={category === "My Timeline"}
               onClick={handleCategory}
@@ -81,6 +88,7 @@ export default function DesktopSideBar() {
           disableElevation
           sx={{ justifyContent: "flex-start", pl: 3 }}
           // variant="outlined"
+          onClick={() => setAddQuestion(true)}
         >
           Ask a Question
         </Button>
@@ -90,16 +98,18 @@ export default function DesktopSideBar() {
           disableElevation
           sx={{ justifyContent: "flex-start", pl: 3 }}
           // variant="outlined"
+          onClick={() => setAddPost(true)}
         >
           Create a Post
         </Button>
 
-        {router.pathname !== "/social" && (
+        {router.pathname !== "/forum" && (
           <Button
             startIcon={<PostAddOutlinedIcon sx={{ mr: 3 }} />}
             disableElevation
             sx={{ justifyContent: "flex-start", pl: 3 }}
             // variant="outlined"
+            onClick={() => setAddComment(true)}
           >
             Add Comment
           </Button>

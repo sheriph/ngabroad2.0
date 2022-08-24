@@ -36,8 +36,8 @@ export default function MobileCategoryChanger() {
     }
     setAnchorEl(null);
     setCategory(e.target.innerText);
-    if (router.pathname !== "/social") {
-      router.push("/social");
+    if (router.pathname !== "/forum") {
+      router.push("/forum");
     }
   };
 

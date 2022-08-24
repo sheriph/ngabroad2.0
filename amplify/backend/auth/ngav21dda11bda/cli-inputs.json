@@ -1,10 +1,10 @@
 {
   "version": "1",
   "cognitoConfig": {
-    "identityPoolName": "ngav217a5d7898_identitypool_7a5d7898",
+    "identityPoolName": "ngav21dda11bda_identitypool_dda11bda",
     "allowUnauthenticatedIdentities": true,
-    "resourceNameTruncated": "ngav217a5d7898",
-    "userPoolName": "ngav217a5d7898_userpool_7a5d7898",
+    "resourceNameTruncated": "ngav21dda11bda",
+    "userPoolName": "ngav21dda11bda_userpool_dda11bda",
     "autoVerifiedAttributes": [
       "email"
     ],
@@ -31,19 +31,26 @@
     "userpoolClientReadAttributes": [
       "email"
     ],
-    "userpoolClientLambdaRole": "ngav217a5d7898_userpoolclient_lambda_role",
+    "userpoolClientLambdaRole": "ngav21dda11bda_userpoolclient_lambda_role",
     "userpoolClientSetAttributes": false,
-    "sharedId": "7a5d7898",
-    "resourceName": "ngav217a5d7898",
+    "sharedId": "dda11bda",
+    "resourceName": "ngav21dda11bda",
     "authSelections": "identityPoolAndUserPool",
-    "useDefault": "default",
+    "useDefault": "defaultSocial",
+    "hostedUI": true,
     "usernameAttributes": [
       "email"
     ],
+    "hostedUIDomainName": "naijagoingabroad",
+    "authProvidersUserPool": [
+      "Facebook",
+      "Google"
+    ],
+    "hostedUIProviderMeta": "[{\"ProviderName\":\"Facebook\",\"authorize_scopes\":\"email,public_profile\",\"AttributeMapping\":{\"email\":\"email\",\"username\":\"id\"}},{\"ProviderName\":\"Google\",\"authorize_scopes\":\"openid email profile\",\"AttributeMapping\":{\"email\":\"email\",\"username\":\"sub\"}}]",
+    "oAuthMetadata": "{\"AllowedOAuthFlows\":[\"code\"],\"AllowedOAuthScopes\":[\"phone\",\"email\",\"openid\",\"profile\",\"aws.cognito.signin.user.admin\"],\"CallbackURLs\":[\"https://naijagoingabroad.com/signin/\"],\"LogoutURLs\":[\"https://naijagoingabroad.com/signout/\"]}",
     "userPoolGroupList": [],
     "serviceName": "Cognito",
-    "usernameCaseSensitive": false,
-    "useEnabledMfas": true,
+    "useEnabledMfas": false,
     "authRoleArn": {
       "Fn::GetAtt": [
         "AuthRole",
@@ -56,7 +63,7 @@
         "Arn"
       ]
     },
-    "breakCircularDependency": true,
+    "breakCircularDependency": false,
     "dependsOn": []
   }
 }

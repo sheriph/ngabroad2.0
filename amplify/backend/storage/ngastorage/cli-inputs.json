@@ -1,7 +1,7 @@
 {
-  "resourceName": "ngav21s3",
-  "policyUUID": "30d30947",
-  "bucketName": "ngav21e78a8b3cc4f543578f719d56dc031e1c",
+  "resourceName": "ngastorage",
+  "policyUUID": "551679b8",
+  "bucketName": "ngabucket",
   "storageAccess": "authAndGuest",
   "guestAccess": [
     "CREATE_AND_UPDATE",

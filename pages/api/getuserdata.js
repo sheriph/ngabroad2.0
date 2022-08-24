@@ -15,46 +15,25 @@ export default async function handler(req, res) {
     const { email } = req.body;
 
     await client.connect();
-    const filter = { "contact.email": email };
+    const filter = { email: email };
 
     const newUser = {
       createdAt: new Date(),
       lastSeen: new Date(),
       stats: {
-        upvotesCount: 0,
-        postsCount: 0,
-        commentsCount: 0,
-        downvotesCount: 0,
+        likes: 0,
+        dislikes: 0,
+        comments: 0,
+        questions: 0,
+        answers: 0,
+        posts: 0,
       },
-      dateModified: new Date("1900"),
-      contact: {
-        state: "",
-        country: "",
-        email: email,
-        phone: "",
-        twitter: "",
-        facebook: "",
-        instagram: "",
-      },
-      profile: {
-        fistName: "",
-        lastName: "",
-        avatar: "",
-        role: "",
-        nickname: "",
-        gender: "",
-        about: "",
-        profileType: "",
-      },
-      specialty: "",
-      job: {
-        field: "",
-        employer: "",
-      },
+      email: email,
+      role: "user",
     };
 
     if (process.env.NODE_ENV !== "development") {
-      await client.db("ngabroad").command({
+      await client.db("nga").command({
         collMod: "users",
         validator: userSchema,
         validationLevel: "strict",
@@ -63,13 +42,13 @@ export default async function handler(req, res) {
     }
 
     const upsert = await client
-      .db("ngabroad")
+      .db("nga")
       .collection("users")
       .updateOne(filter, { $setOnInsert: newUser }, { upsert: true });
     const userData = await client
-      .db("ngabroad")
+      .db("nga")
       .collection("users")
-      .findOne({ "contact.email": email });
+      .findOne({ email: email });
     console.log(
       "User Created successfully",
       upsert.matchedCount,

@@ -17,7 +17,12 @@ import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
 import { useRouter } from "next/router";
 import { useRecoilState, useSetRecoilState } from "recoil";
-import { addComment_, addPost_, askQuestion_ } from "../../lib/recoil";
+import {
+  addComment_,
+  addPost_,
+  askQuestion_,
+  replyPost_,
+} from "../../lib/recoil";
 
 export default function MobileFab() {
   const [open, setOpen] = React.useState(false);
@@ -26,19 +31,20 @@ export default function MobileFab() {
   const [askQuestion, setAddQuestion] = useRecoilState(askQuestion_);
   const [addPost, setAddPost] = useRecoilState(addPost_);
   const [addComment, setAddComment] = useRecoilState(addComment_);
+  const [replyPost, setReplyPost] = useRecoilState(replyPost_);
   const router = useRouter();
   const [openSnack, setOpenSnack] = React.useState(false);
 
   React.useEffect(() => {
-    if (askQuestion || addComment || addPost) {
+    if (askQuestion || addComment || addPost || replyPost) {
       setOpenSnack(false);
     } else {
       setOpenSnack(true);
     }
-  }, [askQuestion, addComment, addPost, open]);
+  }, [askQuestion, addComment, addPost, open, replyPost]);
 
   const actions =
-    router.pathname === "/social"
+    router.pathname === "/forum"
       ? [
           {
             icon: (
@@ -122,6 +128,7 @@ export default function MobileFab() {
         horizontal: "right",
       }}
       autoHideDuration={null}
+      sx={{ width: "fit-content", left: "auto" }}
     >
       <Box
         sx={{
@@ -150,6 +157,7 @@ export default function MobileFab() {
         >
           {actions.map((action) => (
             <SpeedDialAction
+              hidden={true}
               key={action.name}
               icon={action.icon}
               tooltipTitle={<></>}
@@ -159,7 +167,7 @@ export default function MobileFab() {
               FabProps={{
                 variant: "extended",
                 color: "primary",
-                sx: { textTransform: "none" },
+                sx: { textTransform: "none", display: open ? "flex" : "none" },
               }}
               sx={{
                 "span#SpeedDialcontrolledopenexample-action-1-label": {

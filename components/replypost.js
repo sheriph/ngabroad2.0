@@ -6,8 +6,11 @@ import {
   Button,
   Checkbox,
   Divider,
+  FormControl,
   FormControlLabel,
+  FormLabel,
   Grid,
+  RadioGroup,
   Skeleton,
   Stack,
   TextField,
@@ -26,16 +29,17 @@ import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import axios from "axios";
 import { useRecoilState, useSetRecoilState } from "recoil";
-import { addComment_, isLoading_ } from "../lib/recoil";
+import { isLoading_, replyPost_ } from "../lib/recoil";
 import SendOutlinedIcon from "@mui/icons-material/SendOutlined";
+import Radio from "@mui/material/Radio";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 
-export default function AddComment() {
+export default function ReplyPost() {
   const schema = Yup.object().shape({
     /* title: Yup.string()
-      .required("Please enter the title")
-      .min(50, "Question is too short")
-      .matches(/^[aA-zZ\s\d]+$/, "Only alphanumeric characters"), */
+        .required("Please enter the title")
+        .min(50, "Question is too short")
+        .matches(/^[aA-zZ\s\d]+$/, "Only alphanumeric characters"), */
     post: Yup.string()
       .required("Content is required")
       .min(20, "Comment is too short"),
@@ -50,11 +54,11 @@ export default function AddComment() {
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
-    defaultValues: { post: "", accept: false },
+    defaultValues: { post: "", accept: false, shouldQuote: false },
   });
   const [termsDialog, setTermsDialog] = useState(false);
   const setLoading = useSetRecoilState(isLoading_);
-  const [addComment, setAddComment] = useRecoilState(addComment_);
+  const [replyPost, setReplyPost] = useRecoilState(replyPost_);
 
   const onSubmit = async (data) => {
     console.log("data", data);
@@ -62,11 +66,11 @@ export default function AddComment() {
       setLoading(true);
       const { title, tags, post } = data;
       /*  const insert = await axios.post("/api/createpost", {
-          user,
-          title,
-          tags: tags.map((t) => t.name),
-          post,
-        }); */
+            user,
+            title,
+            tags: tags.map((t) => t.name),
+            post,
+          }); */
       // @ts-ignore
       // console.log("insert", insert.data);
       setLoading(false);
@@ -89,16 +93,15 @@ export default function AddComment() {
         direction="row"
       >
         <Grid container alignItems="center">
-          <Grid item xs></Grid>
-          <Grid item xs="auto">
+          <Grid xs></Grid>
+          <Grid xs="auto">
             <Typography color="white" textAlign="center" variant="h1">
-              Add Comment
+              Reply a Comment
             </Typography>
           </Grid>
           <Grid
-            item
             sx={{ cursor: "pointer" }}
-            onClick={() => setAddComment(false)}
+            onClick={() => setReplyPost(false)}
             xs
             container
             justifyContent="flex-end"
@@ -130,6 +133,43 @@ export default function AddComment() {
             <li>Avoid bullying and racial remarks</li>
           </Stack>
         </Alert>
+
+        <Controller
+          name="shouldQuote"
+          defaultValue={false}
+          control={control}
+          render={({ field }) => {
+            const { onChange, value, ...rest } = field;
+            return (
+              <FormControl>
+                <FormLabel id="demo-controlled-radio-buttons-group">
+                  Do you want to quote{" "}
+                  <Typography color="primary" component="span">
+                    @sheriph
+                  </Typography>
+                </FormLabel>
+                <RadioGroup
+                  aria-labelledby="demo-controlled-radio-buttons-group"
+                  name="controlled-radio-buttons-group"
+                  value={value}
+                  onChange={onChange}
+                  row
+                >
+                  <FormControlLabel
+                    value={true}
+                    control={<Radio />}
+                    label="Yes"
+                  />
+                  <FormControlLabel
+                    value={false}
+                    control={<Radio />}
+                    label="No"
+                  />
+                </RadioGroup>
+              </FormControl>
+            );
+          }}
+        />
 
         <Controller
           name="post"

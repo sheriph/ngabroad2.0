@@ -12,6 +12,8 @@ import Amplify, { Auth } from "aws-amplify";
 import { ToastContainer } from "react-toastify";
 import { RecoilRoot } from "recoil";
 import "../styles/global.css";
+import { Authenticator } from '@aws-amplify/ui-react';
+import "@aws-amplify/ui-react/styles.css";
 
 import config from "../src/aws-exports";
 
@@ -41,7 +43,9 @@ export default function MyApp(props) {
         <ToastContainer />
         <CssBaseline />
         <RecoilRoot>
-          <Component {...pageProps} />
+          <Authenticator.Provider>
+            <Component {...pageProps} />
+          </Authenticator.Provider>
         </RecoilRoot>
       </ThemeProvider>
     </CacheProvider>
