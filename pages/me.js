@@ -18,6 +18,7 @@ import PropTypes from "prop-types";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { useRecoilValue } from "recoil";
 import { isLoading_ } from "../lib/recoil";
+import Loading from "../components/others/loading";
 
 const MeComponent = dynamic(() => import("../components/mecomponent"), {
   ssr: false,
@@ -26,21 +27,9 @@ const MeComponent = dynamic(() => import("../components/mecomponent"), {
 const HeaderAppOffset = styled("div")(({ theme }) => theme.mixins.toolbar);
 
 export default function Me(props) {
-  const loading = useRecoilValue(isLoading_);
   return (
     <Container disableGutters>
-      {loading && (
-        <Stack
-          sx={{
-            width: "100%",
-            position: "sticky",
-            zIndex: 100000000000,
-            top: 0,
-          }}
-        >
-          <LinearProgress color="primary" />
-        </Stack>
-      )}
+      <Loading />
       <Stack id="headerId" spacing={1}>
         <Box component={Container}>
           <HeaderApp />

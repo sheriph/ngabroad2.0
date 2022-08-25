@@ -12,11 +12,10 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import useSWRImmutable from "swr/immutable";
+import useSWR from "swr";
 import React from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import UploadIcon from "@mui/icons-material/Upload";
-import useSWR, { useSWRConfig } from "swr";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, useForm } from "react-hook-form";
 import * as yup from "yup";
@@ -73,7 +72,7 @@ TextMaskCustom.propTypes = {
 export default function EditProfile() {
   const [loadingState, setLoading] = useRecoilState(isLoading_);
   const { user, loading, error, mutate } = useAuthUser();
-  const { data: usernames, error: usernamesError } = useSWRImmutable(
+  const { data: usernames, error: usernamesError } = useSWR(
     user?.username ? undefined : "/api/getusernames/",
     fetcher
   );

@@ -16,6 +16,7 @@ import MobileFab from "../components/others/mobilefab";
 import dynamic from "next/dynamic";
 import { styled } from "@mui/material/styles";
 import HeaderApp from "../components/header/headerapp";
+import Loading from "../components/others/loading";
 
 const SinglePostComponent = dynamic(
   () => import("../components/others/singlepostcomponent"),
@@ -24,10 +25,11 @@ const SinglePostComponent = dynamic(
 
 const HeaderAppOffset = styled("div")(({ theme }) => theme.mixins.toolbar);
 
-
 export default function Questions() {
   return (
     <Stack spacing={1}>
+      <Loading />
+
       <Box component={Container}>
         <HeaderApp />
         <HeaderAppOffset />

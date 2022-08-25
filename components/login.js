@@ -7,6 +7,7 @@ import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import { Authenticator } from "@aws-amplify/ui-react";
 import { toast } from "react-toastify";
 import { useSWRConfig } from "swr";
+import { useAuthenticator } from "@aws-amplify/ui-react";
 import "intersection-observer";
 import { useIsVisible } from "react-is-visible";
 import { get } from "lodash";
@@ -40,29 +41,32 @@ export default function Login() {
     },
   };
 
-  /* const signUpAttributes = [
-    "address",
-    "birthdate",
-    "email",
-    "family_name",
-    "gender",
-    "given_name",
-    "locale",
-    "middle_name",
-    "name",
-    "nickname",
-    "phone_number",
-    "picture",
-    "preferred_username",
-    "profile",
-    "updated_at",
-    "website",
-    "zoneinfo",
-  ]; */
+  const { authStatus, user } = useAuthenticator((context) => [
+    context.authStatus,
+  ]);
 
   const id = "toast-login";
 
   const { mutate } = useSWRConfig();
+
+  React.useEffect(() => {
+    console.log("authStatus", authStatus);
+    if (authStatus === "authenticated") {
+      console.log("mutating and closing authenticator");
+      mutate(
+        "/useAuthUser",
+        { email: get(user, "attributes.email", null) },
+        {
+          revalidate: true,
+          optimisticData: {
+            email: get(user, "attributes.email", null),
+          },
+          populateCache: true,
+        }
+      );
+      setLogin(false);
+    }
+  }, [authStatus]);
 
   return (
     <Stack>
@@ -91,30 +95,34 @@ export default function Login() {
           </Grid>
         </Grid>
       </Stack>
-      <Stack sx={{ p: 2 }} spacing={2}>
-        <Authenticator socialProviders={["google", "facebook"]}>
-          {({ signOut, user }) => {
-            toast.success("Welcome Back!!", {
-              toastId: id,
-              onOpen: () => {
-                mutate(
-                  "/useAuthUser",
-                  { email: get(user, "attributes.email", null) },
-                  {
-                    revalidate: true,
-                    optimisticData: {
-                      email: get(user, "attributes.email", null),
-                    },
-                    populateCache: true,
-                  }
-                );
-                setLogin(false);
-              },
-              position: "top-center",
-            });
-            return <Box>LOGGED IN</Box>;
-          }}
-        </Authenticator>
+      <Stack sx={{ p: 2, minHeight: "300px" }} spacing={2}>
+        {authStatus !== "authenticated" && (
+          <Authenticator socialProviders={["google", "facebook"]}>
+            {({ signOut, user }) => {
+              {
+                /* toast.success("Welcome Back!!", {
+                toastId: id,
+                onOpen: () => {
+                  mutate(
+                    "/useAuthUser",
+                    { email: get(user, "attributes.email", null) },
+                    {
+                      revalidate: true,
+                      optimisticData: {
+                        email: get(user, "attributes.email", null),
+                      },
+                      populateCache: true,
+                    }
+                  );
+                  setLogin(false);
+                },
+                position: "top-center",
+              }); */
+              }
+              return <Box>LOGGED IN</Box>;
+            }}
+          </Authenticator>
+        )}
       </Stack>
     </Stack>
   );
