@@ -10,13 +10,16 @@ import dayjs from "dayjs";
 import { lowerCase } from "lodash";
 import { startCase } from "lodash";
 import React from "react";
-import { useAuthUser } from "../../lib/utility";
+import useSWR from "swr";
+import { userFetcher } from "../../lib/utility";
 const advancedFormat = require("dayjs/plugin/advancedFormat");
 dayjs.extend(advancedFormat);
 
 export default function MeProfile() {
-  const { user, loading, error, mutate } = useAuthUser();
+  const { data: user, mutate, error } = useSWR("/useAuthUser", userFetcher, {});
+  const loading = !user && !error;
 
+  
   return (
     <TableContainer>
       <Table aria-label="simple table">

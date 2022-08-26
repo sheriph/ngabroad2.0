@@ -18,12 +18,13 @@ import { meCategory_ } from "../lib/recoil";
 import MeProfile from "./others/meprofile";
 import EditProfile from "./others/meeditprofile";
 import MeSecurity from "./others/mesecurity";
-import { useAuthUser } from "../lib/utility";
+import useSWR from "swr";
+import { userFetcher } from "../lib/utility";
 
 export default function MeComponent(props, context) {
   const meCategory = useRecoilValue(meCategory_);
-  const { user, loading, error, mutate } = useAuthUser();
-
+  const { data: user, mutate, error } = useSWR("/useAuthUser", userFetcher, {});
+  const loading = !user && !error;
   if (!user) {
     return <Stack></Stack>;
   }

@@ -26,7 +26,7 @@ import {
   countryCode,
   getAwsUrl,
   removeAwsUrl,
-  useAuthUser,
+  userFetcher,
 } from "../../lib/utility";
 import PropTypes from "prop-types";
 import { IMaskInput } from "react-imask";
@@ -71,7 +71,8 @@ TextMaskCustom.propTypes = {
 
 export default function EditProfile() {
   const [loadingState, setLoading] = useRecoilState(isLoading_);
-  const { user, loading, error, mutate } = useAuthUser();
+  const { data: user, mutate, error } = useSWR("/useAuthUser", userFetcher, {});
+  const loading = !user && !error;
   const { data: usernames, error: usernamesError } = useSWR(
     user?.username ? undefined : "/api/getusernames/",
     fetcher
