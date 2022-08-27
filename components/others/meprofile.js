@@ -11,13 +11,13 @@ import { lowerCase } from "lodash";
 import { startCase } from "lodash";
 import React from "react";
 import useSWR from "swr";
-import { userFetcher } from "../../lib/utility";
+import { useAuthUser } from "../../lib/utility";
 const advancedFormat = require("dayjs/plugin/advancedFormat");
 dayjs.extend(advancedFormat);
 
 export default function MeProfile() {
-  const { data: user, mutate, error } = useSWR("/useAuthUser", userFetcher, {});
-  const loading = !user && !error;
+  const { user, loading, error, mutate } = useAuthUser();
+
 
   
   return (

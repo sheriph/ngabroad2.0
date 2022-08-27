@@ -19,12 +19,12 @@ import MeProfile from "./others/meprofile";
 import EditProfile from "./others/meeditprofile";
 import MeSecurity from "./others/mesecurity";
 import useSWR from "swr";
-import { userFetcher } from "../lib/utility";
+import { useAuthUser } from "../lib/utility";
 
 export default function MeComponent(props, context) {
   const meCategory = useRecoilValue(meCategory_);
-  const { data: user, mutate, error } = useSWR("/useAuthUser", userFetcher, {});
-  const loading = !user && !error;
+  const { user, loading, error, mutate } = useAuthUser();
+
   if (!user) {
     return <Stack></Stack>;
   }

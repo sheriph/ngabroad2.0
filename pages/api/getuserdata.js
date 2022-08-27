@@ -11,7 +11,6 @@ const client = new MongoClient(uri, clientOptions);
 
 export default async function handler(req, res) {
   try {
-    console.log(`req.body`, req.body);
     const { email } = req.body;
 
     await client.connect();
@@ -49,11 +48,6 @@ export default async function handler(req, res) {
       .db("nga")
       .collection("users")
       .findOne({ email: email });
-    console.log(
-      "User Created successfully",
-      upsert.matchedCount,
-      upsert.upsertedCount
-    );
     res.status(200).json(userData);
   } catch (error) {
     res.status(400).json(error.message);

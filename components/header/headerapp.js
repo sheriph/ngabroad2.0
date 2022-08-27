@@ -23,10 +23,10 @@ import { useRecoilState } from "recoil";
 import { login_ } from "../../lib/recoil";
 import useSWR from "swr";
 import { Auth } from "aws-amplify";
-import { userFetcher } from "../../lib/utility";
 import AccountMenu from "./accountmenu";
 import OtherMenu from "./othermenu";
 import ForumIcon from "@mui/icons-material/Forum";
+import { useAuthUser } from "../../lib/utility";
 
 function HideOnScroll(props) {
   const { children, window } = props;
@@ -55,10 +55,7 @@ HideOnScroll.propTypes = {
 
 export default function HeaderApp(props) {
   const [login, setLogin] = useRecoilState(login_);
-
-  const { data: user, mutate, error } = useSWR("/useAuthUser", userFetcher, {});
-  const loading = !user && !error;
-
+  const { user, loading, error, mutate } = useAuthUser();
 
   return (
     <HideOnScroll {...props}>

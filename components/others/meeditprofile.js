@@ -21,13 +21,7 @@ import { Controller, useForm } from "react-hook-form";
 import * as yup from "yup";
 import axios from "axios";
 import { forIn, get, trim } from "lodash";
-import {
-  countries,
-  countryCode,
-  getAwsUrl,
-  removeAwsUrl,
-  userFetcher,
-} from "../../lib/utility";
+import { getAwsUrl, removeAwsUrl, useAuthUser } from "../../lib/utility";
 import PropTypes from "prop-types";
 import { IMaskInput } from "react-imask";
 import SaveIcon from "@mui/icons-material/Save";
@@ -71,8 +65,8 @@ TextMaskCustom.propTypes = {
 
 export default function EditProfile() {
   const [loadingState, setLoading] = useRecoilState(isLoading_);
-  const { data: user, mutate, error } = useSWR("/useAuthUser", userFetcher, {});
-  const loading = !user && !error;
+  const { user, loading, error, mutate } = useAuthUser();
+
   const { data: usernames, error: usernamesError } = useSWR(
     user?.username ? undefined : "/api/getusernames/",
     fetcher

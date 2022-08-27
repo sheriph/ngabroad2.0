@@ -1,5 +1,6 @@
 import { MongoClient, ServerApiVersion } from "mongodb";
 import { postSchema } from "../../lib/mongodb/schema";
+import { seoSlug } from "../../lib/utility";
 const ObjectID = require("mongodb").ObjectId;
 const uri = process.env.MONGODB_URI;
 const clientOptions = {
@@ -11,50 +12,40 @@ const clientOptions = {
 const client = new MongoClient(uri, clientOptions);
 
 export default async function handler(req, res) {
-  const required = [
-    "content",
-    "tags",
-    "title",
-    "commentsCount",
-    "createdAt",
-    "downvotesCount",
-    "slug",
-    "upvotesCount",
-    "user_id",
-    "viewsCount",
-  ];
-
   try {
-    const { user, title, tags, post } = req.body;
+    const { user_id, title, countries, otherTags, content } = req.body;
+    const slug = seoSlug(title);
+    console.log("slug", slug);
     const newPost = {
-      approved: true,
-      commentsCount: 0,
-      content: post,
+      title: title,
+      user_id: new ObjectID(user_id),
+      content: content,
       createdAt: new Date(),
-      downvotesCount: 0,
-      slug: `${title.toLocaleLowerCase().replaceAll(" ", "-")}-${Math.floor(
-        Math.random() * 100
-      )}`,
-      tags: tags,
-      title: title.toLocaleLowerCase(),
-      upvotesCount: 0,
-      user_id: new ObjectID(user._id),
-      viewsCount: 0,
+      updatedAts: [],
+      approves: [],
+      slug: slug,
+      stats: { votes: [], shares: [], views: [], comments: [], follows: [] },
+      tags: { otherTags: [...otherTags], countries: [...countries] },
     };
 
     await client.connect();
     if (process.env.NODE_ENV === "development") {
       console.log("adding validation");
-      await client.db("ngabroad").command({
+      await client.db("nga").command({
         collMod: "posts",
         validator: postSchema,
         validationLevel: "strict",
         validationAction: "error",
       });
+
+      await client
+        .db("nga")
+        .collection("posts")
+        .createIndex({ title: 1, slug: 1 }, { unique: true });
     }
 
     const insert = await client
-      .db("ngabroad")
+      .db("nga")
       .collection("posts")
       .insertOne(newPost);
 

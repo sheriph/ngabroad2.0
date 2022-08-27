@@ -32,9 +32,6 @@ const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
 }));
 
 export default function SinglePostComponent() {
-
-
-
   return (
     <Stack sx={{ p: { xs: 1, sm: 2 } }} direction="row" spacing={2}>
       <DesktopSideBar />
