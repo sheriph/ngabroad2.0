@@ -6,6 +6,8 @@ import {
   Divider,
   Fab,
   Grid,
+  Link,
+  Skeleton,
   Stack,
   Typography,
 } from "@mui/material";
@@ -14,18 +16,144 @@ import CommentIcon from "@mui/icons-material/Comment";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import ThumbDownIcon from "@mui/icons-material/ThumbDown";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { LinkTypography } from "../lib/utility";
+import {
+  capitalizeName,
+  getUsername,
+  LinkTypography,
+  useAuthUser,
+  useHost,
+} from "../lib/utility";
 import ReplyIcon from "@mui/icons-material/Reply";
 import BookmarkAddOutlinedIcon from "@mui/icons-material/BookmarkAddOutlined";
-
+import useSWRImmutable from "swr/immutable";
+import ReactHtmlParser, { processNodes } from "react-html-parser";
+import Image from "next/image";
 import EditIcon from "@mui/icons-material/Edit";
-
 import ShareIcon from "@mui/icons-material/Share";
 import { useRecoilState } from "recoil";
-import { replyPost_ } from "../lib/recoil";
+import {
+  addPost_,
+  postReplyData_,
+  replyPost_,
+  updatePost_,
+} from "../lib/recoil";
+import { get, isNumber, lowerCase, startCase, truncate } from "lodash";
+import dayjs from "dayjs";
+import axios from "axios";
+import { useRouter } from "next/router";
+import QuoteReadMore from "./others/quotereadmore";
 
-export default function SinglePostCard({ post }) {
+const advancedFormat = require("dayjs/plugin/advancedFormat");
+
+dayjs.extend(advancedFormat);
+
+export default function SinglePostCard({
+  post,
+  parentPost_id,
+  isComment = false,
+}) {
+  const { user, loading, error, mutate } = useAuthUser();
   const [replyPost, setReplyPost] = useRecoilState(replyPost_);
+  const likes = get(post, "stats.votes", new Array()).filter(
+    (vote) => vote.status
+  ).length;
+
+  const dislikes = get(post, "stats.votes", new Array()).filter(
+    (vote) => !vote.status
+  ).length;
+
+  const shares = get(post, "stats.shares", new Array()).length;
+
+  const [postReplyData, setPostReplyData] = useRecoilState(postReplyData_);
+  const [updatePost, setUpdatePost] = useRecoilState(updatePost_);
+  const [addPost, setAddPost] = useRecoilState(addPost_);
+
+  const { data: username } = useSWRImmutable(post.user_id, getUsername);
+  const { data: quoteUsername } = useSWRImmutable(
+    get(post, "quote.user_id", ""),
+    getUsername
+  );
+
+  const transform = (node, index) => {
+    if (node.type === "tag" && node.name === "h2") {
+      return (
+        <Typography
+          sx={{ my: "15px" }}
+          variant="h2"
+          align="center"
+          component="h2"
+          key={index}
+        >
+          {processNodes(node.children, transform)}
+        </Typography>
+      );
+    }
+
+    if (node.type === "tag" && node.name === "p") {
+      return (
+        <Typography component="p" key={index}>
+          {processNodes(node.children, transform)}
+        </Typography>
+      );
+    }
+
+    if (node.type === "tag" && node.name === "img") {
+      const { src, alt, width, height } = node.attribs;
+      return (
+        <Box
+          sx={{
+            my: 2,
+            width: "70%",
+            height: "70%",
+            mx: "auto",
+          }}
+          display="block"
+          justifyContent="center"
+          key={index}
+        >
+          <Image
+            src={src}
+            alt={alt}
+            width="100%"
+            height="100%"
+            layout="responsive"
+          />
+        </Box>
+      );
+    }
+  };
+
+  const options = {
+    decodeEntities: true,
+    transform,
+  };
+
+  const showReply = () => {
+    setPostReplyData({
+      quotedUser_id: post.user_id,
+      quotedPostContent: post.content,
+      parentPost_id,
+      postTitle: post.title,
+      post: post,
+      isComment: isComment,
+    });
+    setReplyPost(true);
+  };
+
+  const showUpdate = () => {
+    setUpdatePost(true);
+    setPostReplyData({
+      parentPost_id: "",
+      post: post,
+      postTitle: "",
+      quotedPostContent: "",
+      quotedUser_id: "",
+      isComment: isComment,
+    });
+    setAddPost(true);
+  };
+
+  console.log("post", post);
   return (
     <Stack spacing={2} direction="row">
       <Stack>
@@ -41,101 +169,80 @@ export default function SinglePostCard({ post }) {
             variant="h1"
             textAlign="left"
           >
-            Making sense of principal component analysis, eigenvectors &
-            eigenvalues
+            {isComment && `Re:`} {capitalizeName(post.title)}
           </Typography>
-          <Typography>
-            In today's pattern recognition class my professor talked about PCA,
-            eigenvectors and eigenvalues. I understood the mathematics of it. If
-            I'm asked to find eigenvalues etc. I'll do it correctly like ... I
-            am an instructor in a STEM field. I am teaching an upper-division
-            course where I try to interact with the students rather than just
-            lecturing. I am teaching in the students' native language; there do
-            not seem to be any language issues. I am struggling because the
-            students tend to give wrong answers to simple questions I ask during
-            lectures. These really are simple questions; they should have
-            learned this material during the first few weeks of their first
-            year. To make matters clear, let me give an example. If we are in
-            the middle of a proof, I might ask "what is the result of log (a *
-            b)?". The right answer is "log(a) + log(b)", however, they will say
-            "log(a) * log (b)" as an answer. Then, I did not see any other way
-            and would say "no guys, it is log(a)+log(b)." Situations like this
-            repeated over the entire semester. Students complained to my boss
-            and in the student evaluation that I was demeaning them and that I
-            was upset when they answered something other than the answer I
-            wanted to. I will teach some of these students next year in another
-            course and I have a hard time trying to find a way to solve this
-            issue. The only solution I see for this is to just lecture and not
-            encourage participation in class. However, I was wondering if there
-            would be any other wiser solution. Tips from here are good, but
-            instead of a colleague, I'm dealing with students. Edit: This is
-            actually an upper-division chemistry course. The situation above
-            arises, for example, when I have to explain why pH + pOH = 14.
-            Students should have learned that in general chemistry, but I like
-            to derive it to remind them. When I perform the derivation, I start
-            from the auto-ionization of water and eventually arrive at: 14 =
-            -log ([H3O+][OH-]). Then I ask them how to simplify this in order to
-            complete the proof. But they do not remember the properties of logs.
-            I am an instructor in a STEM field. I am teaching an upper-division
-            course where I try to interact with the students rather than just
-            lecturing. I am teaching in the students' native language; there do
-            not seem to be any language issues. I am struggling because the
-            students tend to give wrong answers to simple questions I ask during
-            lectures. These really are simple questions; they should have
-            learned this material during the first few weeks of their first
-            year. To make matters clear, let me give an example. If we are in
-            the middle of a proof, I might ask "what is the result of log (a *
-            b)?". The right answer is "log(a) + log(b)", however, they will say
-            "log(a) * log (b)" as an answer. Then, I did not see any other way
-            and would say "no guys, it is log(a)+log(b)." Situations like this
-            repeated over the entire semester. Students complained to my boss
-            and in the student evaluation that I was demeaning them and that I
-            was upset when they answered something other than the answer I
-            wanted to. I will teach some of these students next year in another
-            course and I have a hard time trying to find a way to solve this
-            issue. The only solution I see for this is to just lecture and not
-            encourage participation in class. However, I was wondering if there
-            would be any other wiser solution. Tips from here are good, but
-            instead of a colleague, I'm dealing with students. Edit: This is
-            actually an upper-division chemistry course. The situation above
-            arises, for example, when I have to explain why pH + pOH = 14.
-            Students should have learned that in general chemistry, but I like
-            to derive it to remind them. When I perform the derivation, I start
-            from the auto-ionization of water and eventually arrive at: 14 =
-            -log ([H3O+][OH-]). Then I ask them how to simplify this in order to
-            complete the proof. But they do not remember the properties of logs.
-          </Typography>
+          <Stack>
+            {isComment && get(post, "quote.content", "") && (
+              <Stack
+                sx={{
+                  borderLeftStyle: "solid",
+                  borderLeftColor: "primary.main",
+                  borderLeftWidth: "5px",
+                  pl: "10px",
+                  // ml: "5px",
+                  fontStyle: "italic",
+                  mb: 2,
+                }}
+              >
+                {quoteUsername ? (
+                  <Link
+                    href={`/${quoteUsername}`}
+                    variant="caption"
+                    underline="always"
+                  >
+                    {`@${quoteUsername}:`}
+                  </Link>
+                ) : (
+                  <Skeleton variant="text">
+                    <LinkTypography>By Adeniyi Sheriff</LinkTypography>
+                  </Skeleton>
+                )}
+                <QuoteReadMore content={get(post, "quote.content", "")} />
+              </Stack>
+            )}
+            <Box>{ReactHtmlParser(post.content, options)}</Box>
+          </Stack>
           <Stack spacing={1} sx={{ mt: 2 }}>
             <Stack
               divider={<MoreVertIcon sx={{ fontSize: "1rem" }} />}
               direction="row"
               spacing={1}
             >
+              {username ? (
+                <Link
+                  href={`/${username}`}
+                  variant="caption"
+                  underline="always"
+                >
+                  {`@${username}`}
+                </Link>
+              ) : (
+                <Skeleton variant="text">
+                  <LinkTypography>By Adeniyi Sheriff</LinkTypography>
+                </Skeleton>
+              )}
               <LinkTypography variant="caption">
-                By Sheriff Adeniyi
-              </LinkTypography>
-              <LinkTypography variant="caption">
-                Sep 5, 2022 at 10:25pm
+                {dayjs(post.createdAt).format("Do MMMM, YYYY")}
               </LinkTypography>
             </Stack>
             <Stack spacing={1} direction="row">
               <Stack sx={{ cursor: "pointer" }} spacing={1} direction="row">
                 <ThumbUpAltIcon fontSize="small" />
-                <Typography variant="caption">1240</Typography>
+                <Typography variant="caption">{likes}</Typography>
               </Stack>
               <Stack sx={{ cursor: "pointer" }} spacing={1} direction="row">
                 <ThumbDownIcon
                   sx={{ transform: "rotateY(180deg)" }}
                   fontSize="small"
                 />
-                <Typography variant="caption">1240</Typography>
+                <Typography variant="caption">{dislikes}</Typography>
               </Stack>
               <Stack sx={{ cursor: "pointer" }} spacing={1} direction="row">
                 <ShareIcon fontSize="small" />
                 <Typography variant="caption">Share</Typography>
               </Stack>
               <Stack
-                onClick={() => setReplyPost(true)}
+                onClick={showReply}
                 sx={{ cursor: "pointer" }}
                 spacing={1}
                 direction="row"
@@ -159,6 +266,20 @@ export default function SinglePostCard({ post }) {
                 </Typography>
               </Stack>
             </Stack>
+            <Divider />
+            {user && user._id === post.user_id ? (
+              <React.Fragment>
+                <Stack direction="row" spacing={2}>
+                  <LinkTypography onClick={showUpdate} variant="caption">
+                    Edit Post
+                  </LinkTypography>
+                  <LinkTypography variant="caption">Delete Post</LinkTypography>
+                </Stack>
+                <Divider />
+              </React.Fragment>
+            ) : (
+              ""
+            )}
           </Stack>
         </Stack>
       </Stack>
