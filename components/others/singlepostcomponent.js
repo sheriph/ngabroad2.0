@@ -19,8 +19,8 @@ import {
 import React, { useEffect } from "react";
 
 import { styled } from "@mui/styles";
-import SingleQuestionCard from "../singlequestioncard";
 import DesktopSideBar from "./desktopsidebar";
+import PostsCard from "../postscard";
 
 const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
   "&.Mui-selected": {
@@ -31,10 +31,10 @@ const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
   },
 }));
 
-export default function SinglePostComponent() {
+export default function SinglePostComponent({ post, comments }) {
   return (
     <Stack sx={{ p: { xs: 1, sm: 2 } }} direction="row" spacing={2}>
-      <DesktopSideBar />
+      <DesktopSideBar post={post} />
       <Divider
         sx={{
           position: "relative",
@@ -45,7 +45,7 @@ export default function SinglePostComponent() {
         orientation="vertical"
         flexItem
       />
-      <SingleQuestionCard />
+      <PostsCard comments={comments} post={post} />
     </Stack>
   );
 }

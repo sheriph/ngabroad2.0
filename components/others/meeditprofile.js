@@ -63,7 +63,7 @@ TextMaskCustom.propTypes = {
   onChange: PropTypes.func.isRequired,
 };
 
-export default function EditProfile() {
+export default function EditProfile({ alert }) {
   const [loadingState, setLoading] = useRecoilState(isLoading_);
   const { user, loading, error, mutate } = useAuthUser();
 
@@ -194,6 +194,10 @@ export default function EditProfile() {
       setLoading(false);
     }
   }, [loading]);
+
+  React.useEffect(() => {
+    if (alert) trigger();
+  }, [null]);
 
   return (
     <Stack

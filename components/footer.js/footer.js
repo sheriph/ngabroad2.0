@@ -1,5 +1,12 @@
 import React from "react";
-import { Box, Dialog, IconButton, Stack, useMediaQuery } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Dialog,
+  IconButton,
+  Stack,
+  useMediaQuery,
+} from "@mui/material";
 import Image from "next/image";
 import { useRecoilState } from "recoil";
 import {
@@ -8,6 +15,7 @@ import {
   askQuestion_,
   login_,
   replyPost_,
+  updateProfile_,
 } from "../../lib/recoil";
 import AskQuestion from "../askquestion";
 import { useTheme } from "@mui/material/styles";
@@ -15,18 +23,34 @@ import CreatePost from "../createapost";
 import AddComment from "../addcomment";
 import ReplyPost from "../replypost";
 import Login from "../login";
+import EditProfile from "../../components/others/meeditprofile";
+import { useAuthUser } from "../../lib/utility";
 
 export default function Footer() {
+  const { user, loading, error, mutate } = useAuthUser();
   const [askQuestion, setAddQuestion] = useRecoilState(askQuestion_);
   const [addPost, setAddPost] = useRecoilState(addPost_);
   const [addComment, setAddComment] = useRecoilState(addComment_);
   const [replyPost, setReplyPost] = useRecoilState(replyPost_);
   const [login, setLogin] = useRecoilState(login_);
+  const [updateProfile, setUpdateProfile_] = useRecoilState(updateProfile_);
+  const [showAlert, setShowAlert] = React.useState(false);
 
+  console.log("user footer", user);
 
-  
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
+
+  React.useEffect(() => {
+    if (
+      user &&
+      Boolean(!user?.firstName || !user?.lastName || !user?.username)
+    ) {
+      setShowAlert(true);
+    } else {
+      setShowAlert(false);
+    }
+  }, [user?.firstName, user?.lastName, user?.username]);
 
   return (
     <Stack>
@@ -45,9 +69,24 @@ export default function Footer() {
           "&.MuiModal-root.MuiDialog-root": { zIndex: 1402 },
         }}
         fullScreen={fullScreen}
+        open={showAlert}
+      >
+        <Stack spacing={1} sx={{ p: 2 }}>
+          <Alert severity="success">
+            We are happy to welcome you as a new member of this community.
+            Please complete your profile to start using your account.
+          </Alert>
+          <EditProfile alert={true} />
+        </Stack>
+      </Dialog>
+      <Dialog
+        sx={{
+          "&.MuiModal-root.MuiDialog-root": { zIndex: 1402 },
+        }}
+        fullScreen={fullScreen}
         open={askQuestion}
         onClose={() => setAddQuestion(false)}
-       // keepMounted={true}
+        // keepMounted={true}
       >
         <AskQuestion />
       </Dialog>

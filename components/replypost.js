@@ -14,75 +14,92 @@ import {
   Skeleton,
   Stack,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import Editor from "./others/editor";
-import { countries, getAwsUrl, postTags, useUser, Wait } from "../lib/utility";
+import {
+  countries,
+  getAwsUrl,
+  HtmlTooltip,
+  LinkTypography,
+  postTags,
+  useAuthUser,
+  useHost,
+  useUser,
+  Wait,
+} from "../lib/utility";
 import GeneralDialog from "./others/generaldialog";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import Script from "next/script";
 import { toast } from "react-toastify";
 import { Controller, useForm } from "react-hook-form";
-import { get, trim, truncate } from "lodash";
+import { get, lowerCase, startCase, trim, truncate } from "lodash";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import axios from "axios";
 import { useRecoilState, useSetRecoilState } from "recoil";
-import { isLoading_, replyPost_ } from "../lib/recoil";
+import { isLoading_, postReplyData_, replyPost_ } from "../lib/recoil";
 import SendOutlinedIcon from "@mui/icons-material/SendOutlined";
 import Radio from "@mui/material/Radio";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 
 export default function ReplyPost() {
   const schema = Yup.object().shape({
-    /* title: Yup.string()
-        .required("Please enter the title")
-        .min(50, "Question is too short")
-        .matches(/^[aA-zZ\s\d]+$/, "Only alphanumeric characters"), */
-    post: Yup.string()
+    content: Yup.string()
       .required("Content is required")
       .min(20, "Comment is too short"),
   });
 
+  const [postReplyData, setPostReplyData] = useRecoilState(postReplyData_);
+  const { quotedUser_id, quotedPostContent, parentPost_id, postTitle } =
+    postReplyData;
+
   const {
     handleSubmit,
     control,
-    setValue,
-    getValues,
-    watch,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm({
     resolver: yupResolver(schema),
-    defaultValues: { post: "", accept: false, shouldQuote: false },
+    defaultValues: { content: ``, accept: false },
   });
   const [termsDialog, setTermsDialog] = useState(false);
-  const setLoading = useSetRecoilState(isLoading_);
+  const [loading, setLoading] = useRecoilState(isLoading_);
   const [replyPost, setReplyPost] = useRecoilState(replyPost_);
+  const { user, loading: userLoaing, error, mutate } = useAuthUser();
+
+  console.log("postReplyData", postReplyData);
 
   const onSubmit = async (data) => {
     console.log("data", data);
+    const { content } = data;
     try {
-      setLoading(true);
-      const { title, tags, post } = data;
-      /*  const insert = await axios.post("/api/createpost", {
-            user,
-            title,
-            tags: tags.map((t) => t.name),
-            post,
-          }); */
+      //  setLoading(true);
       // @ts-ignore
-      // console.log("insert", insert.data);
-      setLoading(false);
+      await toast.promise(
+        axios.post("/api/createpostcomment", {
+          content: content,
+          post_id: parentPost_id,
+          user_id: user._id,
+          title: postTitle,
+          quotedUser_id: quotedUser_id,
+          quotedPostContent: quotedPostContent,
+        }),
+        {
+          success: "Comment posted succesfully",
+          error: "Error encountered, try again",
+          pending: "Posting comment in progress ...",
+        }
+      );
+      //   setLoading(false);
     } catch (error) {
       console.log(error.response.data);
-      setLoading(false);
+      //    setLoading(false);
     }
   };
 
-  //console.log('watch("tags"', watch("tags"));
-
-  console.log("eror", errors);
+  console.log("errors", errors);
 
   return (
     <Stack>
@@ -94,15 +111,19 @@ export default function ReplyPost() {
       >
         <Grid container alignItems="center">
           <Grid xs></Grid>
-          <Grid xs="auto">
+          <Grid item xs="auto">
             <Typography color="white" textAlign="center" variant="h1">
-              Reply a Comment
+              Re :{" "}
+              {truncate(startCase(lowerCase(postTitle)), {
+                length: 40,
+              })}
             </Typography>
           </Grid>
           <Grid
             sx={{ cursor: "pointer" }}
             onClick={() => setReplyPost(false)}
             xs
+            item
             container
             justifyContent="flex-end"
           >
@@ -116,13 +137,6 @@ export default function ReplyPost() {
         onSubmit={handleSubmit(onSubmit)}
         spacing={2}
       >
-        <Typography textAlign="center" variant="h1">
-          Re :{" "}
-          {truncate("How can I play a vital role in my place of work", {
-            length: 40,
-          })}
-        </Typography>
-
         <Alert severity="warning">
           <AlertTitle>Tips to writing a good comment</AlertTitle>
           <Stack component="ul">
@@ -135,44 +149,7 @@ export default function ReplyPost() {
         </Alert>
 
         <Controller
-          name="shouldQuote"
-          defaultValue={false}
-          control={control}
-          render={({ field }) => {
-            const { onChange, value, ...rest } = field;
-            return (
-              <FormControl>
-                <FormLabel id="demo-controlled-radio-buttons-group">
-                  Do you want to quote{" "}
-                  <Typography color="primary" component="span">
-                    @sheriph
-                  </Typography>
-                </FormLabel>
-                <RadioGroup
-                  aria-labelledby="demo-controlled-radio-buttons-group"
-                  name="controlled-radio-buttons-group"
-                  value={value}
-                  onChange={onChange}
-                  row
-                >
-                  <FormControlLabel
-                    value={true}
-                    control={<Radio />}
-                    label="Yes"
-                  />
-                  <FormControlLabel
-                    value={false}
-                    control={<Radio />}
-                    label="No"
-                  />
-                </RadioGroup>
-              </FormControl>
-            );
-          }}
-        />
-
-        <Controller
-          name="post"
+          name="content"
           defaultValue=""
           control={control}
           render={({ field }) => {
@@ -180,13 +157,13 @@ export default function ReplyPost() {
             return (
               <Box
                 sx={{
-                  border: errors?.post ? "1px solid" : "none",
+                  border: errors?.content ? "1px solid" : "none",
                   borderColor: "error.main",
                 }}
               >
                 <Editor onChange={onChange} value={value} />
                 <Typography color="error" variant="caption">
-                  {get(errors, "post.message")}
+                  {get(errors, "content.message")}
                 </Typography>
               </Box>
             );
@@ -202,19 +179,29 @@ export default function ReplyPost() {
               const { onChange, value, ...rest } = field;
               return (
                 <Stack alignItems="center" spacing={1} direction="row">
-                  <FormControlLabel
-                    {...rest}
-                    value={value}
-                    onChange={onChange}
-                    control={<Checkbox required />}
-                    label="I agree"
-                  />
-                  <HelpOutlineOutlinedIcon
-                    sx={{ cursor: "pointer" }}
-                    onClick={() => setTermsDialog(true)}
-                    fontSize="small"
-                    color="primary"
-                  />
+                  <HtmlTooltip
+                    title={
+                      <React.Fragment>
+                        <Typography>Terms of Posting</Typography>
+                        <Divider />
+                        <Typography sx={{ ml: -3 }} component="ul">
+                          <li>abdudhsdosdjoisdjoi</li>
+                          <li>abdudhsdosdjoisdjoi</li>
+                          <li>abdudhsdosdjoisdjoi</li>
+                          <li>abdudhsdosdjoisdjoi</li>
+                        </Typography>
+                      </React.Fragment>
+                    }
+                    arrow
+                  >
+                    <FormControlLabel
+                      {...rest}
+                      value={value}
+                      onChange={onChange}
+                      control={<Checkbox required />}
+                      label="I Agree"
+                    />
+                  </HtmlTooltip>
                 </Stack>
               );
             }}
@@ -224,6 +211,7 @@ export default function ReplyPost() {
             type="submit"
             size="small"
             variant="contained"
+            disabled={loading || !isDirty}
           >
             Submit
           </Button>

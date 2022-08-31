@@ -139,7 +139,7 @@ export default function Editor({ onChange, value }) {
       .then((newEditor) => {
         editor = newEditor;
         newEditor.model.document.on("change", () => {
-          console.log("The Document has changed!");
+         // console.log("The Document has changed!");
           onChange(editor.getData());
         });
       })
@@ -187,7 +187,7 @@ export default function Editor({ onChange, value }) {
               .then((newEditor) => {
                 editor = newEditor;
                 newEditor.model.document.on("change", () => {
-                  console.log("The Document has changed!");
+                  //console.log("The Document has changed!");
                   onChange(editor.getData());
                 });
               })

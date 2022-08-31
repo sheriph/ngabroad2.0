@@ -21,27 +21,29 @@ import {
   addComment_,
   addPost_,
   askQuestion_,
+  postReplyData_,
   replyPost_,
 } from "../../lib/recoil";
 
-export default function MobileFab() {
+export default function MobileFab({ post }) {
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const [askQuestion, setAddQuestion] = useRecoilState(askQuestion_);
   const [addPost, setAddPost] = useRecoilState(addPost_);
-  const [addComment, setAddComment] = useRecoilState(addComment_);
+  //  const [addComment, setAddComment] = useRecoilState(addComment_);
   const [replyPost, setReplyPost] = useRecoilState(replyPost_);
   const router = useRouter();
   const [openSnack, setOpenSnack] = React.useState(false);
+  const [postReplyData, setPostReplyData] = useRecoilState(postReplyData_);
 
   React.useEffect(() => {
-    if (askQuestion || addComment || addPost || replyPost) {
+    if (askQuestion || addPost || replyPost) {
       setOpenSnack(false);
     } else {
       setOpenSnack(true);
     }
-  }, [askQuestion, addComment, addPost, open, replyPost]);
+  }, [askQuestion, addPost, open, replyPost]);
 
   const actions =
     router.pathname === "/forum"
@@ -107,7 +109,17 @@ export default function MobileFab() {
           {
             icon: (
               <Stack
-                onClick={() => setAddComment(true)}
+                onClick={() => {
+                  setPostReplyData({
+                    parentPost_id: post._id,
+                    postTitle: post.title,
+                    quotedPostContent: "",
+                    quotedUser_id: "62fd5507d0b451b394f7dc3a",
+                    post: post,
+                    isComment: false,
+                  });
+                  setReplyPost(true);
+                }}
                 alignItems="center"
                 spacing={1}
                 direction="row"

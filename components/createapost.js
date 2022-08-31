@@ -39,7 +39,13 @@ import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import axios from "axios";
 import { useRecoilState, useSetRecoilState } from "recoil";
-import { addPost_, isLoading_ } from "../lib/recoil";
+import {
+  addPost_,
+  isLoading_,
+  postReplyData_,
+  replyPost_,
+  updatePost_,
+} from "../lib/recoil";
 import SendOutlinedIcon from "@mui/icons-material/SendOutlined";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import { toast } from "react-toastify";
@@ -70,20 +76,26 @@ export default function CreatePost() {
     ),
   });
 
+  const [updatePost, setUpdatePost] = useRecoilState(updatePost_);
+  const [postReplyData, setPostReplyData] = useRecoilState(postReplyData_);
+
+  console.log("postReplyData", postReplyData, updatePost);
+
   const {
     handleSubmit,
     control,
     setValue,
     getValues,
     setError,
+    clearErrors,
     reset,
     watch,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
-      title: "",
-      content: "",
+      title: get(postReplyData.post, "title", ""),
+      content: get(postReplyData.post, "content", ""),
       accept: false,
       countries: [],
       otherTags: tags,
@@ -94,26 +106,56 @@ export default function CreatePost() {
   const [isLoading, setLoading] = useRecoilState(isLoading_);
   const [addPost, setAddPost] = useRecoilState(addPost_);
 
+  React.useEffect(() => {
+    return () => {
+      setPostReplyData({
+        parentPost_id: "",
+        post: null,
+        postTitle: "",
+        quotedPostContent: "",
+        quotedUser_id: "",
+        isComment: false,
+      });
+    };
+  }, [null]);
+
   const onSubmit = async (data) => {
     console.log("data", data);
     const { title, countries, otherTags, content } = data;
     try {
       setLoading(true);
-      await toast.promise(
-        axios.post("/api/createpost", {
-          user_id: user._id,
-          title,
-          countries,
-          otherTags,
-          content,
-        }),
-        {
-          error: "Failed to create post",
-          pending: "Creating post ...",
-          success: "Post created successfully",
-        }
-      );
+      updatePost
+        ? await toast.promise(
+            axios.post("/api/updatepost", {
+              // @ts-ignore
+              post_id: postReplyData.post._id,
+              countries,
+              otherTags,
+              content,
+              isComment: postReplyData.isComment,
+            }),
+            {
+              error: "Failed to create post",
+              pending: "Updating post ...",
+              success: "Post updated successfully",
+            }
+          )
+        : await toast.promise(
+            axios.post("/api/createpost", {
+              user_id: user._id,
+              title,
+              countries,
+              otherTags,
+              content,
+            }),
+            {
+              error: "Failed to create post",
+              pending: "Creating post ...",
+              success: "Post created successfully",
+            }
+          );
       setLoading(false);
+      setAddPost(false);
     } catch (error) {
       console.log(error?.response?.data, error);
       setLoading(false);
@@ -135,6 +177,7 @@ export default function CreatePost() {
         setValue("title", "");
         setVerifyTitle(false);
       }
+      clearErrors("title");
     } catch (error) {
       console.log("error", error);
       throw error;
@@ -144,8 +187,6 @@ export default function CreatePost() {
   };
 
   console.log("eror", errors);
-
-  console.log("watch()", watch("title"));
 
   return (
     <Stack>
@@ -159,7 +200,7 @@ export default function CreatePost() {
           <Grid item xs></Grid>
           <Grid item xs="auto">
             <Typography color="white" textAlign="center" variant="h1">
-              Create a new post
+              {updatePost ? "Update Post" : "Create a New Post"}
             </Typography>
           </Grid>
           <Grid
@@ -218,6 +259,7 @@ export default function CreatePost() {
                     borderRadius: 1,
                   },
                 }}
+                disabled={updatePost}
                 label="Title"
                 error={Boolean(errors?.title?.message)}
                 InputProps={{
@@ -261,83 +303,85 @@ export default function CreatePost() {
           }}
         />
 
-        <Stack
-          alignItems="center"
-          component={Paper}
-          spacing={2}
-          variant="outlined"
-        >
-          <Typography sx={{ mt: 2 }} align="center" variant="h1">
-            Select related tags
-          </Typography>
+        {!postReplyData.isComment && (
+          <Stack
+            alignItems="center"
+            component={Paper}
+            spacing={2}
+            variant="outlined"
+          >
+            <Typography sx={{ mt: 2 }} align="center" variant="h1">
+              Select related tags
+            </Typography>
 
-          <Controller
-            name="countries"
-            defaultValue={[]}
-            control={control}
-            render={({ field }) => {
-              const { onChange, value, ...rest } = field;
-              return (
-                <Autocomplete
-                  size="small"
-                  multiple={true}
-                  disablePortal
-                  id="combo-box-demo"
-                  options={countries}
-                  value={value}
-                  onChange={(e, v, r) => onChange(v)}
-                  getOptionLabel={(option) => option.name}
-                  renderOption={(props, option) => (
-                    <Typography {...props} variant="caption">
-                      {option.name}
-                    </Typography>
-                  )}
-                  sx={{ width: 300 }}
-                  renderInput={(params) => (
-                    <TextField {...params} label="Countries" />
-                  )}
-                />
-              );
-            }}
-          />
+            <Controller
+              name="countries"
+              defaultValue={[]}
+              control={control}
+              render={({ field }) => {
+                const { onChange, value, ...rest } = field;
+                return (
+                  <Autocomplete
+                    size="small"
+                    multiple={true}
+                    disablePortal
+                    id="combo-box-demo"
+                    options={countries}
+                    value={value}
+                    onChange={(e, v, r) => onChange(v)}
+                    getOptionLabel={(option) => option.name}
+                    renderOption={(props, option) => (
+                      <Typography {...props} variant="caption">
+                        {option.name}
+                      </Typography>
+                    )}
+                    sx={{ width: 300 }}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Countries" />
+                    )}
+                  />
+                );
+              }}
+            />
 
-          <Controller
-            name="otherTags"
-            // defaultValue={undefined}
-            control={control}
-            render={({ field }) => {
-              const { onChange, value, ...rest } = field;
-              return (
-                <FormControl
-                  // sx={{ m: 3 }}
-                  component="fieldset"
-                  variant="standard"
-                >
-                  <FormGroup sx={{ px: 1 }} row>
-                    {keysIn(watch("otherTags")).map((otherTag) => (
-                      <FormControlLabel
-                        key={otherTag}
-                        control={
-                          <Checkbox
-                            checked={watch("otherTags")[otherTag]}
-                            onChange={(e) =>
-                              onChange({
-                                ...watch("otherTags"),
-                                [otherTag]: e.target.checked,
-                              })
-                            }
-                            // name={otherTag}
-                          />
-                        }
-                        label={otherTag}
-                      />
-                    ))}
-                  </FormGroup>
-                </FormControl>
-              );
-            }}
-          />
-        </Stack>
+            <Controller
+              name="otherTags"
+              // defaultValue={undefined}
+              control={control}
+              render={({ field }) => {
+                const { onChange, value, ...rest } = field;
+                return (
+                  <FormControl
+                    // sx={{ m: 3 }}
+                    component="fieldset"
+                    variant="standard"
+                  >
+                    <FormGroup sx={{ px: 1 }} row>
+                      {keysIn(watch("otherTags")).map((otherTag) => (
+                        <FormControlLabel
+                          key={otherTag}
+                          control={
+                            <Checkbox
+                              checked={watch("otherTags")[otherTag]}
+                              onChange={(e) =>
+                                onChange({
+                                  ...watch("otherTags"),
+                                  [otherTag]: e.target.checked,
+                                })
+                              }
+                              // name={otherTag}
+                            />
+                          }
+                          label={otherTag}
+                        />
+                      ))}
+                    </FormGroup>
+                  </FormControl>
+                );
+              }}
+            />
+          </Stack>
+        )}
 
         <Stack justifyContent="space-between" direction="row">
           <Controller

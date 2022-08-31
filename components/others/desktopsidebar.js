@@ -17,6 +17,8 @@ import {
   addPost_,
   askQuestion_,
   category_,
+  postReplyData_,
+  replyPost_,
 } from "../../lib/recoil";
 import { styled } from "@mui/styles";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
@@ -34,12 +36,15 @@ const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
   },
 }));
 
-export default function DesktopSideBar() {
+export default function DesktopSideBar({ post }) {
   const [category, setCategory] = useRecoilState(category_);
   const router = useRouter();
   const [askQuestion, setAddQuestion] = useRecoilState(askQuestion_);
   const [addPost, setAddPost] = useRecoilState(addPost_);
   const [addComment, setAddComment] = useRecoilState(addComment_);
+  const [postReplyData, setPostReplyData] = useRecoilState(postReplyData_);
+  const [replyPost, setReplyPost] = useRecoilState(replyPost_);
+
   console.log("router", router.pathname);
 
   const handleCategory = (e) => {
@@ -83,6 +88,28 @@ export default function DesktopSideBar() {
 
         <Divider sx={{ my: 2 }} />
 
+        {router.pathname !== "/forum" && (
+          <Button
+            startIcon={<PostAddOutlinedIcon sx={{ mr: 3 }} />}
+            disableElevation
+            sx={{ justifyContent: "flex-start", pl: 3 }}
+            // variant="outlined"
+            onClick={() => {
+              setPostReplyData({
+                parentPost_id: post._id,
+                postTitle: post.title,
+                quotedPostContent: "",
+                quotedUser_id: "62fd5507d0b451b394f7dc3a",
+                post: post,
+                isComment: false,
+              });
+              setReplyPost(true);
+            }}
+          >
+            Add Comment
+          </Button>
+        )}
+
         <Button
           startIcon={<ContactSupportIcon sx={{ mr: 3 }} />}
           disableElevation
@@ -102,18 +129,6 @@ export default function DesktopSideBar() {
         >
           Create a Post
         </Button>
-
-        {router.pathname !== "/forum" && (
-          <Button
-            startIcon={<PostAddOutlinedIcon sx={{ mr: 3 }} />}
-            disableElevation
-            sx={{ justifyContent: "flex-start", pl: 3 }}
-            // variant="outlined"
-            onClick={() => setAddComment(true)}
-          >
-            Add Comment
-          </Button>
-        )}
 
         {/*    <Autocomplete
       disablePortal

@@ -19,11 +19,11 @@ import React, { useEffect, useState } from "react";
 import { Box } from "@mui/system";
 import SinglePostCard from "./singlepostcard";
 import MobileCategoryChanger from "./others/mobilecategorychanger";
-import { truncate } from "lodash";
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import { lowerCase, startCase, truncate } from "lodash";
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 
-
-export default function SingleQuestionCard() {
+export default function PostsCard({ post, comments }) {
+  console.log("comments", comments);
   return (
     <Box
       sx={{
@@ -64,10 +64,21 @@ export default function SingleQuestionCard() {
           flexItem
         /> */}
         <Stack
-          divider={<Divider orientation="horizontal" flexItem />}
+          // divider={<Divider orientation="horizontal" flexItem />}
           spacing={3}
         >
-          <SinglePostCard post={null} />
+          <SinglePostCard key={0} post={post} parentPost_id={post._id} />
+          {comments.map((comment, key) => {
+            console.log("key comment", key, comment);
+            return (
+              <SinglePostCard
+                isComment
+                key={key + 1}
+                post={comment}
+                parentPost_id={post._id}
+              />
+            );
+          })}
         </Stack>
       </Stack>
     </Box>

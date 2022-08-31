@@ -22,7 +22,7 @@ const PostComponent = dynamic(() => import("../components/postcomponent"), {
 
 const HeaderAppOffset = styled("div")(({ theme }) => theme.mixins.toolbar);
 
-export default function Questions(props) {
+export default function Questions({post}) {
   return (
     <Container disableGutters>
       <Stack id="headerId" spacing={1}>
