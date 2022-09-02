@@ -50,6 +50,7 @@ import SendOutlinedIcon from "@mui/icons-material/SendOutlined";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import { toast } from "react-toastify";
 import useSWR from "swr";
+import { useRouter } from "next/router";
 
 export default function CreatePost() {
   const [verifyingTitle, setVerifyTitle] = React.useState(false);
@@ -81,6 +82,8 @@ export default function CreatePost() {
 
   console.log("postReplyData", postReplyData, updatePost);
 
+  const router = useRouter();
+
   const {
     handleSubmit,
     control,
@@ -109,12 +112,9 @@ export default function CreatePost() {
   React.useEffect(() => {
     return () => {
       setPostReplyData({
-        parentPost_id: "",
         post: null,
-        postTitle: "",
-        quotedPostContent: "",
-        quotedUser_id: "",
         isComment: false,
+        parentPost: null,
       });
     };
   }, [null]);
@@ -124,36 +124,41 @@ export default function CreatePost() {
     const { title, countries, otherTags, content } = data;
     try {
       setLoading(true);
-      updatePost
-        ? await toast.promise(
-            axios.post("/api/updatepost", {
-              // @ts-ignore
-              post_id: postReplyData.post._id,
-              countries,
-              otherTags,
-              content,
-              isComment: postReplyData.isComment,
-            }),
-            {
-              error: "Failed to create post",
-              pending: "Updating post ...",
-              success: "Post updated successfully",
-            }
-          )
-        : await toast.promise(
-            axios.post("/api/createpost", {
-              user_id: user._id,
-              title,
-              countries,
-              otherTags,
-              content,
-            }),
-            {
-              error: "Failed to create post",
-              pending: "Creating post ...",
-              success: "Post created successfully",
-            }
-          );
+      if (updatePost) {
+        const slug = await toast.promise(
+          axios.post("/api/updatepost", {
+            // @ts-ignore
+            post_id: postReplyData.post._id,
+            countries,
+            otherTags,
+            content,
+            isComment: postReplyData.isComment,
+          }),
+          {
+            error: "Failed to create post",
+            pending: "Updating post ...",
+            success: "Post updated successfully",
+          }
+        );
+      } else {
+        const slug = await toast.promise(
+          axios.post("/api/createpost", {
+            user_id: user._id,
+            title,
+            countries,
+            otherTags,
+            content,
+          }),
+          {
+            error: "Failed to create post",
+            pending: "Creating post ...",
+            success: "Post created successfully",
+          }
+        );
+        console.log("slug.data", slug.data);
+        router.push(slug.data);
+      }
+
       setLoading(false);
       setAddPost(false);
     } catch (error) {

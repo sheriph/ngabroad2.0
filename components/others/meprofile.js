@@ -15,11 +15,9 @@ import { useAuthUser } from "../../lib/utility";
 const advancedFormat = require("dayjs/plugin/advancedFormat");
 dayjs.extend(advancedFormat);
 
-export default function MeProfile() {
-  const { user, loading, error, mutate } = useAuthUser();
+export default function MeProfile({ ssrUser }) {
+  const { user, loading, error, mutate } = useAuthUser(ssrUser);
 
-
-  
   return (
     <TableContainer>
       <Table aria-label="simple table">

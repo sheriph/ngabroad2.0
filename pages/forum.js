@@ -22,11 +22,11 @@ const PostComponent = dynamic(() => import("../components/postcomponent"), {
 
 const HeaderAppOffset = styled("div")(({ theme }) => theme.mixins.toolbar);
 
-export default function Questions({post}) {
+export default function Questions({ post, ssrUser }) {
   return (
     <Container disableGutters>
       <Stack id="headerId" spacing={1}>
-        <MobileFab />
+        <MobileFab post={post} />
         <Box component={Container}>
           <HeaderApp />
           <HeaderAppOffset />
@@ -34,7 +34,7 @@ export default function Questions({post}) {
       @ts-ignore */}
           <PostComponent />
         </Box>
-        <Footer />
+        <Footer ssrUser={ssrUser} />
       </Stack>
     </Container>
   );

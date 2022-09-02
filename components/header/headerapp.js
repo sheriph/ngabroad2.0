@@ -6,6 +6,7 @@ import {
   Fade,
   IconButton,
   Link,
+  Paper,
   Skeleton,
   Slide,
   Stack,
@@ -55,7 +56,7 @@ HideOnScroll.propTypes = {
 
 export default function HeaderApp(props) {
   const [login, setLogin] = useRecoilState(login_);
-  const { user, loading, error, mutate } = useAuthUser();
+  const { user, isValidating, loading } = useAuthUser(props.ssrUser);
 
   return (
     <HideOnScroll {...props}>
@@ -79,11 +80,16 @@ export default function HeaderApp(props) {
               </Tooltip>
             </Typography>
             {user ? (
-              <AccountMenu />
+              <AccountMenu user={user} />
             ) : (
               <Box>
-                {loading ? (
-                  <Skeleton width="40px" height="40px" variant="circular" />
+                {loading || isValidating ? (
+                  <Skeleton
+                    sx={{ bgcolor: "text.disabled" }}
+                    width="40px"
+                    height="40px"
+                    variant="circular"
+                  />
                 ) : (
                   <Button onClick={() => setLogin(true)} color="inherit">
                     Login

@@ -37,11 +37,20 @@ import {
   replyPost_,
   updatePost_,
 } from "../lib/recoil";
-import { get, isNumber, lowerCase, startCase, truncate } from "lodash";
+import {
+  forEach,
+  get,
+  isEqual,
+  isNumber,
+  lowerCase,
+  startCase,
+  truncate,
+} from "lodash";
 import dayjs from "dayjs";
 import axios from "axios";
 import { useRouter } from "next/router";
 import QuoteReadMore from "./others/quotereadmore";
+import { array } from "prop-types";
 
 const advancedFormat = require("dayjs/plugin/advancedFormat");
 
@@ -49,20 +58,11 @@ dayjs.extend(advancedFormat);
 
 export default function SinglePostCard({
   post,
-  parentPost_id,
+  parentPost,
   isComment = false,
 }) {
-  const { user, loading, error, mutate } = useAuthUser();
+  const { user } = useAuthUser();
   const [replyPost, setReplyPost] = useRecoilState(replyPost_);
-  const likes = get(post, "stats.votes", new Array()).filter(
-    (vote) => vote.status
-  ).length;
-
-  const dislikes = get(post, "stats.votes", new Array()).filter(
-    (vote) => !vote.status
-  ).length;
-
-  const shares = get(post, "stats.shares", new Array()).length;
 
   const [postReplyData, setPostReplyData] = useRecoilState(postReplyData_);
   const [updatePost, setUpdatePost] = useRecoilState(updatePost_);
@@ -73,6 +73,25 @@ export default function SinglePostCard({
     get(post, "quote.user_id", ""),
     getUsername
   );
+
+  const getVotes = async (post_id) => {
+    try {
+      const votes = await axios.post("/api/getvotes", { post_id: post_id });
+      console.log("votes", votes.data);
+      return votes.data;
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
+  const {
+    data: votes,
+    mutate: mutatevotes,
+    error: votesError,
+    isValidating: validatevotes,
+  } = useSWRImmutable(post._id, getVotes);
+
+  console.log("votes", post.post_type, votes, votesError, validatevotes);
 
   const transform = (node, index) => {
     if (node.type === "tag" && node.name === "h2") {
@@ -130,11 +149,8 @@ export default function SinglePostCard({
 
   const showReply = () => {
     setPostReplyData({
-      quotedUser_id: post.user_id,
-      quotedPostContent: post.content,
-      parentPost_id,
-      postTitle: post.title,
-      post: post,
+      parentPost,
+      post,
       isComment: isComment,
     });
     setReplyPost(true);
@@ -143,14 +159,118 @@ export default function SinglePostCard({
   const showUpdate = () => {
     setUpdatePost(true);
     setPostReplyData({
-      parentPost_id: "",
-      post: post,
-      postTitle: "",
-      quotedPostContent: "",
-      quotedUser_id: "",
+      post,
+      parentPost,
       isComment: isComment,
     });
     setAddPost(true);
+  };
+
+  const upvotes = votes ? votes.filter((vote) => vote.status).length : 0;
+  const downvotes = votes ? votes.filter((vote) => !vote.status).length : 0;
+
+  const handleVote = async (status) => {
+    // console.log("vote status", status);
+    let alreadyVoted = false;
+    forEach(votes, (vote) => {
+      alreadyVoted = isEqual(
+        { user_id: vote.user_id, status: vote.status },
+        { user_id: user._id, status: status }
+      );
+    });
+    console.log("reachable code alreadyVoted", alreadyVoted);
+    if (alreadyVoted) {
+      const newVotes = votes.filter(
+        (vote) =>
+          !isEqual(
+            { user_id: vote.user_id, status: vote.status },
+            { user_id: user._id, status: status }
+          )
+      );
+      try {
+        await axios.post("/api/vote", {
+          user_id: user._id,
+          status,
+          post_id: post._id,
+          post_title: post.title,
+          slug: post.slug,
+          post_type: post.post_type,
+          remove: true,
+        });
+        await mutatevotes(newVotes, {
+          rollbackOnError: true,
+          populateCache: true,
+          revalidate: true,
+        });
+      } catch (error) {
+        console.log("error", error);
+      }
+      return;
+    }
+    let hasOppositeVote = false;
+    forEach(votes, (vote) => {
+      hasOppositeVote = vote.user_id === user._id;
+    });
+    console.log("reachable code hasOppositeVote", hasOppositeVote);
+    if (hasOppositeVote) {
+      const myVote = {
+        post_id: post._id,
+        user_id: user._id,
+        status: status,
+      };
+      const newVotes = votes.map((vote) => {
+        let hasOppositeVote = vote.user_id === user._id;
+        if (hasOppositeVote) {
+          return myVote;
+        } else {
+          return vote;
+        }
+      });
+      console.log("votes in mutate", newVotes);
+
+      try {
+        await axios.post("/api/vote", {
+          user_id: user._id,
+          status,
+          post_id: post._id,
+          post_title: post.title,
+          slug: post.slug,
+          post_type: post.post_type,
+        });
+        await mutatevotes(newVotes, {
+          rollbackOnError: true,
+          populateCache: true,
+          revalidate: true,
+        });
+      } catch (error) {
+        console.log("error", error);
+      }
+    } else {
+      const myVote = {
+        post_id: post._id,
+        user_id: user._id,
+        status: status,
+      };
+      const newVotes = [...votes, myVote];
+      try {
+        await axios.post("/api/vote", {
+          user_id: user._id,
+          status,
+          post_id: post._id,
+          post_title: post.title,
+          slug: post.slug,
+          post_type: post.post_type,
+        });
+        await mutatevotes(newVotes, {
+          rollbackOnError: true,
+          populateCache: true,
+          revalidate: true,
+        });
+      } catch (error) {
+        console.log("error", error);
+      }
+    }
+    return;
   };
 
   console.log("post", post);
@@ -225,17 +345,21 @@ export default function SinglePostCard({
                 {dayjs(post.createdAt).format("Do MMMM, YYYY")}
               </LinkTypography>
             </Stack>
-            <Stack spacing={1} direction="row">
+            <Stack spacing={3} direction="row">
               <Stack sx={{ cursor: "pointer" }} spacing={1} direction="row">
-                <ThumbUpAltIcon fontSize="small" />
-                <Typography variant="caption">{likes}</Typography>
+                <ThumbUpAltIcon
+                  onClick={() => handleVote(true)}
+                  fontSize="small"
+                />
+                <Typography variant="caption">{upvotes}</Typography>
               </Stack>
               <Stack sx={{ cursor: "pointer" }} spacing={1} direction="row">
                 <ThumbDownIcon
                   sx={{ transform: "rotateY(180deg)" }}
                   fontSize="small"
+                  onClick={() => handleVote(false)}
                 />
-                <Typography variant="caption">{dislikes}</Typography>
+                <Typography variant="caption">{downvotes}</Typography>
               </Stack>
               <Stack sx={{ cursor: "pointer" }} spacing={1} direction="row">
                 <ShareIcon fontSize="small" />
@@ -273,7 +397,6 @@ export default function SinglePostCard({
                   <LinkTypography onClick={showUpdate} variant="caption">
                     Edit Post
                   </LinkTypography>
-                  <LinkTypography variant="caption">Delete Post</LinkTypography>
                 </Stack>
                 <Divider />
               </React.Fragment>

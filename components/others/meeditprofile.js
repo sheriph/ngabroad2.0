@@ -4,10 +4,15 @@ import {
   Badge,
   Box,
   Button,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
   Grid,
   IconButton,
   InputAdornment,
   MenuItem,
+  Radio,
+  RadioGroup,
   Stack,
   TextField,
   Typography,
@@ -27,6 +32,7 @@ import { IMaskInput } from "react-imask";
 import SaveIcon from "@mui/icons-material/Save";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { isLoading_ } from "../../lib/recoil";
+import { useRouter } from "next/router";
 
 const fetcher = async (key) => {
   try {
@@ -63,9 +69,10 @@ TextMaskCustom.propTypes = {
   onChange: PropTypes.func.isRequired,
 };
 
-export default function EditProfile({ alert }) {
+export default function EditProfile({ alert, ssrUser }) {
   const [loadingState, setLoading] = useRecoilState(isLoading_);
-  const { user, loading, error, mutate } = useAuthUser();
+  const { user, loading, error, mutate } = useAuthUser(ssrUser);
+  const router = useRouter();
 
   const { data: usernames, error: usernamesError } = useSWR(
     user?.username ? undefined : "/api/getusernames/",
@@ -158,9 +165,10 @@ export default function EditProfile({ alert }) {
       await mutate();
 
       setLoading(false);
+      // if (alert) router.reload();
     } catch (error) {
       setLoading(false);
-      console.log("error", error);
+      console.log(error.response.data);
     }
   };
 
@@ -198,6 +206,8 @@ export default function EditProfile({ alert }) {
   React.useEffect(() => {
     if (alert) trigger();
   }, [null]);
+
+  console.log("gender", watch("gender"));
 
   return (
     <Stack
@@ -329,21 +339,21 @@ export default function EditProfile({ alert }) {
             render={({ field }) => {
               const { value, onChange } = field;
               return (
-                <TextField
-                  id="outlined-select-currency"
-                  select
-                  label="Gender"
-                  value={value}
-                  onChange={onChange}
-                  fullWidth
-                  size="small"
-                >
-                  {["Male", "Female"].map((option) => (
-                    <MenuItem key={option} value={option}>
-                      {option}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                <Stack spacing={2} alignItems="center" direction="row">
+                  <Typography>Gender</Typography>
+                  <RadioGroup row {...field}>
+                    <FormControlLabel
+                      value="Female"
+                      control={<Radio />}
+                      label="Female"
+                    />
+                    <FormControlLabel
+                      value="Male"
+                      control={<Radio />}
+                      label="Male"
+                    />
+                  </RadioGroup>
+                </Stack>
               );
             }}
           />

@@ -20,6 +20,7 @@ export default async function handler(req, res) {
       title,
       quotedPostContent,
       quotedUser_id,
+      slug,
     } = req.body;
     const newPost = {
       content: content,
@@ -33,7 +34,8 @@ export default async function handler(req, res) {
       title: title,
       updatedAts: [],
       approves: [],
-      stats: { votes: [], shares: [] },
+      post_type: "comment",
+      slug: slug,
     };
 
     await client.connect();

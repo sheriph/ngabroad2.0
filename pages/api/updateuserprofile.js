@@ -33,9 +33,9 @@ export default async function handler(req, res) {
       .updateOne(queryOperation, updateOperation);
     console.log("update", update);
     res.status(200).json(update.acknowledged);
-  } catch (err) {
-    console.log(`err`, err);
-    res.status(400).json(err);
+  } catch (error) {
+    console.log(`err`, error.message, error.errInfo);
+    res.status(400).json({ message: error.message, info: error.errInfo });
   } finally {
     console.log(`closing connection`);
     await client.close();

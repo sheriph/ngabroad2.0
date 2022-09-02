@@ -40,9 +40,9 @@ export default function Questions({ post, comments }) {
         {/* // 
         @ts-ignore */}
         <SinglePostComponent comments={comments} post={post} />
-        <MobileFab post={post}  />
+        <MobileFab post={post} />
       </Box>
-      <Footer />
+      <Footer ssrUser={null} />
     </Stack>
   );
 }

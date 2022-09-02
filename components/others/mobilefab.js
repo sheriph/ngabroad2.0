@@ -111,11 +111,8 @@ export default function MobileFab({ post }) {
               <Stack
                 onClick={() => {
                   setPostReplyData({
-                    parentPost_id: post._id,
-                    postTitle: post.title,
-                    quotedPostContent: "",
-                    quotedUser_id: "62fd5507d0b451b394f7dc3a",
-                    post: post,
+                    parentPost: post,
+                    post: null,
                     isComment: false,
                   });
                   setReplyPost(true);

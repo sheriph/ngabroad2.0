@@ -1,3 +1,5 @@
+import { withSSRContext } from "aws-amplify";
+import { get } from "lodash";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import { userSchema } from "../../lib/mongodb/schema";
 const uri = process.env.MONGODB_URI;
@@ -11,9 +13,11 @@ const client = new MongoClient(uri, clientOptions);
 
 export default async function handler(req, res) {
   try {
-    const { email } = req.body;
-
     await client.connect();
+    const { Auth } = withSSRContext({ req });
+    const authUser = await Auth.currentAuthenticatedUser();
+    const email = get(authUser, "attributes.email");
+    console.log("email", email);
     const filter = { email: email };
 
     const newUser = {
@@ -50,7 +54,7 @@ export default async function handler(req, res) {
       .findOne({ email: email });
     res.status(200).json(userData);
   } catch (error) {
-    res.status(400).json(error.message);
+    res.status(400).json(error);
   } finally {
     console.log(`closing connection`);
     await client.close();

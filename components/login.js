@@ -1,4 +1,4 @@
-import { Box, Grid, Stack, Typography } from "@mui/material";
+import { Alert, AlertTitle, Box, Grid, Stack, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 
 import { useRecoilState, useSetRecoilState } from "recoil";
@@ -53,17 +53,7 @@ export default function Login() {
     console.log("authStatus", authStatus);
     if (authStatus === "authenticated") {
       console.log("mutating and closing authenticator");
-      mutate(
-        "/useAuthUser",
-        { email: get(user, "attributes.email", null) },
-        {
-          revalidate: true,
-          optimisticData: {
-            email: get(user, "attributes.email", null),
-          },
-          populateCache: true,
-        }
-      );
+      mutate("/useAuthUser");
       setLogin(false);
     }
   }, [authStatus]);
@@ -99,27 +89,15 @@ export default function Login() {
         {authStatus !== "authenticated" && (
           <Authenticator socialProviders={["google", "facebook"]}>
             {({ signOut, user }) => {
-              {
-                /* toast.success("Welcome Back!!", {
-                toastId: id,
-                onOpen: () => {
-                  mutate(
-                    "/useAuthUser",
-                    { email: get(user, "attributes.email", null) },
-                    {
-                      revalidate: true,
-                      optimisticData: {
-                        email: get(user, "attributes.email", null),
-                      },
-                      populateCache: true,
-                    }
-                  );
-                  setLogin(false);
-                },
-                position: "top-center",
-              }); */
-              }
-              return <Box>LOGGED IN</Box>;
+              return (
+                <Box sx={{ minHeight: "400px" }}>
+                  <Alert severity="success">
+                    <AlertTitle>Welcome Back</AlertTitle>
+                    You are now signed-in. You should be redirected in few
+                    seconds.
+                  </Alert>
+                </Box>
+              );
             }}
           </Authenticator>
         )}

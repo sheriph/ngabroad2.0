@@ -9,7 +9,6 @@ import ControlPointOutlinedIcon from "@mui/icons-material/ControlPointOutlined";
 import RemoveCircleOutlineOutlinedIcon from "@mui/icons-material/RemoveCircleOutlineOutlined";
 
 export default function QuoteReadMore({ content }) {
-  console.log("content", content);
   const [textLength, setTextLength] = React.useState(100);
   const [showExpand, setShow] = React.useState(true);
   const transform = (node, index) => {

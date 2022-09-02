@@ -53,8 +53,7 @@ export default function ReplyPost() {
   });
 
   const [postReplyData, setPostReplyData] = useRecoilState(postReplyData_);
-  const { quotedUser_id, quotedPostContent, parentPost_id, postTitle } =
-    postReplyData;
+  const { isComment, parentPost, post } = postReplyData;
 
   const {
     handleSubmit,
@@ -80,11 +79,17 @@ export default function ReplyPost() {
       await toast.promise(
         axios.post("/api/createpostcomment", {
           content: content,
-          post_id: parentPost_id,
+          // @ts-ignore
+          post_id: parentPost._id,
           user_id: user._id,
-          title: postTitle,
-          quotedUser_id: quotedUser_id,
-          quotedPostContent: quotedPostContent,
+          // @ts-ignore
+          title: parentPost.title,
+          // @ts-ignore
+          quotedUser_id: get(post, "user_id", "62fd5507d0b451b394f7dc3a"),
+          // @ts-ignore
+          quotedPostContent: get(post, "content", ""),
+          // @ts-ignore
+          slug: parentPost.slug,
         }),
         {
           success: "Comment posted succesfully",
@@ -94,7 +99,7 @@ export default function ReplyPost() {
       );
       //   setLoading(false);
     } catch (error) {
-      console.log(error.response.data);
+      console.log(error?.response?.data);
       //    setLoading(false);
     }
   };
@@ -110,13 +115,21 @@ export default function ReplyPost() {
         direction="row"
       >
         <Grid container alignItems="center">
-          <Grid xs></Grid>
+          <Grid item xs></Grid>
           <Grid item xs="auto">
             <Typography color="white" textAlign="center" variant="h1">
               Re :{" "}
-              {truncate(startCase(lowerCase(postTitle)), {
-                length: 40,
-              })}
+              {truncate(
+                startCase(
+                  lowerCase(
+                    // @ts-ignore
+                    parentPost.title
+                  )
+                ),
+                {
+                  length: 40,
+                }
+              )}
             </Typography>
           </Grid>
           <Grid

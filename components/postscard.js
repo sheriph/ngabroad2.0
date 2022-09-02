@@ -67,7 +67,7 @@ export default function PostsCard({ post, comments }) {
           // divider={<Divider orientation="horizontal" flexItem />}
           spacing={3}
         >
-          <SinglePostCard key={0} post={post} parentPost_id={post._id} />
+          <SinglePostCard key={0} post={post} parentPost={post} />
           {comments.map((comment, key) => {
             console.log("key comment", key, comment);
             return (
@@ -75,7 +75,7 @@ export default function PostsCard({ post, comments }) {
                 isComment
                 key={key + 1}
                 post={comment}
-                parentPost_id={post._id}
+                parentPost={post}
               />
             );
           })}
