@@ -111,20 +111,20 @@ export default function AccountMenu({ user }) {
         <MenuItem
           onClick={() => {
             setMeCategory("Account Details");
-            user?.username && router.push(`/account/${user?.username}`);
+            router.push(`account/${user?.username}`);
           }}
         >
           <Avatar /> My account
         </MenuItem>
         <Divider />
-        <MenuItem>
-          <ListItemIcon
-            onClick={() => {
-              setMeCategory("Edit Profile");
-              user?.username && router.push(`/account/${user?.username}`, {})
-
-            }}
-          >
+        <MenuItem
+          onClick={() => {
+            setMeCategory("Edit Profile");
+            console.log("go to settings");
+            router.push(`account/${user?.username}`);
+          }}
+        >
+          <ListItemIcon>
             <Settings fontSize="small" />
           </ListItemIcon>
           Settings

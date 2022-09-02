@@ -94,8 +94,8 @@ export default function QuoteReadMore({ content }) {
 
   if (textLength === content?.length) {
     return (
-      <Stack spacing={0}>
-        <Box>{ReactHtmlParser(content, options)}</Box>
+      <Stack sx={{ width: "100%" }} spacing={0}>
+        <Box sx={{ width: "100%" }}>{ReactHtmlParser(content, options)}</Box>
         {showExpand && (
           <Link
             variant="caption"
