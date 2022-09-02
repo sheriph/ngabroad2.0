@@ -44,91 +44,9 @@ export default function PostList() {
         {/* Mobile Head */}
         <Stack spacing={1} sx={{ display: { xs: "flex", md: "none" } }}>
           {/* <MobileFab /> */}
-          <Stack spacing={2} direction="row">
-            {/*  <Autocomplete
-              disablePortal
-              id="combo-box-demo"
-              options={countries}
-              size="small"
-              // @ts-ignore
-              getOptionLabel={(option) => option?.name}
-              sx={{
-                width: 150,
-                fontSize: { ".MuiInput-input": { fontSize: "14px" } },
-              }}
-              clearIcon=""
-              // @ts-ignore
-              value={selectCountry}
-              onChange={(e, v, r) => {
-                console.log("cv country", v);
-                // @ts-ignore
-                setSelelectedCountry(v);
-              }}
-              renderOption={(props, option, state) => {
-                console.log("option", option);
-                return (
-                  <Typography {...props} component="li" variant="caption">
-                    {option.name}
-                  </Typography>
-                );
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  InputProps={{ ...params.InputProps, disableUnderline: true }}
-                  variant="standard"
-                  placeholder="All Countries"
-                />
-              )}
-            />
-            <Autocomplete
-              disablePortal
-              id="combo-box-demo"
-              options={postTags}
-              size="small"
-              // @ts-ignore
-              getOptionLabel={(option) => option?.name}
-              sx={{
-                width: 150,
-                fontSize: { ".MuiInput-input": { fontSize: "14px" } },
-                pl: 2,
-              }}
-              clearIcon=""
-              // @ts-ignore
-              value={selectCategory}
-              onChange={(e, v, r) => {
-                console.log("cv country", v);
-                // @ts-ignore
-                setSelelectedCategory(v);
-              }}
-              renderOption={(props, option, state) => {
-                console.log("option", option);
-                return (
-                  <Typography {...props} component="li" variant="caption">
-                    {option.name}
-                  </Typography>
-                );
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  InputProps={{ ...params.InputProps, disableUnderline: true }}
-                  variant="standard"
-                  placeholder="All Categories"
-                />
-              )}
-            /> */}
-          </Stack>
+          <Stack spacing={2} direction="row"></Stack>
           <Stack justifyContent="space-between" direction="row" spacing={2}>
             <MobileCategoryChanger />
-            {/* <Button
-              startIcon={<ContactSupportIcon />}
-              disableElevation
-              sx={{ justifyContent: "flex-start" }}
-              // variant="outlined"
-            >
-              Ask a Question
-            </Button> */}
             <ToggleButtonGroup
               color="primary"
               value={filter}

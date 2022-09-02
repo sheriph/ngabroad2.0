@@ -13,10 +13,15 @@ import Settings from "@mui/icons-material/Settings";
 import Logout from "@mui/icons-material/Logout";
 import { Auth } from "aws-amplify";
 import { useSWRConfig } from "swr";
+import { meCategory_ } from "../../lib/recoil";
+import { useRecoilState } from "recoil";
+import { useRouter } from "next/router";
 
-export default function AccountMenu() {
+export default function AccountMenu({ user }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const { mutate } = useSWRConfig();
+  const [meCtegory, setMeCategory] = useRecoilState(meCategory_);
+  const router = useRouter();
 
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
@@ -62,8 +67,8 @@ export default function AccountMenu() {
           >
             <Avatar
               sx={{ width: 32, height: 32 }}
-              alt="Sheriff Adeniyi"
-              src="/broken-image.jpg"
+              alt="profile image"
+              src={user?.image}
             />
           </IconButton>
         </Tooltip>
@@ -103,15 +108,23 @@ export default function AccountMenu() {
         transformOrigin={{ horizontal: "right", vertical: "top" }}
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
-        <MenuItem>
-          <Avatar /> Profile
-        </MenuItem>
-        <MenuItem>
+        <MenuItem
+          onClick={() => {
+            setMeCategory("Account Details");
+            user?.username && router.push(`/account/${user?.username}`);
+          }}
+        >
           <Avatar /> My account
         </MenuItem>
         <Divider />
         <MenuItem>
-          <ListItemIcon>
+          <ListItemIcon
+            onClick={() => {
+              setMeCategory("Edit Profile");
+              user?.username && router.push(`/account/${user?.username}`, {})
+
+            }}
+          >
             <Settings fontSize="small" />
           </ListItemIcon>
           Settings
