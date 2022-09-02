@@ -50,7 +50,6 @@ import dayjs from "dayjs";
 import axios from "axios";
 import { useRouter } from "next/router";
 import QuoteReadMore from "./others/quotereadmore";
-import { array } from "prop-types";
 
 const advancedFormat = require("dayjs/plugin/advancedFormat");
 
@@ -68,12 +67,6 @@ export default function SinglePostCard({
   const [updatePost, setUpdatePost] = useRecoilState(updatePost_);
   const [addPost, setAddPost] = useRecoilState(addPost_);
 
-  const { data: username } = useSWRImmutable(post.user_id, getUsername);
-  const { data: quoteUsername } = useSWRImmutable(
-    get(post, "quote.user_id", ""),
-    getUsername
-  );
-
   const getVotes = async (post_id) => {
     try {
       const votes = await axios.post("/api/getvotes", { post_id: post_id });
@@ -84,6 +77,22 @@ export default function SinglePostCard({
     }
   };
 
+  const getFollows = async (key) => {
+    try {
+      const follows = await axios.post(key, { user_id: user?._id });
+      console.log("follows fetcher", follows.data);
+      return follows.data;
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
+  const { data: username } = useSWRImmutable(post.user_id, getUsername);
+  const { data: quoteUsername } = useSWRImmutable(
+    get(post, "quote.user_id", ""),
+    getUsername
+  );
+
   const {
     data: votes,
     mutate: mutatevotes,
@@ -91,6 +100,11 @@ export default function SinglePostCard({
     isValidating: validatevotes,
   } = useSWRImmutable(post._id, getVotes);
 
+  const { data: follows, mutate: mutatefollows } = useSWRImmutable(
+    user?._id && "/api/getfollows",
+    getFollows
+  );
+  console.log("follows", follows);
   console.log("votes", post.post_type, votes, votesError, validatevotes);
 
   const transform = (node, index) => {
@@ -273,10 +287,38 @@ export default function SinglePostCard({
     return;
   };
 
+  const isFollow = follows
+    ? follows.map((follow) => follow.post_id === post._id).includes(true)
+    : false;
+
+  const handleFollow = async (remove) => {
+    try {
+      await axios.post("/api/follow", {
+        user_id: user._id,
+        post_id: post._id,
+        post_title: post.title,
+        slug: post.slug,
+        remove: remove,
+        post_type: post.post_type,
+      });
+      const newFollows = remove
+        ? follows.filter((follow) => !follow.post_id)
+        : [...follows, { post_id: post._id }];
+      await mutatefollows(newFollows, {
+        rollbackOnError: true,
+        populateCache: true,
+        revalidate: true,
+        
+      });
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
   console.log("post", post);
   return (
     <Stack spacing={2} direction="row">
-      <Stack>
+      <Stack sx={{ width: "100%" }}>
         <Stack>
           <Typography
             component="a"
@@ -306,7 +348,7 @@ export default function SinglePostCard({
               >
                 {quoteUsername ? (
                   <Link
-                    href={`/${quoteUsername}`}
+                    href={`/user/${quoteUsername}`}
                     variant="caption"
                     underline="always"
                   >
@@ -330,7 +372,7 @@ export default function SinglePostCard({
             >
               {username ? (
                 <Link
-                  href={`/${username}`}
+                  href={`/user/${username}`}
                   variant="caption"
                   underline="always"
                 >
@@ -346,18 +388,24 @@ export default function SinglePostCard({
               </LinkTypography>
             </Stack>
             <Stack spacing={3} direction="row">
-              <Stack sx={{ cursor: "pointer" }} spacing={1} direction="row">
-                <ThumbUpAltIcon
-                  onClick={() => handleVote(true)}
-                  fontSize="small"
-                />
+              <Stack
+                onClick={() => handleVote(true)}
+                sx={{ cursor: "pointer" }}
+                spacing={1}
+                direction="row"
+              >
+                <ThumbUpAltIcon fontSize="small" />
                 <Typography variant="caption">{upvotes}</Typography>
               </Stack>
-              <Stack sx={{ cursor: "pointer" }} spacing={1} direction="row">
+              <Stack
+                onClick={() => handleVote(false)}
+                sx={{ cursor: "pointer" }}
+                spacing={1}
+                direction="row"
+              >
                 <ThumbDownIcon
                   sx={{ transform: "rotateY(180deg)" }}
                   fontSize="small"
-                  onClick={() => handleVote(false)}
                 />
                 <Typography variant="caption">{downvotes}</Typography>
               </Stack>
@@ -374,21 +422,29 @@ export default function SinglePostCard({
                 <ReplyIcon fontSize="small" />
                 <Typography variant="caption">Reply</Typography>
               </Stack>
-              <Stack spacing={0.5} alignItems="center" direction="row">
-                <BookmarkAddOutlinedIcon
-                  sx={{ fontSize: "1rem" }}
-                  fontSize="small"
-                />
-                <Typography
-                  onClick={() => {
-                    console.log("clicked ");
-                    //setReplyPost(true);
-                  }}
-                  variant="caption"
+              {!isComment && (
+                <Stack
+                  onClick={() => handleFollow(isFollow)}
+                  spacing={0.5}
+                  alignItems="center"
+                  direction="row"
+                  sx={{ cursor: "pointer" }}
                 >
-                  Follow
-                </Typography>
-              </Stack>
+                  <BookmarkAddOutlinedIcon
+                    sx={{ fontSize: "1rem" }}
+                    fontSize="small"
+                  />
+                  <Typography
+                    onClick={() => {
+                      console.log("clicked ");
+                      //setReplyPost(true);
+                    }}
+                    variant="caption"
+                  >
+                    {isFollow ? "Unfollow" : "Follow"}
+                  </Typography>
+                </Stack>
+              )}
             </Stack>
             <Divider />
             {user && user._id === post.user_id ? (
