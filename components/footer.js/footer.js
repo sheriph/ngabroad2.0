@@ -9,28 +9,17 @@ import {
 } from "@mui/material";
 import Image from "next/image";
 import { useRecoilState } from "recoil";
-import {
-  addComment_,
-  addPost_,
-  askQuestion_,
-  login_,
-  replyPost_,
-  updateProfile_,
-} from "../../lib/recoil";
-import AskQuestion from "../askquestion";
+import { addPost_, login_, replyPost_, updateProfile_ } from "../../lib/recoil";
 import { useTheme } from "@mui/material/styles";
 import CreatePost from "../createapost";
-import AddComment from "../addcomment";
 import ReplyPost from "../replypost";
 import Login from "../login";
 import EditProfile from "../../components/others/meeditprofile";
 import { useAuthUser } from "../../lib/utility";
 
 export default function Footer({ ssrUser }) {
-  const { user, loading, error, mutate } = useAuthUser();
-  const [askQuestion, setAddQuestion] = useRecoilState(askQuestion_);
+  const { user } = useAuthUser();
   const [addPost, setAddPost] = useRecoilState(addPost_);
-  const [addComment, setAddComment] = useRecoilState(addComment_);
   const [replyPost, setReplyPost] = useRecoilState(replyPost_);
   const [login, setLogin] = useRecoilState(login_);
   const [updateProfile, setUpdateProfile_] = useRecoilState(updateProfile_);
@@ -84,17 +73,6 @@ export default function Footer({ ssrUser }) {
           "&.MuiModal-root.MuiDialog-root": { zIndex: 1402 },
         }}
         fullScreen={fullScreen}
-        open={askQuestion}
-        onClose={() => setAddQuestion(false)}
-        // keepMounted={true}
-      >
-        <AskQuestion />
-      </Dialog>
-      <Dialog
-        sx={{
-          "&.MuiModal-root.MuiDialog-root": { zIndex: 1402 },
-        }}
-        fullScreen={fullScreen}
         open={replyPost}
         onClose={() => setReplyPost(false)}
       >
@@ -110,25 +88,6 @@ export default function Footer({ ssrUser }) {
       >
         <CreatePost />
       </Dialog>
-      <Dialog
-        sx={{
-          "&.MuiModal-root.MuiDialog-root": { zIndex: 1402 },
-        }}
-        fullScreen={fullScreen}
-        open={addComment}
-        onClose={() => setAddComment(false)}
-      >
-        <AddComment />
-      </Dialog>
-
-      {/* <Box>
-        <Image
-          src="/images/base/footerdesktop1080.jpeg"
-          alt="desktop footer"
-          width="100%"
-          height="80%"
-        />
-      </Box> */}
     </Stack>
   );
 }

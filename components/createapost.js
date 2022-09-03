@@ -16,6 +16,8 @@ import {
   Paper,
   Skeleton,
   Stack,
+  Tab,
+  Tabs,
   TextField,
   Typography,
 } from "@mui/material";
@@ -60,12 +62,8 @@ export default function CreatePost() {
       .required("Please enter the title")
       .min(20, "Title is too short")
       .trim("")
-      .lowercase("")
-      .matches(/^[aA-zZ\s\d]+$/, "Only alphanumeric characters"),
-    /*      .nope(
-        (titles || []).map((title) => trim(title.toLowerCase())),
-        "no-uniqueness"
-      ), */
+      .lowercase(""),
+    //    .matches(/^[aA-zZ\s\d]+$/, "Only alphanumeric characters"),
     content: Yup.string()
       .required("Content is required")
       .min(20, "Comment is too short"),
@@ -102,6 +100,7 @@ export default function CreatePost() {
       accept: false,
       countries: [],
       otherTags: tags,
+      post_type: "question",
     },
   });
 
@@ -147,7 +146,8 @@ export default function CreatePost() {
             title,
             countries,
             otherTags,
-            content,
+            content: watch("post_type") === "post" ? content : title,
+            post_type: watch("post_type"),
           }),
           {
             error: "Failed to create post",
@@ -191,22 +191,41 @@ export default function CreatePost() {
     }
   };
 
-  console.log("eror", errors);
+  const [tabValue, setTabValue] = React.useState(0);
+
+  const handleChange = (event, newValue) => {
+    console.log("newValue", newValue);
+    newValue === 0
+      ? setValue("post_type", "question")
+      : setValue("post_type", "post");
+    setTabValue(newValue);
+  };
+
+  console.log("eror", errors, watch("post_type"));
+
+  //backgroundColor: "primary.main",
 
   return (
     <Stack>
       <Stack
         color="primary"
-        sx={{ backgroundColor: "primary.main", py: 1, px: 2 }}
+        sx={{ py: 1, px: 2 }}
         alignItems="center"
         direction="row"
       >
         <Grid container alignItems="center">
           <Grid item xs></Grid>
           <Grid item xs="auto">
-            <Typography color="white" textAlign="center" variant="h1">
-              {updatePost ? "Update Post" : "Create a New Post"}
-            </Typography>
+            <Tabs value={tabValue} onChange={handleChange} centered>
+              <Tab
+                label={updatePost ? "Edit Question" : "Ask a New Question"}
+                sx={{ fontSize: "12px" }}
+              />
+              <Tab
+                label={updatePost ? "Edit Post" : "Create a New Post"}
+                sx={{ fontSize: "12px" }}
+              />
+            </Tabs>
           </Grid>
           <Grid
             sx={{ cursor: "pointer" }}
@@ -216,7 +235,7 @@ export default function CreatePost() {
             container
             justifyContent="flex-end"
           >
-            <CloseOutlinedIcon sx={{ color: "white" }} />
+            <CloseOutlinedIcon />
           </Grid>
         </Grid>
       </Stack>
@@ -254,6 +273,8 @@ export default function CreatePost() {
                 onChange={(e) => onChange(e.target.value)}
                 size="small"
                 fullWidth
+                multiline={Boolean(watch("post_type") === "question")}
+                minRows={3}
                 id="title"
                 placeholder="Start Typing ..."
                 variant="outlined"
@@ -265,7 +286,7 @@ export default function CreatePost() {
                   },
                 }}
                 disabled={updatePost}
-                label="Title"
+                label={watch("post_type") === "post" ? "Title" : "Question"}
                 error={Boolean(errors?.title?.message)}
                 InputProps={{
                   endAdornment: (
@@ -276,6 +297,16 @@ export default function CreatePost() {
                 }}
                 helperText={
                   <Stack component="span" direction="row" spacing={2}>
+                    {watch("post_type") === "question" && (
+                      <Typography
+                        color={
+                          250 - watch("title").length < 21 ? "error" : "primary"
+                        }
+                        variant="caption"
+                      >
+                        Remaining : {250 - watch("title").length}
+                      </Typography>
+                    )}
                     <Typography variant="caption">
                       {get(errors, "title.message")}
                     </Typography>
@@ -286,27 +317,29 @@ export default function CreatePost() {
           }}
         />
 
-        <Controller
-          name="content"
-          defaultValue=""
-          control={control}
-          render={({ field }) => {
-            const { onChange, value, ...rest } = field;
-            return (
-              <Box
-                sx={{
-                  border: errors?.content ? "1px solid" : "none",
-                  borderColor: "error.main",
-                }}
-              >
-                <Editor onChange={onChange} value={value} />
-                <Typography color="error" variant="caption">
-                  {get(errors, "post.message")}
-                </Typography>
-              </Box>
-            );
-          }}
-        />
+        {watch("post_type") === "post" && (
+          <Controller
+            name="content"
+            defaultValue=""
+            control={control}
+            render={({ field }) => {
+              const { onChange, value, ...rest } = field;
+              return (
+                <Box
+                  sx={{
+                    border: errors?.content ? "1px solid" : "none",
+                    borderColor: "error.main",
+                  }}
+                >
+                  <Editor onChange={onChange} value={value} />
+                  <Typography color="error" variant="caption">
+                    {get(errors, "post.message")}
+                  </Typography>
+                </Box>
+              );
+            }}
+          />
+        )}
 
         {!postReplyData.isComment && (
           <Stack

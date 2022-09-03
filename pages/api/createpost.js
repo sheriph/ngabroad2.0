@@ -1,3 +1,4 @@
+import { truncate } from "lodash";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import { postSchema } from "../../lib/mongodb/schema";
 import { seoSlug } from "../../lib/utility";
@@ -13,7 +14,8 @@ const client = new MongoClient(uri, clientOptions);
 
 export default async function handler(req, res) {
   try {
-    const { user_id, title, countries, otherTags, content } = req.body;
+    const { user_id, title, countries, otherTags, content, post_type } =
+      req.body;
     const slug = seoSlug(title);
     console.log("slug", slug);
     const newPost = {
@@ -23,9 +25,9 @@ export default async function handler(req, res) {
       createdAt: new Date(),
       updatedAts: [],
       approves: [],
-      slug: slug,
+      slug: truncate(slug, { length: 100, omission: "" }),
       tags: { otherTags: [...otherTags], countries: [...countries] },
-      post_type: "post",
+      post_type: post_type,
     };
 
     await client.connect();
@@ -49,7 +51,7 @@ export default async function handler(req, res) {
       .collection("posts")
       .insertOne(newPost);
 
-    res.status(200).json(slug);
+    res.status(200).json(truncate(slug, { length: 100, omission: "" }));
   } catch (error) {
     console.log("error", error);
     res.status(400).json({ message: error.message, info: error.errInfo });

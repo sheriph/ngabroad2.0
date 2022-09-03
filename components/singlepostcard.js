@@ -202,6 +202,11 @@ export default function SinglePostCard({
           )
       );
       try {
+        await mutatevotes(newVotes, {
+          rollbackOnError: true,
+          populateCache: true,
+          revalidate: false,
+        });
         await axios.post("/api/vote", {
           user_id: user._id,
           status,
@@ -213,7 +218,7 @@ export default function SinglePostCard({
         });
         await mutatevotes(newVotes, {
           rollbackOnError: true,
-          populateCache: true,
+          populateCache: false,
           revalidate: true,
         });
       } catch (error) {
@@ -242,6 +247,12 @@ export default function SinglePostCard({
       });
       console.log("votes in mutate", newVotes);
 
+      await mutatevotes(newVotes, {
+        rollbackOnError: true,
+        populateCache: true,
+        revalidate: false,
+      });
+
       try {
         await axios.post("/api/vote", {
           user_id: user._id,
@@ -253,7 +264,7 @@ export default function SinglePostCard({
         });
         await mutatevotes(newVotes, {
           rollbackOnError: true,
-          populateCache: true,
+          populateCache: false,
           revalidate: true,
         });
       } catch (error) {
@@ -267,6 +278,11 @@ export default function SinglePostCard({
       };
       const newVotes = [...votes, myVote];
       try {
+        await mutatevotes(newVotes, {
+          rollbackOnError: true,
+          populateCache: true,
+          revalidate: false,
+        });
         await axios.post("/api/vote", {
           user_id: user._id,
           status,
@@ -277,7 +293,7 @@ export default function SinglePostCard({
         });
         await mutatevotes(newVotes, {
           rollbackOnError: true,
-          populateCache: true,
+          populateCache: false,
           revalidate: true,
         });
       } catch (error) {
@@ -292,7 +308,15 @@ export default function SinglePostCard({
     : false;
 
   const handleFollow = async (remove) => {
+    const newFollows = remove
+      ? follows.filter((follow) => !follow.post_id)
+      : [...follows, { post_id: post._id }];
     try {
+      await mutatefollows(newFollows, {
+        rollbackOnError: true,
+        populateCache: true,
+        revalidate: false,
+      });
       await axios.post("/api/follow", {
         user_id: user._id,
         post_id: post._id,
@@ -301,14 +325,11 @@ export default function SinglePostCard({
         remove: remove,
         post_type: post.post_type,
       });
-      const newFollows = remove
-        ? follows.filter((follow) => !follow.post_id)
-        : [...follows, { post_id: post._id }];
+
       await mutatefollows(newFollows, {
         rollbackOnError: true,
-        populateCache: true,
+        populateCache: false,
         revalidate: true,
-        
       });
     } catch (error) {
       console.log("error", error);
@@ -331,7 +352,10 @@ export default function SinglePostCard({
             variant="h1"
             textAlign="left"
           >
-            {isComment && `Re:`} {capitalizeName(post.title)}
+            {isComment && `Re:`}{" "}
+            {parentPost.post_type === "question" && isComment
+              ? truncate(capitalizeName(post.title), { length: 70 })
+              : capitalizeName(post.title)}
           </Typography>
           <Stack>
             {isComment && get(post, "quote.content", "") && (
@@ -362,7 +386,12 @@ export default function SinglePostCard({
                 <QuoteReadMore content={get(post, "quote.content", "")} />
               </Stack>
             )}
-            <Box>{ReactHtmlParser(post.content, options)}</Box>
+            <Box>
+              {ReactHtmlParser(
+                post.post_type === "question" ? "" : post.content,
+                options
+              )}
+            </Box>
           </Stack>
           <Stack spacing={1} sx={{ mt: 2 }}>
             <Stack

@@ -17,33 +17,25 @@ import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
 import { useRouter } from "next/router";
 import { useRecoilState, useSetRecoilState } from "recoil";
-import {
-  addComment_,
-  addPost_,
-  askQuestion_,
-  postReplyData_,
-  replyPost_,
-} from "../../lib/recoil";
+import { addPost_, postReplyData_, replyPost_ } from "../../lib/recoil";
 
 export default function MobileFab({ post }) {
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
-  const [askQuestion, setAddQuestion] = useRecoilState(askQuestion_);
   const [addPost, setAddPost] = useRecoilState(addPost_);
-  //  const [addComment, setAddComment] = useRecoilState(addComment_);
   const [replyPost, setReplyPost] = useRecoilState(replyPost_);
   const router = useRouter();
   const [openSnack, setOpenSnack] = React.useState(false);
   const [postReplyData, setPostReplyData] = useRecoilState(postReplyData_);
 
   React.useEffect(() => {
-    if (askQuestion || addPost || replyPost) {
+    if (addPost || replyPost) {
       setOpenSnack(false);
     } else {
       setOpenSnack(true);
     }
-  }, [askQuestion, addPost, open, replyPost]);
+  }, [addPost, open, replyPost]);
 
   const actions =
     router.pathname === "/forum"
@@ -62,20 +54,6 @@ export default function MobileFab({ post }) {
             ),
             name: "Create a Post. Start on new thread",
           },
-          {
-            icon: (
-              <Stack
-                onClick={() => setAddQuestion(true)}
-                alignItems="center"
-                spacing={1}
-                direction="row"
-              >
-                <ContactSupportIcon color="primary" />{" "}
-                <Typography color="black">Ask Question</Typography>
-              </Stack>
-            ),
-            name: "Post your question. Start on new thread",
-          },
         ]
       : [
           {
@@ -91,20 +69,6 @@ export default function MobileFab({ post }) {
               </Stack>
             ),
             name: "Create a Post. Start on new thread",
-          },
-          {
-            icon: (
-              <Stack
-                onClick={() => setAddQuestion(true)}
-                alignItems="center"
-                spacing={1}
-                direction="row"
-              >
-                <ContactSupportIcon color="primary" />
-                <Typography color="black">Ask Question</Typography>
-              </Stack>
-            ),
-            name: "Post your question. Start on new thread",
           },
           {
             icon: (
