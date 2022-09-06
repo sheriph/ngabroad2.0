@@ -47,11 +47,11 @@ export default function Me({ ssrUser }) {
 
 export async function getServerSideProps({ params, req }) {
   try {
-    console.log("req", req);
-    const { Auth } = withSSRContext({ req });
-    const authUser = await Auth.currentAuthenticatedUser();
+    // console.log("req", req);
+    //  const { Auth } = withSSRContext({ req });
+    //  const authUser = await Auth.currentAuthenticatedUser();
     const username = params.pid;
-    const user = await getUser(authUser, username);
+    const user = await getUser(username);
     const ssrUser = user ? JSON.parse(user) : undefined;
     console.log("ssrUser", ssrUser);
     if (!ssrUser) throw new Error("user not found");

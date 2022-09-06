@@ -26,9 +26,6 @@ import {
 import ReplyIcon from "@mui/icons-material/Reply";
 import BookmarkAddOutlinedIcon from "@mui/icons-material/BookmarkAddOutlined";
 import useSWRImmutable from "swr/immutable";
-import ReactHtmlParser, { processNodes } from "react-html-parser";
-import Image from "next/image";
-import EditIcon from "@mui/icons-material/Edit";
 import ShareIcon from "@mui/icons-material/Share";
 import { useRecoilState } from "recoil";
 import {
@@ -50,6 +47,7 @@ import dayjs from "dayjs";
 import axios from "axios";
 import { useRouter } from "next/router";
 import QuoteReadMore from "./others/quotereadmore";
+import ArticleRender from "./others/articlerender";
 
 const advancedFormat = require("dayjs/plugin/advancedFormat");
 
@@ -69,7 +67,8 @@ export default function SinglePostCard({
 
   const getVotes = async (post_id) => {
     try {
-      const votes = await axios.post("/api/getvotes", { post_id: post_id });
+      const key = post_id.split("_")[0];
+      const votes = await axios.post("/api/getvotes", { post_id: key });
       console.log("votes", votes.data);
       return votes.data;
     } catch (error) {
@@ -98,7 +97,7 @@ export default function SinglePostCard({
     mutate: mutatevotes,
     error: votesError,
     isValidating: validatevotes,
-  } = useSWRImmutable(post._id, getVotes);
+  } = useSWRImmutable(`${post._id}_votesforapost`, getVotes);
 
   const { data: follows, mutate: mutatefollows } = useSWRImmutable(
     user?._id && "/api/getfollows",
@@ -107,59 +106,9 @@ export default function SinglePostCard({
   console.log("follows", follows);
   console.log("votes", post.post_type, votes, votesError, validatevotes);
 
-  const transform = (node, index) => {
-    if (node.type === "tag" && node.name === "h2") {
-      return (
-        <Typography
-          sx={{ my: "15px" }}
-          variant="h2"
-          align="center"
-          component="h2"
-          key={index}
-        >
-          {processNodes(node.children, transform)}
-        </Typography>
-      );
-    }
 
-    if (node.type === "tag" && node.name === "p") {
-      return (
-        <Typography component="p" key={index}>
-          {processNodes(node.children, transform)}
-        </Typography>
-      );
-    }
 
-    if (node.type === "tag" && node.name === "img") {
-      const { src, alt, width, height } = node.attribs;
-      return (
-        <Box
-          sx={{
-            my: 2,
-            width: "70%",
-            height: "70%",
-            mx: "auto",
-          }}
-          display="block"
-          justifyContent="center"
-          key={index}
-        >
-          <Image
-            src={src}
-            alt={alt}
-            width="100%"
-            height="100%"
-            layout="responsive"
-          />
-        </Box>
-      );
-    }
-  };
 
-  const options = {
-    decodeEntities: true,
-    transform,
-  };
 
   const showReply = () => {
     setPostReplyData({
@@ -387,10 +336,13 @@ export default function SinglePostCard({
               </Stack>
             )}
             <Box>
-              {ReactHtmlParser(
+              {/*  {ReactHtmlParser(
                 post.post_type === "question" ? "" : post.content,
                 options
-              )}
+              )} */}
+              <ArticleRender
+                content={post.post_type === "question" ? "" : post.content}
+              />
             </Box>
           </Stack>
           <Stack spacing={1} sx={{ mt: 2 }}>

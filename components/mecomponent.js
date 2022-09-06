@@ -25,10 +25,10 @@ import { useAuthUser } from "../lib/utility";
 
 export default function MeComponent({ ssrUser }) {
   const [meCategory, setMeCategory] = useRecoilState(meCategory_);
-  const { user, loading, error, mutate } = useAuthUser(ssrUser);
+  // const { user, loading, error, mutate } = useAuthUser(ssrUser);
   const [value, setValue] = React.useState(0);
 
-  console.log("user in me", user, loading);
+  console.log("ssrUser in me", ssrUser);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
