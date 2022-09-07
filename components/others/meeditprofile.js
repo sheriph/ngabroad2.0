@@ -69,9 +69,9 @@ TextMaskCustom.propTypes = {
   onChange: PropTypes.func.isRequired,
 };
 
-export default function EditProfile({ alert, ssrUser }) {
+export default function EditProfile({ alert }) {
   const [loadingState, setLoading] = useRecoilState(isLoading_);
-  const { user, loading, error, mutate } = useAuthUser(ssrUser);
+  const { user, loading, error, mutate } = useAuthUser();
   const router = useRouter();
 
   const { data: usernames, error: usernamesError } = useSWR(

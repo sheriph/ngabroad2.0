@@ -17,7 +17,7 @@ import Login from "../login";
 import EditProfile from "../../components/others/meeditprofile";
 import { useAuthUser } from "../../lib/utility";
 
-export default function Footer({ ssrUser }) {
+export default function Footer() {
   const { user } = useAuthUser();
   const [addPost, setAddPost] = useRecoilState(addPost_);
   const [replyPost, setReplyPost] = useRecoilState(replyPost_);
@@ -65,7 +65,7 @@ export default function Footer({ ssrUser }) {
             We are happy to welcome you as a new member of this community.
             Please complete your profile to start using your account.
           </Alert>
-          <EditProfile ssrUser={ssrUser} alert={true} />
+          <EditProfile alert={true} />
         </Stack>
       </Dialog>
       <Dialog

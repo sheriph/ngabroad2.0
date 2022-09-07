@@ -31,7 +31,7 @@ const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
   },
 }));
 
-export default function PostComponent() {
+export default function PostComponent({ ssrPosts }) {
   return (
     <Stack sx={{ p: { xs: 1, sm: 2 } }} direction="row" spacing={2}>
       <DesktopSideBar post={null} />
@@ -45,7 +45,7 @@ export default function PostComponent() {
         orientation="vertical"
         flexItem
       />
-      <PostList />
+      <PostList ssrPosts={ssrPosts} />
     </Stack>
   );
 }

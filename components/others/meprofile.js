@@ -3,6 +3,7 @@ import {
   Divider,
   Link,
   Paper,
+  Skeleton,
   Stack,
   Tab,
   Table,
@@ -17,13 +18,18 @@ import {
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import BookmarkAddOutlinedIcon from "@mui/icons-material/BookmarkAddOutlined";
+import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
+import CommentIcon from "@mui/icons-material/Comment";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import ThumbDownIcon from "@mui/icons-material/ThumbDown";
+import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 
 import dayjs from "dayjs";
 import { get, lowerCase, truncate } from "lodash";
 import { startCase } from "lodash";
 import React from "react";
 import useSWR from "swr";
-import { useAuthUser } from "../../lib/utility";
+import { HtmlTooltip, useAuthUser } from "../../lib/utility";
 import { Box } from "@mui/system";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 import useSWRImmutable from "swr/immutable";
@@ -106,132 +112,204 @@ export default function MeProfile({ ssrUser }) {
   };
 
   return (
-    <Stack spacing={3} sx={{ mt: 1 }}>
-      <Stack spacing={3} direction="row">
+    <Stack spacing={1} sx={{ mt: 1 }}>
+      <Stack justifyContent="center" spacing={3} direction="row">
         <Avatar
           alt={ssrUser.username}
           src={ssrUser.image}
           sx={{ width: { xs: 80, sm: 100 }, height: { xs: 80, sm: 100 } }}
         />
         <Stack spacing={1}>
-          <Typography variant="h1">
-            {startCase(lowerCase(`${ssrUser.firstName} ${ssrUser.lastName}`))}
-          </Typography>
+          <Stack
+            divider={<Divider orientation="vertical" flexItem />}
+            spacing={1}
+            direction="row"
+          >
+            <Typography variant="h1">
+              {startCase(lowerCase(`${ssrUser.firstName} ${ssrUser.lastName}`))}
+            </Typography>
+            <Link href={`/profile/${ssrUser.username}`} variant="caption">
+              @{ssrUser.username}
+            </Link>
+          </Stack>
           <Typography>Travel Consultant</Typography>
           <Typography variant="caption">
             Joined {dayjs(ssrUser.createdAt).format("MMMM YYYY")}
           </Typography>
-          <Stack
-            divider={<Divider orientation="vertical" flexItem />}
-            component={Paper}
-            variant="outlined"
-            direction="row"
-            spacing={1}
-            sx={{
-              width: "fit-content",
-              px: 1,
-              backgroundColor: "background.default",
-            }}
+          <HtmlTooltip
+            arrow
+            title={
+              <React.Fragment>
+                <Stack spacing={1}>
+                  <Stack alignItems="center" spacing={1} direction="row">
+                    <ThumbUpAltIcon
+                      sx={{ width: 17, height: 17 }}
+                      fontSize="small"
+                    />
+                    <Typography variant="caption">
+                      Number of times{" "}
+                      {startCase(lowerCase(`${ssrUser.firstName}`))} was upvoted
+                    </Typography>
+                  </Stack>
+                  <Stack alignItems="center" spacing={1} direction="row">
+                    <ThumbDownIcon
+                      sx={{
+                        width: 15,
+                        height: 15,
+                        transform: "rotateY(180deg)",
+                      }}
+                      fontSize="small"
+                    />
+                    <Typography variant="caption">
+                      Number of times{" "}
+                      {startCase(lowerCase(`${ssrUser.firstName}`))} was
+                      downvoted
+                    </Typography>
+                  </Stack>
+                  <Stack alignItems="center" spacing={1} direction="row">
+                    <NotificationsActiveIcon
+                      sx={{ width: 17, height: 17 }}
+                      fontSize="small"
+                    />
+                    <Typography variant="caption">
+                      Number of posts{" "}
+                      {startCase(lowerCase(`${ssrUser.firstName}`))} is
+                      following
+                    </Typography>
+                  </Stack>
+                </Stack>
+              </React.Fragment>
+            }
           >
-            <Stack spacing={0.5} alignItems="center" direction="row">
-              <ArrowUpwardIcon fontSize="small" />
-              <Typography variant="caption">{upvotes}</Typography>
+            <Stack
+              divider={<Divider orientation="vertical" flexItem />}
+              component={Paper}
+              variant="outlined"
+              direction="row"
+              spacing={1}
+              sx={{
+                width: "fit-content",
+                px: 1,
+                backgroundColor: "background.default",
+              }}
+            >
+              <Stack spacing={0.5} alignItems="center" direction="row">
+                <ThumbUpAltIcon
+                  sx={{ width: 17, height: 17 }}
+                  fontSize="small"
+                />
+                <Typography variant="caption">{upvotes}</Typography>
+              </Stack>
+              <Stack spacing={0.5} alignItems="center" direction="row">
+                <ThumbDownIcon
+                  sx={{ width: 15, height: 15, transform: "rotateY(180deg)" }}
+                  fontSize="small"
+                />
+                <Typography variant="caption">{downvotes}</Typography>
+              </Stack>
+              <Stack spacing={0.5} alignItems="center" direction="row">
+                <NotificationsActiveIcon
+                  sx={{ width: 17, height: 17 }}
+                  fontSize="small"
+                />
+                <Typography variant="caption">
+                  {follows?.length || 0}
+                </Typography>
+              </Stack>
             </Stack>
-            <Stack spacing={0.5} alignItems="center" direction="row">
-              <ArrowDownwardIcon fontSize="small" />
-              <Typography variant="caption">{downvotes}</Typography>
-            </Stack>
-            <Stack spacing={0.5} alignItems="center" direction="row">
-              <BookmarkAddOutlinedIcon fontSize="small" />
-              <Typography variant="caption">{follows?.length || 0}</Typography>
-            </Stack>
-          </Stack>
+          </HtmlTooltip>
         </Stack>
       </Stack>
-      <Box sx={{ width: "100%", typography: "body1" }}>
-        <TabContext value={tabValue}>
-          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-            <TabList
-              onChange={handleTabChange}
-              aria-label="lab API tabs example"
-            >
-              <Tab
-                sx={{ textTransform: "none" }}
-                label={`${
-                  (posts || []).filter((post) => post.post_type === "post")
-                    .length
-                } Posts`}
-                value="1"
-              />
-              <Tab
-                sx={{ textTransform: "none" }}
-                label={`${
-                  (posts || []).filter((post) => post.post_type === "question")
-                    .length
-                } Questions`}
-                value="2"
-              />
-              <Tab
-                sx={{ textTransform: "none" }}
-                label={`${(comments || []).length} Comments`}
-                value="3"
-              />
-            </TabList>
-          </Box>
-          <TabPanel value="1">
-            <Stack
-              spacing={2}
-              divider={<Divider orientation="horizontal" flexItem />}
-            >
-              {(posts || [])
-                .filter((post) => post.post_type === "post")
-                .map((post, key) => (
+
+      {posts ? (
+        <Box sx={{ width: "100%", typography: "body1" }}>
+          <TabContext value={tabValue}>
+            <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+              <TabList
+                onChange={handleTabChange}
+                aria-label="lab API tabs example"
+              >
+                <Tab
+                  sx={{ textTransform: "none" }}
+                  label={`${
+                    (posts || []).filter((post) => post.post_type === "post")
+                      .length
+                  } Posts`}
+                  value="1"
+                />
+                <Tab
+                  sx={{ textTransform: "none" }}
+                  label={`${
+                    (posts || []).filter(
+                      (post) => post.post_type === "question"
+                    ).length
+                  } Questions`}
+                  value="2"
+                />
+                <Tab
+                  sx={{ textTransform: "none" }}
+                  label={`${(comments || []).length} Comments`}
+                  value="3"
+                />
+              </TabList>
+            </Box>
+            <TabPanel value="1">
+              <Stack
+                spacing={2}
+                divider={<Divider orientation="horizontal" flexItem />}
+              >
+                {(posts || [])
+                  .filter((post) => post.post_type === "post")
+                  .map((post, key) => (
+                    <Stack spacing={1} key={key}>
+                      <Typography gutterBottom variant="h1">
+                        {startCase(lowerCase(post.title))}
+                      </Typography>
+                      <ArticleRender
+                        content={truncate(post.content, { length: 150 })}
+                      />
+                      <Link href={`/${post.slug}`}>Read More</Link>
+                    </Stack>
+                  ))}
+              </Stack>
+            </TabPanel>
+            <TabPanel value="2">
+              <Stack
+                spacing={2}
+                divider={<Divider orientation="horizontal" flexItem />}
+              >
+                {(posts || [])
+                  .filter((post) => post.post_type === "question")
+                  .map((post, key) => (
+                    <Stack spacing={1} key={key}>
+                      <ArticleRender
+                        content={truncate(post.content, { length: 150 })}
+                      />
+                      <Link href={`/${post.slug}`}>Read More</Link>
+                    </Stack>
+                  ))}
+              </Stack>
+            </TabPanel>
+            <TabPanel value="3">
+              <Stack
+                spacing={2}
+                divider={<Divider orientation="horizontal" flexItem />}
+              >
+                {(comments || []).map((comment, key) => (
                   <Stack spacing={1} key={key}>
                     <Typography gutterBottom variant="h1">
-                      {startCase(lowerCase(post.title))}
+                      Re: {startCase(lowerCase(comment.title))}
                     </Typography>
-                    <ArticleRender
-                      content={truncate(post.content, { length: 150 })}
-                    />
-                    <Link href={`/${post.slug}`}>Read More</Link>
+                    <ArticleRender content={comment.content} />
                   </Stack>
                 ))}
-            </Stack>
-          </TabPanel>
-          <TabPanel value="2">
-            <Stack
-              spacing={2}
-              divider={<Divider orientation="horizontal" flexItem />}
-            >
-              {(posts || [])
-                .filter((post) => post.post_type === "question")
-                .map((post, key) => (
-                  <Stack spacing={1} key={key}>
-                    <ArticleRender
-                      content={truncate(post.content, { length: 150 })}
-                    />
-                    <Link href={`/${post.slug}`}>Read More</Link>
-                  </Stack>
-                ))}
-            </Stack>
-          </TabPanel>
-          <TabPanel value="3">
-            <Stack
-              spacing={2}
-              divider={<Divider orientation="horizontal" flexItem />}
-            >
-              {(comments || []).map((comment, key) => (
-                <Stack spacing={1} key={key}>
-                  <Typography gutterBottom variant="h1">
-                    {startCase(lowerCase(comment.title))}
-                  </Typography>
-                  <ArticleRender content={comment.content} />
-                </Stack>
-              ))}
-            </Stack>
-          </TabPanel>
-        </TabContext>
-      </Box>
+              </Stack>
+            </TabPanel>
+          </TabContext>
+        </Box>
+      ) : (
+        <Skeleton sx={{ height: 500 }} />
+      )}
     </Stack>
   );
 }

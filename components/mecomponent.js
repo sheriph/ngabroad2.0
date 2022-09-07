@@ -11,6 +11,7 @@ import {
   TableRow,
   Tabs,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
 import DesktopSideBar from "./others/desktopsidebar";
 import React from "react";
@@ -22,37 +23,27 @@ import EditProfile from "./others/meeditprofile";
 import MeSecurity from "./others/mesecurity";
 import useSWR from "swr";
 import { useAuthUser } from "../lib/utility";
+import PortraitIcon from "@mui/icons-material/Portrait";
+import ContactMailOutlinedIcon from "@mui/icons-material/ContactMailOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import VpnKeyOutlinedIcon from "@mui/icons-material/VpnKeyOutlined";
 
 export default function MeComponent({ ssrUser }) {
   const [meCategory, setMeCategory] = useRecoilState(meCategory_);
-  // const { user, loading, error, mutate } = useAuthUser(ssrUser);
-  const [value, setValue] = React.useState(0);
+  const { user, loading, error, mutate } = useAuthUser();
+  const mobile = useMediaQuery("(max-width:600px)", { noSsr: true });
 
   console.log("ssrUser in me", ssrUser);
 
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-    switch (newValue) {
-      case 0:
-        setMeCategory("Account Details");
-        break;
-
-      case 1:
-        setMeCategory("Edit Profile");
-        break;
-
-      case 2:
-        setMeCategory("Password and Security");
-        break;
-
-      default:
-        break;
+  React.useEffect(() => {
+    if (!loading && ssrUser._id !== user?._id) {
+      setMeCategory("Account Details");
     }
-  };
+  }, [ssrUser._id === user?._id]);
 
   return (
     <Stack sx={{ p: { xs: 1, sm: 2 } }} direction="row" spacing={2}>
-      <MeSideBar />
+      <MeSideBar ssrUser={ssrUser} />
       <Divider
         sx={{
           position: "relative",
@@ -72,19 +63,39 @@ export default function MeComponent({ ssrUser }) {
         }}
       >
         <Stack spacing={1}>
-          <Tabs
-            sx={{
-              display: { xs: "block", md: "none" },
-              textTransform: "none",
-            }}
-            value={value}
-            onChange={handleChange}
-            centered
-          >
-            <Tab sx={{ textTransform: "none" }} label="Account Details" />
-            <Tab sx={{ textTransform: "none" }} label="Edit Profile" />
-            <Tab sx={{ textTransform: "none" }} label="Password and Security" />
-          </Tabs>
+          {ssrUser._id === user?._id && (
+            <Tabs
+              scrollButtons={true}
+              sx={{
+                display: { xs: "block", md: "none" },
+                textTransform: "none",
+              }}
+              allowScrollButtonsMobile
+              value={meCategory}
+              onChange={(e, value) => setMeCategory(value)}
+              centered
+            >
+              <Tab
+                icon={mobile ? <ContactMailOutlinedIcon /> : ""}
+                iconPosition="start"
+                sx={{ textTransform: "none" }}
+                label={mobile ? "" : "Account Details"}
+                value="Account Details"
+              />
+              <Tab
+                icon={mobile ? <EditOutlinedIcon /> : ""}
+                sx={{ textTransform: "none" }}
+                label={mobile ? "" : "Edit Profile"}
+                value="Edit Profile"
+              />
+              <Tab
+                icon={mobile ? <VpnKeyOutlinedIcon /> : ""}
+                sx={{ textTransform: "none" }}
+                label={mobile ? "" : "Security"}
+                value="Password and Security"
+              />
+            </Tabs>
+          )}
           <Stack>
             {meCategory === "Account Details" && (
               <MeProfile ssrUser={ssrUser} />

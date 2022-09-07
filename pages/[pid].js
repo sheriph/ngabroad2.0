@@ -42,7 +42,7 @@ export default function Questions({ post, comments }) {
         <SinglePostComponent comments={comments} post={post} />
         <MobileFab post={post} />
       </Box>
-      <Footer ssrUser={null} />
+      <Footer />
     </Stack>
   );
 }

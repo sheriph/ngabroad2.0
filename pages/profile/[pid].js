@@ -39,7 +39,7 @@ export default function Me({ ssrUser }) {
       @ts-ignore */}
           <MeComponent ssrUser={ssrUser} />
         </Box>
-        <Footer ssrUser={ssrUser} />
+        <Footer />
       </Stack>
     </Container>
   );

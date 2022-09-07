@@ -17,6 +17,7 @@ import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import ModeEditOutlineOutlinedIcon from "@mui/icons-material/ModeEditOutlineOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import { useAuthUser } from "../../lib/utility";
 
 const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
   "&.Mui-selected": {
@@ -27,13 +28,21 @@ const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
   },
 }));
 
-export default function MeSideBar() {
+export default function MeSideBar({ ssrUser }) {
   const [meCtegory, setMeCategory] = useRecoilState(meCategory_);
+
+  const { user, loading, error, mutate } = useAuthUser();
 
   const handleCategory = (e) => {
     console.log("e", e);
     setMeCategory(e.target.innerText);
   };
+
+  React.useEffect(() => {
+    if (!loading && ssrUser._id !== user?._id) {
+      setMeCategory("Account Details");
+    }
+  }, [ssrUser._id === user?._id]);
 
   return (
     <Box
@@ -54,24 +63,28 @@ export default function MeSideBar() {
             </ListItemIcon>
             <ListItemText primary="Account Details" />
           </CustomListItemButton>
-          <CustomListItemButton
-            selected={meCtegory === "Edit Profile"}
-            onClick={handleCategory}
-          >
-            <ListItemIcon>
-              <ModeEditOutlineOutlinedIcon />
-            </ListItemIcon>
-            <ListItemText primary="Edit Profile" />
-          </CustomListItemButton>
-          <CustomListItemButton
-            selected={meCtegory === "Password and Security"}
-            onClick={handleCategory}
-          >
-            <ListItemIcon>
-              <LockOutlinedIcon />
-            </ListItemIcon>
-            <ListItemText primary="Password and Security" />
-          </CustomListItemButton>
+          {ssrUser._id === user?._id && (
+            <React.Fragment>
+              <CustomListItemButton
+                selected={meCtegory === "Edit Profile"}
+                onClick={handleCategory}
+              >
+                <ListItemIcon>
+                  <ModeEditOutlineOutlinedIcon />
+                </ListItemIcon>
+                <ListItemText primary="Edit Profile" />
+              </CustomListItemButton>
+              <CustomListItemButton
+                selected={meCtegory === "Password and Security"}
+                onClick={handleCategory}
+              >
+                <ListItemIcon>
+                  <LockOutlinedIcon />
+                </ListItemIcon>
+                <ListItemText primary="Password and Security" />
+              </CustomListItemButton>
+            </React.Fragment>
+          )}
         </List>
 
         {/*  <Divider sx={{ my: 2 }} /> */}
