@@ -21,7 +21,7 @@ import React, { useEffect, useState } from "react";
 import PostCard from "./postcard";
 import { Box } from "@mui/system";
 import { useRecoilState } from "recoil";
-import { category_, filter_, selectCountry_ } from "../lib/recoil";
+import { category_, filter_, mobileFilter_, selectCountry_ } from "../lib/recoil";
 import MobileFab from "./others/mobilefab";
 import MobileCategoryChanger from "./others/mobilecategorychanger";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
@@ -42,10 +42,10 @@ const Root = styled("li")(({ theme }) => ({
 }));
 
 export default function PostList({ ssrPosts }) {
-  const [filter, setFilter] = useRecoilState(filter_);
-  const [tabValue, setTabValue] = React.useState("");
-
   const [renderFilter, setRenderFilter] = React.useState([]);
+  const [value, setValue] = useRecoilState(mobileFilter_);
+
+  
 
   React.useEffect(() => {
     const tag1 = countries.map((tag) => tag.name);
@@ -56,16 +56,7 @@ export default function PostList({ ssrPosts }) {
     setRenderFilter([...allTags.map((tag) => ({ name: tag }))]);
   }, [null]);
 
-  const handleFilterChange = (event, newAlignment) => {
-    console.log("newAlignment", newAlignment);
-    if (newAlignment) setFilter(newAlignment);
-  };
-
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-  };
-
-  console.log("renderFilter", renderFilter);
+  console.log("renderFilter", renderFilter, value);
 
   return (
     <Box
@@ -87,6 +78,11 @@ export default function PostList({ ssrPosts }) {
             disableCloseOnSelect
             // @ts-ignore
             getOptionLabel={(option) => option.name}
+            value={value}
+            onChange={(e, v, r) => {
+              // @ts-ignore
+              setValue(v);
+            }}
             renderOption={(props, option, { selected }) => {
               // @ts-ignore
               if (option.name === "start") {
@@ -136,7 +132,9 @@ export default function PostList({ ssrPosts }) {
           spacing={2}
           divider={<Divider orientation="horizontal" flexItem />}
         >
-          <PostCard post={null} />
+          {Array.from({ length: 10 }, (_, i) => i + 1).map((item, key) => (
+            <PostCard key={key} post={null} />
+          ))}
         </Stack>
       </Stack>
     </Box>
