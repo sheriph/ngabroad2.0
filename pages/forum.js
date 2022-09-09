@@ -24,8 +24,7 @@ const PostComponent = dynamic(() => import("../components/postcomponent"), {
 
 const HeaderAppOffset = styled("div")(({ theme }) => theme.mixins.toolbar);
 
-export default function Questions({ ssrPosts, ssrTags }) {
-  console.log("ssrPosts", ssrPosts);
+export default function Questions({ ssrTags }) {
   return (
     <Container disableGutters>
       <Stack id="headerId" spacing={1}>
@@ -35,7 +34,7 @@ export default function Questions({ ssrPosts, ssrTags }) {
           <HeaderAppOffset />
           {/* // 
       @ts-ignore */}
-          <PostComponent ssrTags={ssrTags} ssrPosts={ssrPosts} />
+          <PostComponent ssrTags={ssrTags} />
         </Box>
         <Footer />
       </Stack>
@@ -46,12 +45,12 @@ export default function Questions({ ssrPosts, ssrTags }) {
 export async function getServerSideProps({ params, req }) {
   try {
     const posts = await getPosts();
-    const ssrPosts = posts ? JSON.parse(posts) : undefined;
+    // const ssrPosts = posts ? JSON.parse(posts) : undefined;
     const tags = await getTags();
     const ssrTags = tags ? JSON.parse(tags) : undefined;
-    return { props: { ssrPosts, ssrTags } };
+    return { props: { ssrTags } };
   } catch (err) {
     console.log(err);
-    return { props: { ssrPosts: [], ssrTags: [] } };
+    return { props: { ssrTags: [] } };
   }
 }

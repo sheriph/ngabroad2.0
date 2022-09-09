@@ -98,7 +98,7 @@ export default function SearchMobile() {
               inputProps={{
                 ...params.inputProps,
                 style: { color: "white" },
-                autofocus: true,
+                autoFocus: true,
               }}
               InputProps={{
                 ...params.InputProps,

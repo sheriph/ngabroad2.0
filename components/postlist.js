@@ -6,6 +6,7 @@ import {
   Collapse,
   Divider,
   Fab,
+  LinearProgress,
   ListItemButton,
   Menu,
   MenuItem,
@@ -21,15 +22,22 @@ import React, { useEffect, useState } from "react";
 import PostCard from "./postcard";
 import { Box } from "@mui/system";
 import { useRecoilState } from "recoil";
-import { category_, filter_, mobileFilter_, selectCountry_ } from "../lib/recoil";
+import {
+  category_,
+  filter_,
+  mobileFilter_,
+  selectCountry_,
+} from "../lib/recoil";
 import MobileFab from "./others/mobilefab";
 import MobileCategoryChanger from "./others/mobilecategorychanger";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
-import { countries, postTags, tags } from "../lib/utility";
-import { lowerCase, startCase } from "lodash";
+import { countries, tags } from "../lib/utility";
+import { flatten, lowerCase, pullAll, startCase, uniq, uniqBy } from "lodash";
 import { styled } from "@mui/material/styles";
+import axios from "axios";
+import useSWRImmutable from "swr/immutable";
 
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
 const checkedIcon = <CheckBoxIcon fontSize="small" />;
@@ -41,22 +49,89 @@ const Root = styled("li")(({ theme }) => ({
   },
 }));
 
-export default function PostList({ ssrPosts }) {
+const fetchPosts = async (key) => {
+  try {
+    const dbFilter = JSON.parse(key);
+    console.log("dbFilter in fetch", dbFilter);
+    const posts = await axios.post("/api/getposts", { ...dbFilter });
+    console.log("posts", posts.data);
+    return posts.data;
+  } catch (error) {
+    console.log("error", error);
+  }
+};
+
+export default function PostList({ ssrTags }) {
   const [renderFilter, setRenderFilter] = React.useState([]);
   const [value, setValue] = useRecoilState(mobileFilter_);
 
-  
+  console.log("ssrTags", ssrTags);
+
+  const [dbFilter, setDBfilter] = React.useState({
+    post_type: [],
+    countries: [],
+    otherTags: [],
+  });
+
+  const {
+    data: posts,
+    mutate,
+    isValidating,
+    isLoading,
+  } = useSWRImmutable(JSON.stringify(dbFilter), fetchPosts, {
+    keepPreviousData: true,
+  });
 
   React.useEffect(() => {
-    const tag1 = countries.map((tag) => tag.name);
-    const tag2 = Object.keys(tags);
-    const allTags = ["start", "post", "question", ...tag2, "end", ...tag1];
+    const tag1 = uniq(flatten(ssrTags.map((doc) => doc.tags.countries)));
+    const tag2 = uniq(flatten(ssrTags.map((doc) => doc.tags.otherTags)));
+    const post_type = ["post", "question"];
+
+    const allTags = [
+      "post_type",
+      ...post_type,
+      "tags",
+      ...tag2,
+      "countries",
+      ...tag1,
+    ];
 
     // @ts-ignore
     setRenderFilter([...allTags.map((tag) => ({ name: tag }))]);
   }, [null]);
 
-  console.log("renderFilter", renderFilter, value);
+  React.useEffect(() => {
+    let dbfilterTemplate = {
+      post_type: [],
+      countries: [],
+      otherTags: [],
+    };
+    const filterValuesArray1 = value.map((item) => item.name);
+    const filterValuesArray2 = value.map((item) => item.name);
+    const filterValuesArray3 = value.map((item) => item.name);
+    const tag1 = flatten(ssrTags.map((doc) => doc.tags.countries));
+    const tag2 = flatten(ssrTags.map((doc) => doc.tags.otherTags));
+    const post_type = ["post", "question"];
+    const countriesandtags = [...tag1, ...tag2];
+    const lessPostType = pullAll(filterValuesArray1, countriesandtags);
+    // @ts-ignore
+    dbfilterTemplate.post_type = lessPostType;
+    const post_typeandtags = [...post_type, ...tag2];
+    const lessCountries = pullAll(filterValuesArray2, post_typeandtags);
+    // @ts-ignore
+    dbfilterTemplate.countries = lessCountries;
+    const post_typeandcountries = [...post_type, ...tag1];
+    const lessOtherTags = pullAll(filterValuesArray3, post_typeandcountries);
+    // @ts-ignore
+    dbfilterTemplate.otherTags = lessOtherTags;
+
+    console.log("dbfilterTemplate", dbfilterTemplate);
+    setDBfilter(dbfilterTemplate);
+  }, [value.map((item) => item.name).toLocaleString()]);
+
+  // console.log("renderFilter", renderFilter, value);
+  console.log("dbFilter", dbFilter);
+  console.log("posts", posts);
 
   return (
     <Box
@@ -67,9 +142,10 @@ export default function PostList({ ssrPosts }) {
         marginLeft: { xs: `0 !important`, md: `16px !important` },
       }}
     >
+      {isLoading || isValidating ? <LinearProgress /> : ""}
       <Stack spacing={3}>
         {/* Mobile Head */}
-        <Stack spacing={1} sx={{ display: { xs: "flex", md: "none" } }}>
+        <Stack spacing={1} sx={{ display: { xs: "flex", md: "none" }, mt: 2 }}>
           <Autocomplete
             multiple
             size="small"
@@ -81,11 +157,21 @@ export default function PostList({ ssrPosts }) {
             value={value}
             onChange={(e, v, r) => {
               // @ts-ignore
-              setValue(v);
+              setValue(uniqBy(v, "name"));
             }}
             renderOption={(props, option, { selected }) => {
               // @ts-ignore
-              if (option.name === "start") {
+              if (option.name === "post_type") {
+                return (
+                  <Box sx={{ pointerEvents: "none" }} component="li" {...props}>
+                    <Divider sx={{ width: "100%" }}>
+                      <Chip size="small" label="Post Type" color="primary" />
+                    </Divider>
+                  </Box>
+                );
+              }
+              // @ts-ignore
+              if (option.name === "tags") {
                 return (
                   <Box sx={{ pointerEvents: "none" }} component="li" {...props}>
                     <Divider sx={{ width: "100%" }}>
@@ -95,7 +181,7 @@ export default function PostList({ ssrPosts }) {
                 );
               }
               // @ts-ignore
-              if (option.name === "end") {
+              if (option.name === "countries") {
                 return (
                   <Box sx={{ pointerEvents: "none" }} component="li" {...props}>
                     <Divider sx={{ width: "100%" }}>
@@ -110,7 +196,12 @@ export default function PostList({ ssrPosts }) {
                     icon={icon}
                     checkedIcon={checkedIcon}
                     style={{ marginRight: 8 }}
-                    checked={selected}
+                    checked={
+                      selected ||
+                      Boolean(
+                        value.map((item) => item.name).includes(option.name)
+                      )
+                    }
                   />
                   {
                     // @ts-ignore
@@ -122,18 +213,19 @@ export default function PostList({ ssrPosts }) {
             renderInput={(params) => (
               <TextField
                 {...params}
-                label="Filters"
-                placeholder="Select Filters"
+                label="Interests"
+                placeholder="Select Your Interests"
               />
             )}
           />
         </Stack>
+
         <Stack
           spacing={2}
           divider={<Divider orientation="horizontal" flexItem />}
         >
-          {Array.from({ length: 10 }, (_, i) => i + 1).map((item, key) => (
-            <PostCard key={key} post={null} />
+          {(posts || []).map((post, key) => (
+            <PostCard key={key} post={post} />
           ))}
         </Stack>
       </Stack>

@@ -1,12 +1,12 @@
 import React from "react";
-import { Avatar, Button, Grid, Stack, Typography } from "@mui/material";
+import { Avatar, Button, Grid, Link, Stack, Typography } from "@mui/material";
 import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
 import CommentIcon from "@mui/icons-material/Comment";
 import CommentOutlinedIcon from "@mui/icons-material/CommentOutlined";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import CreateIcon from "@mui/icons-material/Create";
-import { LinkTypography } from "../lib/utility";
+import { getUsername, LinkTypography } from "../lib/utility";
 import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import BookmarkAddOutlinedIcon from "@mui/icons-material/BookmarkAddOutlined";
@@ -14,9 +14,35 @@ import BookmarkBorderOutlinedIcon from "@mui/icons-material/BookmarkBorderOutlin
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import QuestionAnswerOutlinedIcon from "@mui/icons-material/QuestionAnswerOutlined";
+import { lowerCase, startCase, truncate } from "lodash";
+import useSWRImmutable from "swr/immutable";
+import dayjs from "dayjs";
+import axios from "axios";
+import ArticleRender from "./others/articlerender";
+
+var advancedFormat = require("dayjs/plugin/advancedFormat");
+dayjs.extend(advancedFormat);
+
+const getCommentCount = async (key) => {
+  try {
+    const commentCount = await axios.post("/api/getcommentcount", {
+      post_id: key.split("_")[0],
+    });
+    console.log("commentCount", commentCount.data);
+    return commentCount.data;
+  } catch (error) {
+    console.log("error", error);
+  }
+};
 
 export default function PostCard({ post }) {
   const answer = false;
+  const { data: username } = useSWRImmutable(post.user_id, getUsername);
+  const { data: commentCount } = useSWRImmutable(
+    post._id ? `${post._id}_getcommentcountinforum` : undefined,
+    getCommentCount
+  );
+
   return (
     <Stack spacing={2} direction="row" sx={{ ml: `-15px !important` }}>
       <Stack sx={{ display: { xs: "none", sm: "flex" } }}>
@@ -27,7 +53,8 @@ export default function PostCard({ post }) {
           direction="row"
           sx={{ ml: 2 }}
         >
-          <CommentOutlinedIcon fontSize="small" /> <Typography>12</Typography>
+          <CommentOutlinedIcon fontSize="small" />{" "}
+          <Typography>{commentCount}</Typography>
         </Stack>
         <Stack
           justifyContent="flex-start"
@@ -38,16 +65,6 @@ export default function PostCard({ post }) {
         >
           <VisibilityOutlinedIcon fontSize="small" />{" "}
           <Typography>1240</Typography>
-        </Stack>
-        <Stack
-          justifyContent="flex-start"
-          alignItems="center"
-          spacing={1}
-          direction="row"
-          sx={{ ml: 2 }}
-        >
-          <BookmarkBorderOutlinedIcon fontSize="small" />{" "}
-          <Typography>5</Typography>
         </Stack>
       </Stack>
       <Stack>
@@ -62,60 +79,61 @@ export default function PostCard({ post }) {
           >
             <Stack alignItems="center" spacing={1} direction="row">
               <CommentOutlinedIcon fontSize="small" />{" "}
-              <Typography>12</Typography>
+              <Typography>{commentCount}</Typography>
             </Stack>
             <Stack alignItems="center" spacing={1} direction="row">
               <VisibilityOutlinedIcon fontSize="small" />{" "}
               <Typography>1240</Typography>
             </Stack>
-            <Stack alignItems="center" spacing={1} direction="row">
-              <BookmarkBorderOutlinedIcon fontSize="small" />{" "}
-              <Typography>5</Typography>
-            </Stack>
           </Stack>
-          <Typography
-            component="a"
+          <Link
             sx={{
               p: 0,
               justifyContent: "flex-start",
-              cursor: "pointer",
+              color: "text.primary",
             }}
             variant="h1"
             textAlign="left"
             gutterBottom
+            href={`/${post.slug}`}
+            underline="hover"
           >
-            Making sense of principal component analysis, eigenvectors &
-            eigenvalues
-          </Typography>
-          {answer ? (
-            <Stack>
-              <Typography>
-                In today's pattern recognition class my professor talked about
-                PCA, eigenvectors and eigenvalues. I understood the mathematics
-                of it. If I'm asked to find eigenvalues etc. I'll do it
-                correctly like ...
-              </Typography>
-            </Stack>
-          ) : (
+            {startCase(lowerCase(post.title))}
+          </Link>
+          {post.post_type === "question" && commentCount === 0 ? (
             <Stack sx={{}}>
               <Stack alignItems="center">
                 <Typography textAlign="center">
-                  Sheriff needs your help to figure this out
+                  @{username} needs your help to figure this out
                 </Typography>
                 <Button
                   sx={{ width: "fit-content" }}
                   startIcon={<QuestionAnswerOutlinedIcon />}
+                  href={`/${post.slug}`}
                 >
                   Provide an Answer
                 </Button>
               </Stack>
             </Stack>
+          ) : (
+            <React.Fragment>
+              {post.post_type === "post" && (
+                <Stack spacing={1}>
+                  <ArticleRender
+                    content={truncate(post.content, {
+                      length: 220,
+                      omission: ` ... <a style="cursor:pointer" href=/${post.slug}}>Read More</a>`,
+                    })}
+                  />
+                </Stack>
+              )}
+            </React.Fragment>
           )}
           <Grid
             container
             justifyContent="space-between"
             direction="row"
-            sx={{ mt: 0.5 }}
+            sx={{ mt: 2 }}
           >
             <Grid item>
               <Stack alignItems="center" spacing={1} direction="row">
@@ -125,9 +143,13 @@ export default function PostCard({ post }) {
                       sx={{ fontSize: "1rem" }}
                       fontSize="small"
                     />
-                    <LinkTypography variant="caption">
-                      Sheriff Adeniyi
-                    </LinkTypography>
+                    <Link
+                      underline="always"
+                      href={`/profile/${username}`}
+                      variant="caption"
+                    >
+                      @{username}
+                    </Link>
                   </Stack>
                   <Stack spacing={0.5} alignItems="center" direction="row">
                     <AccessTimeOutlinedIcon
@@ -135,17 +157,10 @@ export default function PostCard({ post }) {
                       fontSize="small"
                     />
                     <LinkTypography variant="caption">
-                      27th Aug, 2022 - 10:00 AM
+                      {dayjs(post.createdAt).format("Do MMMM, YYYY - hh:mm a")}
                     </LinkTypography>
                   </Stack>
                 </Stack>
-              </Stack>
-              <Stack spacing={0.5} alignItems="center" direction="row">
-                <BookmarkAddOutlinedIcon
-                  sx={{ fontSize: "1rem" }}
-                  fontSize="small"
-                />
-                <Typography variant="caption">Follow Thread</Typography>
               </Stack>
             </Grid>
           </Grid>

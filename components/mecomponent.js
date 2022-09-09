@@ -102,9 +102,7 @@ export default function MeComponent({ ssrUser }) {
             )}
           </Stack>
           <Stack>
-            {meCategory === "Edit Profile" && (
-              <EditProfile ssrUser={ssrUser} alert={false} />
-            )}
+            {meCategory === "Edit Profile" && <EditProfile alert={false} />}
           </Stack>
           <Stack>
             {meCategory === "Password and Security" && <MeSecurity />}

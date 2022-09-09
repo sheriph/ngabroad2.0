@@ -74,7 +74,6 @@ export default function SearchDesktop() {
           inputProps={{
             ...params.inputProps,
             style: { color: "white" },
-            autofocus: true,
           }}
           InputProps={{
             ...params.InputProps,
