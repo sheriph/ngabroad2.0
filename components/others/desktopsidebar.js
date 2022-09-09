@@ -30,7 +30,10 @@ import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
 import DoneAllOutlinedIcon from "@mui/icons-material/DoneAllOutlined";
 import { countries, tags } from "../../lib/utility";
-import { flatten, get, uniq } from "lodash";
+import { flatten, get, pullAll, uniq } from "lodash";
+import useSWRImmutable from "swr/immutable";
+import axios from "axios";
+
 
 const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
   "&.Mui-selected": {
@@ -41,7 +44,19 @@ const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
   },
 }));
 
-export default function DesktopSideBar({ post, ssrTags }) {
+const fetchPosts = async (key) => {
+  try {
+    const dbFilter = JSON.parse(key);
+    console.log("dbFilter in fetch", dbFilter);
+    const posts = await axios.post("/api/getposts", { ...dbFilter });
+    console.log("posts", posts.data);
+    return posts.data;
+  } catch (error) {
+    console.log("error", error);
+  }
+};
+
+export default function DesktopSideBar({ ssrTags }) {
   const [category, setCategory] = useRecoilState(category_);
   const router = useRouter();
   const [addPost, setAddPost] = useRecoilState(addPost_);
@@ -51,6 +66,20 @@ export default function DesktopSideBar({ post, ssrTags }) {
   console.log("router", router.pathname);
 
   const [sidebarFilter, setSidebarFilter] = useRecoilState(sidebarFilter_);
+  const [dbFilter, setDBfilter] = React.useState({
+    post_type: [],
+    countries: [],
+    otherTags: [],
+  });
+
+  const {
+    data: posts,
+    mutate,
+    isValidating,
+    isLoading,
+  } = useSWRImmutable(JSON.stringify(dbFilter), fetchPosts, {
+    keepPreviousData: true,
+  });
 
   const handleFilter = (e) => {
     console.log("e.target.innerText", e.target.innerText);
@@ -67,32 +96,68 @@ export default function DesktopSideBar({ post, ssrTags }) {
   console.log("ssrTags", ssrTags);
 
   React.useEffect(() => {
-    const tag1 = ssrTags.map((item) => get(item, "tags.countries", []));
-    const tag2 = ssrTags.map((item) => get(item, "tags.otherTags", []));
-    console.log("running", tag1, tag2, flatten(tag1), flatten(tag2));
+    const tag1 = uniq(flatten(ssrTags.map((doc) => doc.tags.countries)));
+    const tag2 = uniq(flatten(ssrTags.map((doc) => doc.tags.otherTags)));
+    const post_type = ["post", "question"];
 
     const allTags = [
-      "start",
-      "post",
-      "question",
-      ...flatten(tag2),
-      "end",
-      ...flatten(tag1),
+      "post_type",
+      ...post_type,
+      "tags",
+      ...tag2,
+      "countries",
+      ...tag1,
     ];
 
-    const uniqValue = uniq(allTags);
+    const newFilter = [...allTags.map((tag) => ({ name: tag, check: false }))];
 
-    const newFilter = [
-      ...uniqValue.map((tag) => ({ name: tag, check: false })),
-    ];
-
-    console.log("newFilter", newFilter.length, sidebarFilter.length);
+    console.log("newFilter", newFilter, sidebarFilter);
 
     // @ts-ignore
     setSidebarFilter(
       newFilter.length === sidebarFilter.length ? sidebarFilter : newFilter
     );
   }, [null]);
+
+  React.useEffect(() => {
+    let dbfilterTemplate = {
+      post_type: [],
+      countries: [],
+      otherTags: [],
+    };
+    const filterValuesArray1 = sidebarFilter
+      .filter((item) => item.check)
+      .map((item) => item.name);
+    const filterValuesArray2 = sidebarFilter
+      .filter((item) => item.check)
+      .map((item) => item.name);
+    const filterValuesArray3 = sidebarFilter
+      .filter((item) => item.check)
+      .map((item) => item.name);
+    const tag1 = flatten(ssrTags.map((doc) => doc.tags.countries));
+    const tag2 = flatten(ssrTags.map((doc) => doc.tags.otherTags));
+    const post_type = ["post", "question"];
+    const countriesandtags = [...tag1, ...tag2];
+    const lessPostType = pullAll(filterValuesArray1, countriesandtags);
+    // @ts-ignore
+    dbfilterTemplate.post_type = lessPostType;
+    const post_typeandtags = [...post_type, ...tag2];
+    const lessCountries = pullAll(filterValuesArray2, post_typeandtags);
+    // @ts-ignore
+    dbfilterTemplate.countries = lessCountries;
+    const post_typeandcountries = [...post_type, ...tag1];
+    const lessOtherTags = pullAll(filterValuesArray3, post_typeandcountries);
+    // @ts-ignore
+    dbfilterTemplate.otherTags = lessOtherTags;
+
+    console.log("dbfilterTemplate", dbfilterTemplate);
+    setDBfilter(dbfilterTemplate);
+  }, [
+    sidebarFilter
+      .filter((item) => item.check)
+      .map((item) => item.name)
+      .toLocaleString(),
+  ]);
 
   console.log("sidebarFilter", sidebarFilter);
 
@@ -112,7 +177,17 @@ export default function DesktopSideBar({ post, ssrTags }) {
         <List dense component="nav" aria-label="category">
           {sidebarFilter.map((filter, index) => {
             // @ts-ignore
-            if (filter.name === "start") {
+            if (filter.name === "post_type") {
+              return (
+                <Box key={filter.name} sx={{ pointerEvents: "none", mb: 1 }}>
+                  <Divider sx={{ width: "100%" }}>
+                    <Chip size="small" label="Post Type" color="primary" />
+                  </Divider>
+                </Box>
+              );
+            }
+            // @ts-ignore
+            if (filter.name === "tags") {
               return (
                 <Box key={filter.name} sx={{ pointerEvents: "none", mb: 1 }}>
                   <Divider sx={{ width: "100%" }}>
@@ -122,7 +197,7 @@ export default function DesktopSideBar({ post, ssrTags }) {
               );
             }
             // @ts-ignore
-            if (filter.name === "end") {
+            if (filter.name === "countries") {
               return (
                 <Box key={filter.name} sx={{ pointerEvents: "none", my: 1 }}>
                   <Divider sx={{ width: "100%" }}>
