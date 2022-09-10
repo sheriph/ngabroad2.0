@@ -38,6 +38,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import { styled, alpha } from "@mui/material/styles";
 import SearchMobile from "./searchmobile";
 import SearchDesktop from "./searchdesktop";
+import { toast } from "react-toastify";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   // @ts-ignore
@@ -80,6 +81,7 @@ export default function HeaderApp(props) {
   const { user, isValidating, loading } = useAuthUser();
   const [addPost, setAddPost] = useRecoilState(addPost_);
   const setOpenSearch = useSetRecoilState(mobileSearchOpen_);
+  console.log('user', user)
 
   return (
     <HideOnScroll {...props}>
@@ -92,7 +94,15 @@ export default function HeaderApp(props) {
               <OtherMenu />
             </Typography>
             <Typography sx={{ mr: "auto" }} component="div">
-              <Box onClick={() => !props.post && setAddPost(true)}>
+              <Box
+                onClick={() => {
+                  if (!user) {
+                    toast.error("Please sign-in to post");
+                    return;
+                  }
+                  !props.post && setAddPost(true);
+                }}
+              >
                 <ForumMenu post={props.post} />
               </Box>
             </Typography>

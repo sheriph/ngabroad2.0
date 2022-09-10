@@ -26,7 +26,6 @@ import {
   category_,
   filter_,
   mobileFilter_,
-  posts_,
   selectCountry_,
 } from "../lib/recoil";
 import MobileFab from "./others/mobilefab";
@@ -34,7 +33,7 @@ import MobileCategoryChanger from "./others/mobilecategorychanger";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
-import { countries, tags, useFetchPosts } from "../lib/utility";
+import { countries, tags } from "../lib/utility";
 import { flatten, lowerCase, pullAll, startCase, uniq, uniqBy } from "lodash";
 import { styled } from "@mui/material/styles";
 import axios from "axios";
@@ -50,7 +49,7 @@ const Root = styled("li")(({ theme }) => ({
   },
 }));
 
-/* const fetchPosts = async (key) => {
+const fetchPosts = async (key) => {
   try {
     const dbFilter = JSON.parse(key);
     console.log("dbFilter in fetch", dbFilter);
@@ -60,9 +59,9 @@ const Root = styled("li")(({ theme }) => ({
   } catch (error) {
     console.log("error", error);
   }
-}; */
+};
 
-export default function PostList({ ssrTags }) {
+export default function DesktopPostList({ ssrTags }) {
   const [renderFilter, setRenderFilter] = React.useState([]);
   const [value, setValue] = useRecoilState(mobileFilter_);
 
@@ -74,26 +73,14 @@ export default function PostList({ ssrTags }) {
     otherTags: [],
   });
 
-  /* const {
+  const {
     data: posts,
     mutate,
     isValidating,
     isLoading,
   } = useSWRImmutable(JSON.stringify(dbFilter), fetchPosts, {
     keepPreviousData: true,
-  }); */
-
-  const {
-    posts: db_posts,
-    isLoading,
-    isValidating,
-  } = useFetchPosts(JSON.stringify(dbFilter));
-
-  const [posts, setPosts] = useRecoilState(posts_);
-
-  React.useEffect(() => {
-    setPosts(db_posts);
-  }, [`${isLoading}`, `${isValidating}`]);
+  });
 
   React.useEffect(() => {
     const tag1 = uniq(flatten(ssrTags.map((doc) => doc.tags.countries)));

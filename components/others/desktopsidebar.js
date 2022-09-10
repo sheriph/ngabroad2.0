@@ -4,6 +4,7 @@ import {
   Checkbox,
   Chip,
   Divider,
+  LinearProgress,
   List,
   ListItem,
   ListItemButton,
@@ -18,6 +19,7 @@ import {
   addPost_,
   category_,
   postReplyData_,
+  posts_,
   replyPost_,
   sidebarFilter_,
 } from "../../lib/recoil";
@@ -29,11 +31,10 @@ import { useRouter } from "next/router";
 import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
 import DoneAllOutlinedIcon from "@mui/icons-material/DoneAllOutlined";
-import { countries, tags } from "../../lib/utility";
+import { countries, tags, useFetchPosts } from "../../lib/utility";
 import { flatten, get, pullAll, uniq } from "lodash";
 import useSWRImmutable from "swr/immutable";
 import axios from "axios";
-
 
 const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
   "&.Mui-selected": {
@@ -44,7 +45,7 @@ const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
   },
 }));
 
-const fetchPosts = async (key) => {
+/* const fetchPosts = async (key) => {
   try {
     const dbFilter = JSON.parse(key);
     console.log("dbFilter in fetch", dbFilter);
@@ -54,7 +55,7 @@ const fetchPosts = async (key) => {
   } catch (error) {
     console.log("error", error);
   }
-};
+}; */
 
 export default function DesktopSideBar({ ssrTags }) {
   const [category, setCategory] = useRecoilState(category_);
@@ -73,13 +74,36 @@ export default function DesktopSideBar({ ssrTags }) {
   });
 
   const {
-    data: posts,
-    mutate,
-    isValidating,
+    posts: db_posts,
     isLoading,
-  } = useSWRImmutable(JSON.stringify(dbFilter), fetchPosts, {
-    keepPreviousData: true,
-  });
+    isValidating,
+  } = useFetchPosts(ssrTags ? JSON.stringify(dbFilter) : undefined);
+
+  const [posts, setPosts] = useRecoilState(posts_);
+
+  React.useEffect(() => {
+    setPosts(db_posts);
+  }, [`${isLoading}`, `${isValidating}`]);
+
+  console.log("isLoading, isValidating", isLoading, isValidating);
+
+  if (!ssrTags) {
+    return (
+      <Box
+        sx={{
+          width: "250px",
+          position: "fixed",
+          overflowY: "scroll",
+          overflowX: "hidden",
+          bottom: 0,
+          top: 80,
+          display: { xs: "none", md: "block" },
+        }}
+      >
+        <Button href="/forum">Back to forum posts</Button>
+      </Box>
+    );
+  }
 
   const handleFilter = (e) => {
     console.log("e.target.innerText", e.target.innerText);
@@ -161,6 +185,8 @@ export default function DesktopSideBar({ ssrTags }) {
 
   console.log("sidebarFilter", sidebarFilter);
 
+  console.log("posts", posts);
+
   return (
     <Box
       sx={{
@@ -173,6 +199,7 @@ export default function DesktopSideBar({ ssrTags }) {
         display: { xs: "none", md: "block" },
       }}
     >
+      {isLoading || isValidating ? <LinearProgress /> : ""}
       <Stack>
         <List dense component="nav" aria-label="category">
           {sidebarFilter.map((filter, index) => {
@@ -228,37 +255,6 @@ export default function DesktopSideBar({ ssrTags }) {
             );
           })}
         </List>
-
-        {/*  <Divider sx={{ my: 2 }} />
-
-        {router.pathname !== "/forum" && (
-          <Button
-            startIcon={<PostAddOutlinedIcon sx={{ mr: 3 }} />}
-            disableElevation
-            sx={{ justifyContent: "flex-start", pl: 3 }}
-            // variant="outlined"
-            onClick={() => {
-              setPostReplyData({
-                parentPost: post,
-                post: null,
-                isComment: false,
-              });
-              setReplyPost(true);
-            }}
-          >
-            Add Comment
-          </Button>
-        )}
-
-        <Button
-          startIcon={<AssignmentOutlinedIcon sx={{ mr: 3 }} />}
-          disableElevation
-          sx={{ justifyContent: "flex-start", pl: 3 }}
-          // variant="outlined"
-          onClick={() => setAddPost(true)}
-        >
-          Create a Post
-        </Button> */}
       </Stack>
     </Box>
   );

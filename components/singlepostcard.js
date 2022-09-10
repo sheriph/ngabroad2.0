@@ -48,6 +48,7 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import QuoteReadMore from "./others/quotereadmore";
 import ArticleRender from "./others/articlerender";
+import { toast } from "react-toastify";
 
 const advancedFormat = require("dayjs/plugin/advancedFormat");
 
@@ -106,11 +107,11 @@ export default function SinglePostCard({
   console.log("follows", follows);
   console.log("votes", post.post_type, votes, votesError, validatevotes);
 
-
-
-
-
   const showReply = () => {
+    if (!user) {
+      toast.error("Please sign-in to comment");
+      return;
+    }
     setPostReplyData({
       parentPost,
       post,
@@ -120,6 +121,10 @@ export default function SinglePostCard({
   };
 
   const showUpdate = () => {
+    if (!user) {
+      toast.error("Please sign-in to comment");
+      return;
+    }
     setUpdatePost(true);
     setPostReplyData({
       post,
@@ -291,12 +296,10 @@ export default function SinglePostCard({
       <Stack sx={{ width: "100%" }}>
         <Stack>
           <Typography
-            component="a"
             sx={{
               p: 0,
               justifyContent: "flex-start",
-              cursor: "pointer",
-              pb: 2,
+              pb: 1,
             }}
             variant="h1"
             textAlign="left"
@@ -364,18 +367,21 @@ export default function SinglePostCard({
                   <LinkTypography>By Adeniyi Sheriff</LinkTypography>
                 </Skeleton>
               )}
-              <LinkTypography variant="caption">
-                {dayjs(post.createdAt).format("Do MMMM, YYYY")}
-              </LinkTypography>
+              <Typography variant="caption">
+                {dayjs(post.createdAt).format("Do MMMM, YYYY hh:mm a")}
+              </Typography>
             </Stack>
-            <Stack spacing={3} direction="row">
+            <Stack spacing={1} direction="row">
               <Stack
                 onClick={() => handleVote(true)}
                 sx={{ cursor: "pointer" }}
                 spacing={1}
                 direction="row"
               >
-                <ThumbUpAltIcon fontSize="small" />
+                <ThumbUpAltIcon
+                  sx={{ width: 17, height: 17 }}
+                  fontSize="small"
+                />
                 <Typography variant="caption">{upvotes}</Typography>
               </Stack>
               <Stack
@@ -385,7 +391,11 @@ export default function SinglePostCard({
                 direction="row"
               >
                 <ThumbDownIcon
-                  sx={{ transform: "rotateY(180deg)" }}
+                  sx={{
+                    width: 15,
+                    height: 15,
+                    transform: "rotateY(180deg)",
+                  }}
                   fontSize="small"
                 />
                 <Typography variant="caption">{downvotes}</Typography>

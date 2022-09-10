@@ -24,7 +24,6 @@ import {
   getAwsUrl,
   HtmlTooltip,
   LinkTypography,
-  postTags,
   useAuthUser,
   useHost,
   useUser,
@@ -44,6 +43,7 @@ import { isLoading_, postReplyData_, replyPost_ } from "../lib/recoil";
 import SendOutlinedIcon from "@mui/icons-material/SendOutlined";
 import Radio from "@mui/material/Radio";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
+import { useRouter } from "next/router";
 
 export default function ReplyPost() {
   const schema = Yup.object().shape({
@@ -51,6 +51,7 @@ export default function ReplyPost() {
       .required("Content is required")
       .min(20, "Comment is too short"),
   });
+  const router = useRouter();
 
   const [postReplyData, setPostReplyData] = useRecoilState(postReplyData_);
   const { isComment, parentPost, post } = postReplyData;
@@ -64,16 +65,18 @@ export default function ReplyPost() {
     defaultValues: { content: ``, accept: false },
   });
   const [termsDialog, setTermsDialog] = useState(false);
-  const [loading, setLoading] = useRecoilState(isLoading_);
   const [replyPost, setReplyPost] = useRecoilState(replyPost_);
-  const { user, loading: userLoaing, error, mutate } = useAuthUser();
+  const { user } = useAuthUser();
+  const [loading, setLoading] = React.useState(false);
 
   console.log("postReplyData", postReplyData);
 
   const onSubmit = async (data) => {
     console.log("data", data);
     const { content } = data;
+
     try {
+      setLoading(true);
       //  setLoading(true);
       // @ts-ignore
       await toast.promise(
@@ -97,10 +100,12 @@ export default function ReplyPost() {
           pending: "Posting comment in progress ...",
         }
       );
-      //   setLoading(false);
+      setLoading(false);
+      router.reload();
+      setReplyPost(false);
     } catch (error) {
       console.log(error?.response?.data);
-      //    setLoading(false);
+      setLoading(false);
     }
   };
 

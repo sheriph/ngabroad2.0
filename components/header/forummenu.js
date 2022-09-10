@@ -19,6 +19,8 @@ import ForumIcon from "@mui/icons-material/Forum";
 import ReplyOutlinedIcon from "@mui/icons-material/ReplyOutlined";
 import { addPost_, postReplyData_, replyPost_ } from "../../lib/recoil";
 import { useRecoilState } from "recoil";
+import { toast } from "react-toastify";
+import { useAuthUser } from "../../lib/utility";
 
 export default function ForumMenu({ post }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -26,6 +28,7 @@ export default function ForumMenu({ post }) {
   const [addPost, setAddPost] = useRecoilState(addPost_);
   const [postReplyData, setPostReplyData] = useRecoilState(postReplyData_);
   const [replyPost, setReplyPost] = useRecoilState(replyPost_);
+  const { user, isValidating, loading } = useAuthUser();
 
   const open = Boolean(post && anchorEl);
   const handleClick = (event) => {
@@ -36,6 +39,10 @@ export default function ForumMenu({ post }) {
   };
 
   const comment = () => {
+    if (!user) {
+      toast.error("Please sign-in to comment");
+      return;
+    }
     setPostReplyData({
       parentPost: post,
       post: null,

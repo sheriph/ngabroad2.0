@@ -37,20 +37,25 @@ export default function OtherMenu() {
   return (
     <React.Fragment>
       <Box>
-        <Tooltip title="Our services">
-          <Button
-            onClick={handleClick}
-            size="small"
-            sx={{ mr: 1 }}
-            aria-controls={open ? "account-menu" : undefined}
-            aria-haspopup="true"
-            aria-expanded={open ? "true" : undefined}
-            color="inherit"
-            startIcon={<MenuIcon />}
-          >
-            Services
-          </Button>
-        </Tooltip>
+        {/* <Button
+          onClick={handleClick}
+          size="small"
+          sx={{ mr: 1 }}
+          aria-controls={open ? "account-menu" : undefined}
+          aria-haspopup="true"
+          aria-expanded={open ? "true" : undefined}
+          color="inherit"
+          startIcon={<MenuIcon />}
+        ></Button> */}
+        <IconButton onClick={handleClick}
+          size="small"
+          sx={{ mr: 1 }}
+          aria-controls={open ? "account-menu" : undefined}
+          aria-haspopup="true"
+          aria-expanded={open ? "true" : undefined}
+          color="inherit">
+          <MenuIcon />
+        </IconButton>
       </Box>
       <Menu
         anchorEl={anchorEl}

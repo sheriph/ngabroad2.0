@@ -21,6 +21,7 @@ import SinglePostCard from "./singlepostcard";
 import MobileCategoryChanger from "./others/mobilecategorychanger";
 import { lowerCase, startCase, truncate } from "lodash";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 
 export default function PostsCard({ post, comments }) {
   console.log("comments", comments);
@@ -42,21 +43,15 @@ export default function PostsCard({ post, comments }) {
         >
           {/* <Typography>Back to :</Typography>
           <MobileCategoryChanger /> */}
-          <Breadcrumbs
-            separator={<NavigateNextIcon fontSize="small" />}
-            aria-label="breadcrumb"
+          <Link
+            sx={{ alignItems: "center", display: "flex", ml: 0, pl: 0 }}
+            href="/forum"
+            variant="caption"
+            gutterBottom
           >
-            <Link underline="hover" color="inherit" href="/forum">
-              Forum
-            </Link>
-            <Link
-              underline="hover"
-              color="black"
-              href="/material-ui/getting-started/installation/"
-            >
-              {truncate(text, { length: 20 })}
-            </Link>
-          </Breadcrumbs>
+            <ChevronLeftIcon fontSize="small" sx={{ ml: 0, pl: 0 }} /> Back to
+            forum posts
+          </Link>
         </Stack>
         {/* <Divider
           sx={{ display: { xs: "block", md: "none" } }}

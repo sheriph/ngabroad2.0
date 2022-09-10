@@ -21,6 +21,20 @@ export default async function handler(req, res) {
     );
     await client.connect();
     const query = {};
+    console.log("query", query);
+    post_type.length > 0 ? (query["post_type"] = { $in: [...post_type] }) : "";
+    post_type.otherTags > 0
+      ? (query["tags.otherTags"] = { $in: [...otherTags] })
+      : "";
+    post_type.countries > 0
+      ? (query["tags.countries"] = { $in: [...countries] })
+      : "";
+    /* const query = {
+      post_type: { $in: [...post_type] },
+      "tags.otherTags": { $in: [...otherTags] },
+      "tags.countries": { $in: [...countries] },
+    }; */
+    console.log("query 2", query);
     const options = {
       // sorting
       sort: {},
@@ -32,7 +46,7 @@ export default async function handler(req, res) {
       .collection("posts")
       .find(query, options)
       .toArray();
-    console.log("posts", posts);
+    // console.log("posts", posts);
     res.status(200).json(posts);
   } catch (err) {
     console.log(`err`, err);

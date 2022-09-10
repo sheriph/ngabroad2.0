@@ -26,7 +26,6 @@ import Editor from "./others/editor";
 import {
   countries,
   getAwsUrl,
-  postTags,
   seoSlug,
   tags,
   useAuthUser,
@@ -65,8 +64,12 @@ export default function CreatePost() {
       .lowercase(""),
     //    .matches(/^[aA-zZ\s\d]+$/, "Only alphanumeric characters"),
     content: Yup.string()
-      .required("Content is required")
-      .min(20, "Comment is too short"),
+      .min(20, "Comment is too short")
+      .when("post_type", {
+        is: "post",
+        then: Yup.string().required("Content is required"),
+      }),
+    post_type: Yup.string().required("Post type is required"),
     countries: Yup.array().transform((value, originalValue) => {
       return originalValue.map((item) => item.name);
     }),
@@ -91,6 +94,7 @@ export default function CreatePost() {
     clearErrors,
     reset,
     watch,
+    unregister,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
@@ -117,6 +121,10 @@ export default function CreatePost() {
       });
     };
   }, [null]);
+
+  React.useEffect(() => {
+    watch("post_type") === "question" && unregister("content");
+  }, [watch("post_type")]);
 
   const onSubmit = async (data) => {
     console.log("data", data);
@@ -156,11 +164,13 @@ export default function CreatePost() {
           }
         );
         console.log("slug.data", slug.data);
+        setLoading(false);
         router.push(slug.data);
+        return;
       }
-
       setLoading(false);
       setAddPost(false);
+      router.reload();
     } catch (error) {
       console.log(error?.response?.data, error);
       setLoading(false);
@@ -191,16 +201,6 @@ export default function CreatePost() {
     }
   };
 
-  const [tabValue, setTabValue] = React.useState(0);
-
-  const handleChange = (event, newValue) => {
-    console.log("newValue", newValue);
-    newValue === 0
-      ? setValue("post_type", "question")
-      : setValue("post_type", "post");
-    setTabValue(newValue);
-  };
-
   console.log("eror", errors, watch("post_type"));
 
   //backgroundColor: "primary.main",
@@ -216,16 +216,45 @@ export default function CreatePost() {
         <Grid container alignItems="center">
           <Grid item xs></Grid>
           <Grid item xs="auto">
-            <Tabs value={tabValue} onChange={handleChange} centered>
-              <Tab
-                label={updatePost ? "Edit Question" : "Ask a New Question"}
-                sx={{ fontSize: "12px" }}
-              />
-              <Tab
-                label={updatePost ? "Edit Post" : "Create a New Post"}
-                sx={{ fontSize: "12px" }}
-              />
-            </Tabs>
+            <Controller
+              name="post_type"
+              defaultValue=""
+              control={control}
+              render={({ field }) => {
+                const { onChange, value, ...rest } = field;
+                return (
+                  <Tabs
+                    sx={{ "& .MuiTabs-scroller": { height: 37 } }}
+                    value={value}
+                    onChange={(e, v) => onChange(v)}
+                    centered
+                  >
+                    <Tab
+                      label={
+                        updatePost ? "Edit Question" : "Ask a New Question"
+                      }
+                      sx={{
+                        fontSize: "12px",
+                        // textTransform: "none",
+                        pr: 1,
+                        py: 1,
+                      }}
+                      value="question"
+                    />
+                    <Tab
+                      label={updatePost ? "Edit Post" : "Create a New Post"}
+                      sx={{
+                        fontSize: "12px",
+                        //   textTransform: "none",
+                        pl: 1,
+                        py: 1,
+                      }}
+                      value="post"
+                    />
+                  </Tabs>
+                );
+              }}
+            />
           </Grid>
           <Grid
             sx={{ cursor: "pointer" }}

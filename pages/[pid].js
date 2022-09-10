@@ -35,12 +35,11 @@ export default function Questions({ post, comments }) {
       <Loading />
 
       <Box component={Container}>
-        <HeaderApp />
+        <HeaderApp post={post} />
         <HeaderAppOffset />
         {/* // 
         @ts-ignore */}
         <SinglePostComponent comments={comments} post={post} />
-        <MobileFab post={post} />
       </Box>
       <Footer />
     </Stack>

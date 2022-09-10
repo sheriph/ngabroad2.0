@@ -34,11 +34,12 @@ const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
 export default function SinglePostComponent({ post, comments }) {
   return (
     <Stack sx={{ p: { xs: 1, sm: 2 } }} direction="row" spacing={2}>
-      <DesktopSideBar post={post} />
+      <DesktopSideBar ssrTags={null} />
       <Divider
         sx={{
           position: "relative",
           left: "250px",
+          minHeight: 700,
           margin: `0 !important`,
           display: { xs: "none", md: "block" },
         }}
