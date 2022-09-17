@@ -81,7 +81,7 @@ export default function HeaderApp(props) {
   const { user, isValidating, loading } = useAuthUser();
   const [addPost, setAddPost] = useRecoilState(addPost_);
   const setOpenSearch = useSetRecoilState(mobileSearchOpen_);
-  console.log('user', user)
+  console.log("user", user);
 
   return (
     <HideOnScroll {...props}>
@@ -97,13 +97,13 @@ export default function HeaderApp(props) {
               <Box
                 onClick={() => {
                   if (!user) {
-                    toast.error("Please sign-in to post");
+                    setLogin(true);
                     return;
                   }
                   !props.post && setAddPost(true);
                 }}
               >
-                <ForumMenu post={props.post} />
+                <ForumMenu showMenu={Boolean(props.post)} post={props.post} />
               </Box>
             </Typography>
 

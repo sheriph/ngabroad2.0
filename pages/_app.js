@@ -12,10 +12,11 @@ import Amplify, { Auth } from "aws-amplify";
 import { ToastContainer } from "react-toastify";
 import { RecoilRoot } from "recoil";
 import "../styles/global.css";
-import { Authenticator } from '@aws-amplify/ui-react';
+import { Authenticator } from "@aws-amplify/ui-react";
 import "@aws-amplify/ui-react/styles.css";
 
 import config from "../src/aws-exports";
+import Layout from "../components/layout";
 
 Amplify.configure({
   ...config,
@@ -44,7 +45,9 @@ export default function MyApp(props) {
         <CssBaseline />
         <RecoilRoot>
           <Authenticator.Provider>
-            <Component {...pageProps} />
+            <Layout>
+              <Component {...pageProps} />
+            </Layout>
           </Authenticator.Provider>
         </RecoilRoot>
       </ThemeProvider>

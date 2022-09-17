@@ -9,26 +9,21 @@ import Header from "../components/header/header";
 import HeaderApp from "../components/header/headerapp";
 import { styled } from "@mui/material/styles";
 
-
 const HeaderAppOffset = styled("div")(({ theme }) => theme.mixins.toolbar);
 
 export default function Index() {
   return (
-    <Container>
-      <HeaderApp />
-      <HeaderAppOffset />
-      <Box sx={{ my: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Next.js example
-        </Typography>
-        {/* 
+    <Box sx={{ my: 4 }}>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Next.js example
+      </Typography>
+      {/* 
     // @ts-ignore */}
-        <Link href="/about" color="secondary">
-          Go to the about page
-        </Link>
-        <ProTip />
-        <Copyright />
-      </Box>
-    </Container>
+      <Link href="/about" color="secondary">
+        Go to the about page
+      </Link>
+      <ProTip />
+      <Copyright />
+    </Box>
   );
 }

@@ -17,20 +17,21 @@ import MenuIcon from "@mui/icons-material/Menu";
 import { Autocomplete, Button, Dialog, Stack, TextField } from "@mui/material";
 import ForumIcon from "@mui/icons-material/Forum";
 import ReplyOutlinedIcon from "@mui/icons-material/ReplyOutlined";
-import { addPost_, postReplyData_, replyPost_ } from "../../lib/recoil";
+import { addPost_, login_, postReplyData_, replyPost_ } from "../../lib/recoil";
 import { useRecoilState } from "recoil";
 import { toast } from "react-toastify";
 import { useAuthUser } from "../../lib/utility";
 
-export default function ForumMenu({ post }) {
+export default function ForumMenu({ post, showMenu }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const { mutate } = useSWRConfig();
   const [addPost, setAddPost] = useRecoilState(addPost_);
   const [postReplyData, setPostReplyData] = useRecoilState(postReplyData_);
   const [replyPost, setReplyPost] = useRecoilState(replyPost_);
   const { user, isValidating, loading } = useAuthUser();
+  const [login, setLogin] = useRecoilState(login_);
 
-  const open = Boolean(post && anchorEl);
+  const open = Boolean(post && user && showMenu && anchorEl);
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -40,7 +41,7 @@ export default function ForumMenu({ post }) {
 
   const comment = () => {
     if (!user) {
-      toast.error("Please sign-in to comment");
+      setLogin(true);
       return;
     }
     setPostReplyData({
@@ -108,7 +109,15 @@ export default function ForumMenu({ post }) {
         transformOrigin={{ horizontal: "right", vertical: "top" }}
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
-        <MenuItem onClick={() => setAddPost(true)}>
+        <MenuItem
+          onClick={() => {
+            if (!user) {
+              setLogin(true);
+              return;
+            }
+            setAddPost(true);
+          }}
+        >
           <Stack spacing={1} direction="row">
             <ForumIcon color="primary" />
             <Typography>Add a New Post</Typography>

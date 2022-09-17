@@ -19,6 +19,8 @@ export default async function handler(req, res) {
   try {
     const { user_id, post_id, post_title, slug, post_type, remove } = req.body;
 
+    console.log(user_id, post_id, post_title, slug, post_type, remove);
+
     await client.connect();
 
     const query = {

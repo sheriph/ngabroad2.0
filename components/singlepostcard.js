@@ -30,6 +30,7 @@ import ShareIcon from "@mui/icons-material/Share";
 import { useRecoilState } from "recoil";
 import {
   addPost_,
+  login_,
   postReplyData_,
   replyPost_,
   updatePost_,
@@ -65,6 +66,7 @@ export default function SinglePostCard({
   const [postReplyData, setPostReplyData] = useRecoilState(postReplyData_);
   const [updatePost, setUpdatePost] = useRecoilState(updatePost_);
   const [addPost, setAddPost] = useRecoilState(addPost_);
+  const [login, setLogin] = useRecoilState(login_);
 
   const getVotes = async (post_id) => {
     try {
@@ -83,7 +85,7 @@ export default function SinglePostCard({
       console.log("follows fetcher", follows.data);
       return follows.data;
     } catch (error) {
-      console.log("error", error);
+      console.log(error?.response?.data, error);
     }
   };
 
@@ -104,12 +106,11 @@ export default function SinglePostCard({
     user?._id && "/api/getfollows",
     getFollows
   );
-  console.log("follows", follows);
   console.log("votes", post.post_type, votes, votesError, validatevotes);
 
   const showReply = () => {
     if (!user) {
-      toast.error("Please sign-in to comment");
+      setLogin(true);
       return;
     }
     setPostReplyData({
@@ -122,7 +123,7 @@ export default function SinglePostCard({
 
   const showUpdate = () => {
     if (!user) {
-      toast.error("Please sign-in to comment");
+      setLogin(true);
       return;
     }
     setUpdatePost(true);
@@ -139,6 +140,15 @@ export default function SinglePostCard({
 
   const handleVote = async (status) => {
     // console.log("vote status", status);
+    if (!user) {
+      setLogin(true);
+      return;
+    } else if (!votes) {
+      toast.error(
+        "Page not fully loaded yet. Please check your network or reload this page"
+      );
+      return;
+    }
     let alreadyVoted = false;
     forEach(votes, (vote) => {
       alreadyVoted = isEqual(
@@ -258,13 +268,25 @@ export default function SinglePostCard({
   };
 
   const isFollow = follows
-    ? follows.map((follow) => follow.post_id === post._id).includes(true)
+    ? follows.map((follow) => follow.post_id === parentPost._id).includes(true)
     : false;
 
+  console.log("follows isFollow", follows, isFollow);
+
   const handleFollow = async (remove) => {
+    if (!user) {
+      setLogin(true);
+      return;
+    } else if (!follows) {
+      toast.error(
+        "Page not fully loaded yet. Please check your network or reload this page"
+      );
+      return;
+    }
     const newFollows = remove
-      ? follows.filter((follow) => !follow.post_id)
-      : [...follows, { post_id: post._id }];
+      ? follows.filter((follow) => follow.post_id !== parentPost._id)
+      : [...follows, { post_id: parentPost._id }];
+    console.log("newFollows", newFollows);
     try {
       await mutatefollows(newFollows, {
         rollbackOnError: true,
@@ -273,11 +295,11 @@ export default function SinglePostCard({
       });
       await axios.post("/api/follow", {
         user_id: user._id,
-        post_id: post._id,
-        post_title: post.title,
-        slug: post.slug,
+        post_id: parentPost._id,
+        post_title: parentPost.title,
+        slug: parentPost.slug,
         remove: remove,
-        post_type: post.post_type,
+        post_type: parentPost.post_type,
       });
 
       await mutatefollows(newFollows, {
@@ -286,7 +308,7 @@ export default function SinglePostCard({
         revalidate: true,
       });
     } catch (error) {
-      console.log("error", error);
+      console.log(error?.response?.data, error);
     }
   };
 

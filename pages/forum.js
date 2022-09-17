@@ -25,21 +25,8 @@ const PostComponent = dynamic(() => import("../components/postcomponent"), {
 const HeaderAppOffset = styled("div")(({ theme }) => theme.mixins.toolbar);
 
 export default function Questions({ ssrTags }) {
-  return (
-    <Container disableGutters>
-      <Stack id="headerId" spacing={1}>
-        {/*  <MobileFab post={null} /> */}
-        <Box component={Container}>
-          <HeaderApp />
-          <HeaderAppOffset />
-          {/* // 
-      @ts-ignore */}
-          <PostComponent ssrTags={ssrTags} />
-        </Box>
-        <Footer />
-      </Stack>
-    </Container>
-  );
+  // @ts-ignore
+  return <PostComponent ssrTags={ssrTags} />;
 }
 
 export async function getServerSideProps({ params, req }) {
