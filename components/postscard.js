@@ -1,26 +1,8 @@
-import {
-  Autocomplete,
-  Avatar,
-  Breadcrumbs,
-  Button,
-  ButtonGroup,
-  Divider,
-  Link,
-  Menu,
-  MenuItem,
-  Stack,
-  TextField,
-  ToggleButton,
-  ToggleButtonGroup,
-  Typography,
-} from "@mui/material";
+import { Link, Stack } from "@mui/material";
 import ExpandMoreOutlinedIcon from "@mui/icons-material/ExpandMoreOutlined";
 import React, { useEffect, useState } from "react";
 import { Box } from "@mui/system";
 import SinglePostCard from "./singlepostcard";
-import MobileCategoryChanger from "./others/mobilecategorychanger";
-import { lowerCase, startCase, truncate } from "lodash";
-import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import { default as NextLink } from "next/link";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 
