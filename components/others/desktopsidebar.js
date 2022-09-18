@@ -17,6 +17,7 @@ import ViewTimelineOutlinedIcon from "@mui/icons-material/ViewTimelineOutlined";
 import { useRecoilState } from "recoil";
 import {
   addPost_,
+  blockLoading_,
   category_,
   postReplyData_,
   posts_,
@@ -63,6 +64,7 @@ export default function DesktopSideBar({ ssrTags }) {
   const [addPost, setAddPost] = useRecoilState(addPost_);
   const [postReplyData, setPostReplyData] = useRecoilState(postReplyData_);
   const [replyPost, setReplyPost] = useRecoilState(replyPost_);
+  const [blockLoading, setBlockLoading] = useRecoilState(blockLoading_);
 
   console.log("router", router.pathname);
 
@@ -83,7 +85,7 @@ export default function DesktopSideBar({ ssrTags }) {
 
   React.useEffect(() => {
     setPosts(db_posts);
-  }, [`${isLoading}`, `${isValidating}`]);
+  }, [isLoading, isValidating]);
 
   console.log("isLoading, isValidating", isLoading, isValidating);
 
@@ -183,6 +185,14 @@ export default function DesktopSideBar({ ssrTags }) {
       .toLocaleString(),
   ]);
 
+  React.useEffect(() => {
+    if (isLoading || isValidating) {
+      setBlockLoading(true);
+    } else {
+      setBlockLoading(false);
+    }
+  }, [isLoading, isValidating]);
+
   console.log("sidebarFilter", sidebarFilter);
 
   console.log("posts", posts);
@@ -199,7 +209,6 @@ export default function DesktopSideBar({ ssrTags }) {
         display: { xs: "none", md: "block" },
       }}
     >
-      {isLoading || isValidating ? <LinearProgress /> : ""}
       <Stack>
         <List dense component="nav" aria-label="category">
           {sidebarFilter.map((filter, index) => {

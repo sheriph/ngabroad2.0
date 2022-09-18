@@ -19,6 +19,7 @@ import useSWRImmutable from "swr/immutable";
 import dayjs from "dayjs";
 import axios from "axios";
 import ArticleRender from "./others/articlerender";
+import { default as NextLink } from "next/link";
 
 var advancedFormat = require("dayjs/plugin/advancedFormat");
 dayjs.extend(advancedFormat);
@@ -86,33 +87,46 @@ export default function PostCard({ post }) {
               <Typography>1240</Typography>
             </Stack>
           </Stack>
-          <Link
-            sx={{
-              p: 0,
-              justifyContent: "flex-start",
-              color: "text.primary",
-            }}
-            variant="h1"
-            textAlign="left"
-            gutterBottom
-            href={`/${post.slug}`}
-            underline="hover"
-          >
-            {startCase(lowerCase(post.title))}
-          </Link>
+
+          <NextLink href={`/${encodeURIComponent(post.slug)}`} passHref>
+            <Link
+              variant="h1"
+              textAlign="left"
+              sx={{
+                p: 0,
+                justifyContent: "flex-start",
+                color: "text.primary",
+                textDecorationStyle: "dotted",
+              }}
+              gutterBottom
+              underline="always"
+            >
+              {truncate(startCase(lowerCase(post.title)), {
+                length: 150,
+                omission: " ...",
+              })}
+            </Link>
+          </NextLink>
           {post.post_type === "question" && commentCount === 0 ? (
             <Stack sx={{}}>
               <Stack alignItems="center">
-                <Typography textAlign="center">
-                  @{username} needs your help to figure this out
-                </Typography>
-                <Button
-                  sx={{ width: "fit-content" }}
-                  startIcon={<QuestionAnswerOutlinedIcon />}
-                  href={`/${post.slug}`}
+                <NextLink
+                  href={`/profile/${encodeURIComponent(username)}`}
+                  passHref
                 >
-                  Provide an Answer
-                </Button>
+                  <Link underline="always" variant="caption">
+                    @{username} needs your help to figure this out
+                  </Link>
+                </NextLink>
+                <NextLink href={`/${encodeURIComponent(post.slug)}`} passHref>
+                  <Button
+                    sx={{ width: "fit-content" }}
+                    startIcon={<QuestionAnswerOutlinedIcon />}
+                    component="a"
+                  >
+                    Provide an Answer
+                  </Button>
+                </NextLink>
               </Stack>
             </Stack>
           ) : (
@@ -121,8 +135,8 @@ export default function PostCard({ post }) {
                 <Stack spacing={1}>
                   <ArticleRender
                     content={truncate(post.content, {
-                      length: 220,
-                      omission: ` ... <a style="cursor:pointer" href=/${post.slug}}>Read More</a>`,
+                      length: 150,
+                      omission: ` ...`,
                     })}
                   />
                 </Stack>
@@ -143,22 +157,23 @@ export default function PostCard({ post }) {
                       sx={{ fontSize: "1rem" }}
                       fontSize="small"
                     />
-                    <Link
-                      underline="always"
-                      href={`/profile/${username}`}
-                      variant="caption"
+                    <NextLink
+                      href={`/profile/${encodeURIComponent(username)}`}
+                      passHref
                     >
-                      @{username}
-                    </Link>
+                      <Link underline="always" variant="caption">
+                        @{username}
+                      </Link>
+                    </NextLink>
                   </Stack>
                   <Stack spacing={0.5} alignItems="center" direction="row">
                     <AccessTimeOutlinedIcon
                       sx={{ fontSize: "1rem" }}
                       fontSize="small"
                     />
-                    <LinkTypography variant="caption">
+                    <Typography variant="caption">
                       {dayjs(post.createdAt).format("Do MMMM, YYYY - hh:mm a")}
-                    </LinkTypography>
+                    </Typography>
                   </Stack>
                 </Stack>
               </Stack>

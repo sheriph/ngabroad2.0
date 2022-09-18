@@ -35,6 +35,8 @@ import { TabContext, TabList, TabPanel } from "@mui/lab";
 import useSWRImmutable from "swr/immutable";
 import axios from "axios";
 import ArticleRender from "./articlerender";
+import { default as NextLink } from "next/link";
+
 const advancedFormat = require("dayjs/plugin/advancedFormat");
 dayjs.extend(advancedFormat);
 
@@ -225,10 +227,7 @@ export default function MeProfile({ ssrUser }) {
         <Box sx={{ width: "100%", typography: "body1" }}>
           <TabContext value={tabValue}>
             <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-              <TabList
-                onChange={handleTabChange}
-                aria-label="lab API tabs example"
-              >
+              <TabList onChange={handleTabChange}>
                 <Tab
                   sx={{ textTransform: "none" }}
                   label={`${
@@ -262,13 +261,35 @@ export default function MeProfile({ ssrUser }) {
                   .filter((post) => post.post_type === "post")
                   .map((post, key) => (
                     <Stack spacing={1} key={key}>
-                      <Typography gutterBottom variant="h1">
-                        {startCase(lowerCase(post.title))}
-                      </Typography>
+                      <NextLink
+                        href={`/${encodeURIComponent(post.slug)}`}
+                        passHref
+                      >
+                        <Link
+                          variant="h1"
+                          textAlign="left"
+                          sx={{
+                            p: 0,
+                            justifyContent: "flex-start",
+                            color: "text.primary",
+                            textDecorationStyle: "dotted",
+                          }}
+                          gutterBottom
+                          underline="always"
+                        >
+                          {truncate(startCase(lowerCase(post.title)), {
+                            length: 150,
+                            omission: " ...",
+                          })}
+                        </Link>
+                      </NextLink>
+
                       <ArticleRender
-                        content={truncate(post.content, { length: 150 })}
+                        content={truncate(post.content, {
+                          length: 220,
+                          omission: ` ...`,
+                        })}
                       />
-                      <Link href={`/${post.slug}`}>Read More</Link>
                     </Stack>
                   ))}
               </Stack>
@@ -282,10 +303,28 @@ export default function MeProfile({ ssrUser }) {
                   .filter((post) => post.post_type === "question")
                   .map((post, key) => (
                     <Stack spacing={1} key={key}>
-                      <ArticleRender
-                        content={truncate(post.content, { length: 150 })}
-                      />
-                      <Link href={`/${post.slug}`}>Read More</Link>
+                      <NextLink
+                        href={`/${encodeURIComponent(post.slug)}`}
+                        passHref
+                      >
+                        <Link
+                          variant="h2"
+                          textAlign="left"
+                          sx={{
+                            p: 0,
+                            justifyContent: "flex-start",
+                            color: "text.primary",
+                            textDecorationStyle: "dotted",
+                          }}
+                          gutterBottom
+                          underline="always"
+                        >
+                          {truncate(startCase(lowerCase(post.content)), {
+                            length: 150,
+                            omission: " ...",
+                          })}
+                        </Link>
+                      </NextLink>
                     </Stack>
                   ))}
               </Stack>
@@ -297,9 +336,29 @@ export default function MeProfile({ ssrUser }) {
               >
                 {(comments || []).map((comment, key) => (
                   <Stack spacing={1} key={key}>
-                    <Typography gutterBottom variant="h1">
-                      Re: {startCase(lowerCase(comment.title))}
-                    </Typography>
+                    <NextLink
+                      href={`/${encodeURIComponent(comment.slug)}`}
+                      passHref
+                    >
+                      <Link
+                        variant="h2"
+                        textAlign="left"
+                        sx={{
+                          p: 0,
+                          justifyContent: "flex-start",
+                          color: "text.primary",
+                          textDecorationStyle: "dotted",
+                        }}
+                        gutterBottom
+                        underline="always"
+                      >
+                        Re:{" "}
+                        {truncate(startCase(lowerCase(comment.title)), {
+                          length: 150,
+                          omission: " ...",
+                        })}
+                      </Link>
+                    </NextLink>
                     <ArticleRender content={comment.content} />
                   </Stack>
                 ))}

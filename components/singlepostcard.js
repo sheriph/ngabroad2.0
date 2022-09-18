@@ -16,6 +16,8 @@ import CommentIcon from "@mui/icons-material/Comment";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import ThumbDownIcon from "@mui/icons-material/ThumbDown";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import { default as NextLink } from "next/link";
+
 import {
   capitalizeName,
   getUsername,
@@ -345,13 +347,14 @@ export default function SinglePostCard({
                 }}
               >
                 {quoteUsername ? (
-                  <Link
-                    href={`/user/${quoteUsername}`}
-                    variant="caption"
-                    underline="always"
+                  <NextLink
+                    href={`/profile/${encodeURIComponent(quoteUsername)}`}
+                    passHref
                   >
-                    {`@${quoteUsername}:`}
-                  </Link>
+                    <Link underline="always" variant="caption">
+                      @{quoteUsername}
+                    </Link>
+                  </NextLink>
                 ) : (
                   <Skeleton variant="text">
                     <LinkTypography>By Adeniyi Sheriff</LinkTypography>
@@ -377,13 +380,14 @@ export default function SinglePostCard({
               spacing={1}
             >
               {username ? (
-                <Link
-                  href={`/user/${username}`}
-                  variant="caption"
-                  underline="always"
+                <NextLink
+                  href={`/profile/${encodeURIComponent(username)}`}
+                  passHref
                 >
-                  {`@${username}`}
-                </Link>
+                  <Link underline="always" variant="caption">
+                    @{username}
+                  </Link>
+                </NextLink>
               ) : (
                 <Skeleton variant="text">
                   <LinkTypography>By Adeniyi Sheriff</LinkTypography>

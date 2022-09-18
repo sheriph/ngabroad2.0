@@ -17,17 +17,21 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
+
 import React, { useEffect, useState } from "react";
 import PostCard from "./postcard";
 import { Box } from "@mui/system";
 import { useRecoilState } from "recoil";
 import {
+  blockLoading_,
   category_,
   filter_,
   mobileFilter_,
   posts_,
   selectCountry_,
+  sidebarFilter_,
 } from "../lib/recoil";
 import MobileFab from "./others/mobilefab";
 import MobileCategoryChanger from "./others/mobilecategorychanger";
@@ -65,6 +69,10 @@ const Root = styled("li")(({ theme }) => ({
 export default function PostList({ ssrTags }) {
   const [renderFilter, setRenderFilter] = React.useState([]);
   const [value, setValue] = useRecoilState(mobileFilter_);
+  const [blockLoading, setBlockLoading] = useRecoilState(blockLoading_);
+  const [sidebarFilter, setSidebarFilter] = useRecoilState(sidebarFilter_);
+  // @ts-ignore
+  const mobile = useMediaQuery("(max-width:900px)", { noSsr: true });
 
   console.log("ssrTags", ssrTags);
 
@@ -87,13 +95,29 @@ export default function PostList({ ssrTags }) {
     posts: db_posts,
     isLoading,
     isValidating,
-  } = useFetchPosts(JSON.stringify(dbFilter));
+  } = useFetchPosts(ssrTags ? JSON.stringify(dbFilter) : undefined);
 
   const [posts, setPosts] = useRecoilState(posts_);
 
   React.useEffect(() => {
     setPosts(db_posts);
-  }, [`${isLoading}`, `${isValidating}`]);
+  }, [isLoading, isValidating]);
+
+  React.useEffect(() => {
+    if (mobile) {
+      setSidebarFilter([]);
+    } else {
+      setValue([]);
+    }
+  }, [mobile]);
+
+  React.useEffect(() => {
+    if (isLoading || isValidating) {
+      setBlockLoading(true);
+    } else {
+      setBlockLoading(false);
+    }
+  }, [isLoading, isValidating]);
 
   React.useEffect(() => {
     const tag1 = uniq(flatten(ssrTags.map((doc) => doc.tags.countries)));
@@ -142,7 +166,7 @@ export default function PostList({ ssrTags }) {
     setDBfilter(dbfilterTemplate);
   }, [value.map((item) => item.name).toLocaleString()]);
 
-  // console.log("renderFilter", renderFilter, value);
+  console.log("renderFilter", renderFilter, value);
   console.log("dbFilter", dbFilter);
   console.log("posts", posts);
 
@@ -155,7 +179,6 @@ export default function PostList({ ssrTags }) {
         marginLeft: { xs: `0 !important`, md: `16px !important` },
       }}
     >
-      {isLoading || isValidating ? <LinearProgress /> : ""}
       <Stack spacing={3}>
         {/* Mobile Head */}
         <Stack spacing={1} sx={{ display: { xs: "flex", md: "none" }, mt: 2 }}>

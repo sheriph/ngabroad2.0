@@ -21,6 +21,7 @@ import SinglePostCard from "./singlepostcard";
 import MobileCategoryChanger from "./others/mobilecategorychanger";
 import { lowerCase, startCase, truncate } from "lodash";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import { default as NextLink } from "next/link";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 
 export default function PostsCard({ post, comments }) {
@@ -43,15 +44,16 @@ export default function PostsCard({ post, comments }) {
         >
           {/* <Typography>Back to :</Typography>
           <MobileCategoryChanger /> */}
-          <Link
-            sx={{ alignItems: "center", display: "flex", ml: 0, pl: 0 }}
-            href="/forum"
-            variant="caption"
-            gutterBottom
-          >
-            <ChevronLeftIcon fontSize="small" sx={{ ml: 0, pl: 0 }} /> Back to
-            forum posts
-          </Link>
+          <NextLink href="/forum" passHref>
+            <Link
+              sx={{ alignItems: "center", display: "flex", ml: 0, pl: 0 }}
+              variant="caption"
+              gutterBottom
+            >
+              <ChevronLeftIcon fontSize="small" sx={{ ml: 0, pl: 0 }} /> Back to
+              forum posts
+            </Link>
+          </NextLink>
         </Stack>
         {/* <Divider
           sx={{ display: { xs: "block", md: "none" } }}
