@@ -3,15 +3,13 @@ import axios from "axios";
 import React from "react";
 
 export default function Test() {
-  const getPostPathsNow = async () => {
+  const processWp = async () => {
     try {
-      const path = await axios.get("/api/getpaths");
-      console.log("path", path.data);
+      const posts = await axios.get("/api/processwp");
+      console.log("posts", posts.data);
     } catch (error) {
-      console.log(error.response.data);
+      console.log(error.response.data, error);
     }
   };
-  return <Button onClick={getPostPathsNow}>TEST</Button>;
+  return <Button onClick={processWp}>TEST</Button>;
 }
-
-

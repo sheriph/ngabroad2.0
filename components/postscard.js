@@ -1,5 +1,4 @@
 import { Link, Stack } from "@mui/material";
-import ExpandMoreOutlinedIcon from "@mui/icons-material/ExpandMoreOutlined";
 import React, { useEffect, useState } from "react";
 import { Box } from "@mui/system";
 import SinglePostCard from "./singlepostcard";

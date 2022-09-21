@@ -73,6 +73,7 @@ export default function DesktopSideBar({ ssrTags }) {
     post_type: [],
     countries: [],
     otherTags: [],
+    index: 1,
   });
 
   const {
@@ -150,6 +151,7 @@ export default function DesktopSideBar({ ssrTags }) {
       post_type: [],
       countries: [],
       otherTags: [],
+      index: 1,
     };
     const filterValuesArray1 = sidebarFilter
       .filter((item) => item.check)

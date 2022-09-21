@@ -43,6 +43,7 @@ import { flatten, lowerCase, pullAll, startCase, uniq, uniqBy } from "lodash";
 import { styled } from "@mui/material/styles";
 import axios from "axios";
 import useSWRImmutable from "swr/immutable";
+import ReactVisibilitySensor from "react-visibility-sensor";
 
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
 const checkedIcon = <CheckBoxIcon fontSize="small" />;
@@ -80,6 +81,7 @@ export default function PostList({ ssrTags }) {
     post_type: [],
     countries: [],
     otherTags: [],
+    index: 1,
   });
 
   /* const {
@@ -142,6 +144,7 @@ export default function PostList({ ssrTags }) {
       post_type: [],
       countries: [],
       otherTags: [],
+      index: 1,
     };
     const filterValuesArray1 = value.map((item) => item.name);
     const filterValuesArray2 = value.map((item) => item.name);
@@ -169,6 +172,13 @@ export default function PostList({ ssrTags }) {
   console.log("renderFilter", renderFilter, value);
   console.log("dbFilter", dbFilter);
   console.log("posts", posts);
+
+  const readMore = (isVisible) => {
+    console.log("isVisible", isVisible);
+    if (isVisible && posts) {
+      setDBfilter({ ...dbFilter, index: posts.length / 5 + 1 });
+    }
+  };
 
   return (
     <Box
@@ -260,8 +270,16 @@ export default function PostList({ ssrTags }) {
           spacing={2}
           divider={<Divider orientation="horizontal" flexItem />}
         >
-          {(posts || []).map((post, key) => (
-            <PostCard key={key} post={post} />
+          {(posts || []).map((post, index) => (
+            <React.Fragment key={index}>
+              <PostCard key={index} post={post} />
+              <ReactVisibilitySensor
+                active={Boolean(posts?.length - 1 === index)}
+                onChange={readMore}
+              >
+                <div>...content goes here...</div>
+              </ReactVisibilitySensor>
+            </React.Fragment>
           ))}
         </Stack>
       </Stack>
