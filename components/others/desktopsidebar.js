@@ -13,29 +13,23 @@ import {
   Stack,
 } from "@mui/material";
 import React from "react";
-import ViewTimelineOutlinedIcon from "@mui/icons-material/ViewTimelineOutlined";
 import { useRecoilState } from "recoil";
 import {
   addPost_,
   blockLoading_,
   category_,
+  dbFilter_,
   postReplyData_,
   posts_,
   replyPost_,
   sidebarFilter_,
 } from "../../lib/recoil";
 import { styled } from "@mui/styles";
-import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
-import PostAddOutlinedIcon from "@mui/icons-material/PostAddOutlined";
-import Link from "next/link";
 import { useRouter } from "next/router";
-import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
 import DoneAllOutlinedIcon from "@mui/icons-material/DoneAllOutlined";
-import { countries, tags, useFetchPosts } from "../../lib/utility";
+import { useFetchPosts } from "../../lib/utility";
 import { flatten, get, pullAll, uniq } from "lodash";
-import useSWRImmutable from "swr/immutable";
-import axios from "axios";
 
 const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
   "&.Mui-selected": {
@@ -46,35 +40,14 @@ const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
   },
 }));
 
-/* const fetchPosts = async (key) => {
-  try {
-    const dbFilter = JSON.parse(key);
-    console.log("dbFilter in fetch", dbFilter);
-    const posts = await axios.post("/api/getposts", { ...dbFilter });
-    console.log("posts", posts.data);
-    return posts.data;
-  } catch (error) {
-    console.log("error", error);
-  }
-}; */
-
 export default function DesktopSideBar({ ssrTags }) {
-  const [category, setCategory] = useRecoilState(category_);
   const router = useRouter();
-  const [addPost, setAddPost] = useRecoilState(addPost_);
-  const [postReplyData, setPostReplyData] = useRecoilState(postReplyData_);
-  const [replyPost, setReplyPost] = useRecoilState(replyPost_);
   const [blockLoading, setBlockLoading] = useRecoilState(blockLoading_);
 
   console.log("router", router.pathname);
 
   const [sidebarFilter, setSidebarFilter] = useRecoilState(sidebarFilter_);
-  const [dbFilter, setDBfilter] = React.useState({
-    post_type: [],
-    countries: [],
-    otherTags: [],
-    index: 1,
-  });
+  const [dbFilter, setDBfilter] = useRecoilState(dbFilter_);
 
   const {
     posts: db_posts,
@@ -86,27 +59,9 @@ export default function DesktopSideBar({ ssrTags }) {
 
   React.useEffect(() => {
     setPosts(db_posts);
-  }, [isLoading, isValidating]);
+  }, [isLoading, isValidating, JSON.stringify(db_posts)]);
 
   console.log("isLoading, isValidating", isLoading, isValidating);
-
-  if (!ssrTags) {
-    return (
-      <Box
-        sx={{
-          width: "250px",
-          position: "fixed",
-          overflowY: "scroll",
-          overflowX: "hidden",
-          bottom: 0,
-          top: 80,
-          display: { xs: "none", md: "block" },
-        }}
-      >
-        <Button href="/forum">Back to forum posts</Button>
-      </Box>
-    );
-  }
 
   const handleFilter = (e) => {
     console.log("e.target.innerText", e.target.innerText);
@@ -123,17 +78,17 @@ export default function DesktopSideBar({ ssrTags }) {
   console.log("ssrTags", ssrTags);
 
   React.useEffect(() => {
-    const tag1 = uniq(flatten(ssrTags.map((doc) => doc.tags.countries)));
-    const tag2 = uniq(flatten(ssrTags.map((doc) => doc.tags.otherTags)));
+    if (!ssrTags) return;
+
     const post_type = ["post", "question"];
 
     const allTags = [
       "post_type",
       ...post_type,
       "tags",
-      ...tag2,
+      ...ssrTags.otherTags,
       "countries",
-      ...tag1,
+      ...ssrTags.countries,
     ];
 
     const newFilter = [...allTags.map((tag) => ({ name: tag, check: false }))];
@@ -147,6 +102,7 @@ export default function DesktopSideBar({ ssrTags }) {
   }, [null]);
 
   React.useEffect(() => {
+    if (!ssrTags) return;
     let dbfilterTemplate = {
       post_type: [],
       countries: [],
@@ -162,18 +118,16 @@ export default function DesktopSideBar({ ssrTags }) {
     const filterValuesArray3 = sidebarFilter
       .filter((item) => item.check)
       .map((item) => item.name);
-    const tag1 = flatten(ssrTags.map((doc) => doc.tags.countries));
-    const tag2 = flatten(ssrTags.map((doc) => doc.tags.otherTags));
     const post_type = ["post", "question"];
-    const countriesandtags = [...tag1, ...tag2];
+    const countriesandtags = [...ssrTags.countries, ...ssrTags.otherTags];
     const lessPostType = pullAll(filterValuesArray1, countriesandtags);
     // @ts-ignore
     dbfilterTemplate.post_type = lessPostType;
-    const post_typeandtags = [...post_type, ...tag2];
+    const post_typeandtags = [...post_type, ...ssrTags.otherTags];
     const lessCountries = pullAll(filterValuesArray2, post_typeandtags);
     // @ts-ignore
     dbfilterTemplate.countries = lessCountries;
-    const post_typeandcountries = [...post_type, ...tag1];
+    const post_typeandcountries = [...post_type, ...ssrTags.countries];
     const lessOtherTags = pullAll(filterValuesArray3, post_typeandcountries);
     // @ts-ignore
     dbfilterTemplate.otherTags = lessOtherTags;
@@ -199,16 +153,39 @@ export default function DesktopSideBar({ ssrTags }) {
 
   console.log("posts", posts);
 
+  if (!ssrTags) {
+    return (
+      <Box
+        sx={{
+          width: "250px",
+          position: "fixed",
+          overflowY: "scroll",
+          overflowX: "hidden",
+          bottom: 0,
+          top: 80,
+          display: { xs: "none", md: "block" },
+        }}
+      >
+        {router.pathname === "/forum" ? (
+          <></>
+        ) : (
+          <Button href="/forum">Back to forum posts</Button>
+        )}
+      </Box>
+    );
+  }
+
   return (
     <Box
       sx={{
         width: "250px",
-        position: "fixed",
+        //   position: "fixed",
+        position: { xs: "unset", md: "fixed" },
         overflowY: "scroll",
         overflowX: "hidden",
         bottom: 0,
         top: 80,
-        display: { xs: "none", md: "block" },
+        //   display: { xs: "none", md: "block" },
       }}
     >
       <Stack>

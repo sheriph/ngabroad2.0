@@ -46,48 +46,8 @@ export default function PostCard({ post }) {
 
   return (
     <Stack spacing={2} direction="row" sx={{ ml: `-15px !important` }}>
-      <Stack sx={{ display: { xs: "none", sm: "flex" } }}>
-        <Stack
-          justifyContent="flex-start"
-          alignItems="center"
-          spacing={1}
-          direction="row"
-          sx={{ ml: 2 }}
-        >
-          <CommentOutlinedIcon fontSize="small" />{" "}
-          <Typography>{commentCount}</Typography>
-        </Stack>
-        <Stack
-          justifyContent="flex-start"
-          alignItems="center"
-          spacing={1}
-          direction="row"
-          sx={{ ml: 2 }}
-        >
-          <VisibilityOutlinedIcon fontSize="small" />{" "}
-          <Typography>1240</Typography>
-        </Stack>
-      </Stack>
-      <Stack>
+      <Stack sx={{ ml: { xs: 1, sm: 2 } }}>
         <Stack>
-          <Stack
-            sx={{
-              pb: 1,
-              display: { xs: "flex", sm: "none" },
-            }}
-            direction="row"
-            spacing={2}
-          >
-            <Stack alignItems="center" spacing={1} direction="row">
-              <CommentOutlinedIcon fontSize="small" />{" "}
-              <Typography>{commentCount}</Typography>
-            </Stack>
-            <Stack alignItems="center" spacing={1} direction="row">
-              <VisibilityOutlinedIcon fontSize="small" />{" "}
-              <Typography>1240</Typography>
-            </Stack>
-          </Stack>
-
           <NextLink href={`/${encodeURIComponent(post.slug)}`} passHref>
             <Link
               variant="h1"
@@ -151,7 +111,7 @@ export default function PostCard({ post }) {
           >
             <Grid item>
               <Stack alignItems="center" spacing={1} direction="row">
-                <Stack spacing={0.5} alignItems="center" direction="row">
+                <Stack spacing={2} alignItems="center" direction="row">
                   <Stack spacing={0.5} alignItems="center" direction="row">
                     <PersonOutlineOutlinedIcon
                       sx={{ fontSize: "1rem" }}
@@ -172,8 +132,17 @@ export default function PostCard({ post }) {
                       fontSize="small"
                     />
                     <Typography variant="caption">
-                      {dayjs(post.createdAt).format("Do MMMM, YYYY - hh:mm a")}
+                      {dayjs(post.createdAt).format("Do MMM, YYYY - hh:mm a")}
                     </Typography>
+                  </Stack>
+                  <Stack>
+                    <Stack alignItems="center" spacing={1} direction="row">
+                      <CommentOutlinedIcon
+                        sx={{ fontSize: "1rem" }}
+                        fontSize="small"
+                      />
+                      <Typography>{commentCount}</Typography>
+                    </Stack>
                   </Stack>
                 </Stack>
               </Stack>

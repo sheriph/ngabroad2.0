@@ -34,7 +34,9 @@ const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
 export default function PostComponent({ ssrTags }) {
   return (
     <Stack sx={{ p: 1 }} direction="row" spacing={2}>
-      <DesktopSideBar ssrTags={ssrTags} />
+      <Box sx={{ display: { xs: "none", md: "block" } }}>
+        <DesktopSideBar ssrTags={ssrTags} />
+      </Box>
       <Divider
         sx={{
           position: "relative",

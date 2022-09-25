@@ -3,10 +3,14 @@ import {
   Autocomplete,
   Avatar,
   Button,
+  CircularProgress,
+  ClickAwayListener,
   Container,
   Dialog,
+  Divider,
   Fade,
   IconButton,
+  InputAdornment,
   Link,
   Paper,
   Popper,
@@ -24,7 +28,12 @@ import MenuIcon from "@mui/icons-material/Menu";
 import PropTypes from "prop-types";
 import { Box } from "@mui/system";
 import { useRecoilState } from "recoil";
-import { addPost_, login_, mobileSearchOpen_ } from "../../lib/recoil";
+import {
+  addPost_,
+  login_,
+  mobileSearchOpen_,
+  searchText_,
+} from "../../lib/recoil";
 import useSWR from "swr";
 import { Auth } from "aws-amplify";
 import AccountMenu from "./accountmenu";
@@ -36,6 +45,11 @@ import Slide from "@mui/material/Slide";
 import KeyboardArrowUpOutlinedIcon from "@mui/icons-material/KeyboardArrowUpOutlined";
 import SearchIcon from "@mui/icons-material/Search";
 import { styled, alpha } from "@mui/material/styles";
+import { useRouter } from "next/router";
+import axios from "axios";
+import useSWRImmutable from "swr/immutable";
+import IntroRender from "../others/introrender";
+import { truncate } from "lodash";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   // @ts-ignore
@@ -43,46 +57,130 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 export default function SearchDesktop() {
-  const [openSearch, setOpenSearch] = useRecoilState(mobileSearchOpen_);
+  const [text, setText] = React.useState("");
+  const [value, setValue] = useRecoilState(searchText_);
+  // const [options, setOptions] = React.useState([]);
+  const router = useRouter();
+  const [open, setOpen] = React.useState(false);
+
+  const fetchPosts = async (key) => {
+    try {
+      const text = key.split("textsearchkey")[1];
+      console.log("text", text);
+      const res = await axios.post("/api/autosearch", { text });
+      console.log("res.data", res.data);
+      //  setOptions(res.data);
+      setOpen(true);
+      res.data;
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
+  const { data, mutate, isValidating, isLoading } = useSWRImmutable(
+    text ? `textsearchkey${text}` : undefined,
+    fetchPosts,
+    {
+      keepPreviousData: true,
+    }
+  );
+
+  const handleSearch = () => {
+    console.log("text", value);
+    console.log("data", data, isLoading);
+    setText(value);
+    if (data && !isLoading) setOpen(true);
+  };
+
+  console.log("data", data);
 
   return (
-    <Autocomplete
-      disablePortal
-      fullWidth
-      componentsProps={{
-        paper: {
-          variant: "outlined",
-        },
-        clearIndicator: { sx: { color: "white" } },
-      }}
-      size="small"
-      id="combo-box-demo"
-      options={top100Films}
-      freeSolo
-      //    sx={{ "& .MuiAutocomplete-endAdornment": { mr: 2 } }}
-      renderInput={(params) => (
-        <TextField
-          sx={{
-            backgroundColor: (t) => alpha(t.palette.common.white, 0.15),
-            borderRadius: (t) => t.shape.borderRadius,
-            "& .MuiAutocomplete-endAdornment": { mr: 2 },
-            width: 400,
+    <ClickAwayListener onClickAway={() => setOpen(false)}>
+      <Stack sx={{ "& .MuiAutocomplete-listbox": { maxHeight: "70vh" } }}>
+        <Autocomplete
+          disablePortal
+          fullWidth
+          componentsProps={{
+            paper: {
+              variant: "outlined",
+            },
+            clearIndicator: { sx: { color: "white" } },
           }}
-          {...params}
-          placeholder="Search ..."
-          variant="standard"
-          inputProps={{
-            ...params.inputProps,
-            style: { color: "white" },
+          size="small"
+          id="combo-box-demo"
+          open={open}
+          inputValue={value}
+          disableClearable
+          onInputChange={(e, v, r) => {
+            setValue(v);
           }}
-          InputProps={{
-            ...params.InputProps,
-            disableUnderline: true,
-            sx: { height: 35, px: 2 },
-          }}
+          options={data || []}
+          // @ts-ignore
+          getOptionLabel={(option) => option?.title}
+          freeSolo
+          renderOption={(props, option) => (
+            <Box
+              component="li"
+              // sx={{ "& > img": { mr: 2, flexShrink: 0 } }}
+              {...props}
+              onClick={() => {
+                // @ts-ignore
+                router.push(`/${option.slug}`);
+                setOpen(false);
+              }}
+            >
+              <Stack spacing={1}>
+                <Typography variant="h2">
+                  {
+                    // @ts-ignore
+                    option?.title
+                  }
+                </Typography>
+                <IntroRender
+                  // @ts-ignore
+                  content={truncate(option.content, { length: 150 })}
+                />
+                <Divider />
+              </Stack>
+            </Box>
+          )}
+          //    sx={{ "& .MuiAutocomplete-endAdornment": { mr: 2 } }}
+          renderInput={(params) => (
+            <TextField
+              sx={{
+                backgroundColor: (t) => alpha(t.palette.common.white, 0.15),
+                borderRadius: (t) => t.shape.borderRadius,
+                "& .MuiAutocomplete-endAdornment": { mr: 2 },
+                width: 400,
+              }}
+              {...params}
+              placeholder="Search ..."
+              variant="standard"
+              inputProps={{
+                ...params.inputProps,
+                style: { color: "white" },
+              }}
+              InputProps={{
+                ...params.InputProps,
+                disableUnderline: true,
+                sx: { height: 35, px: 2 },
+                endAdornment: (
+                  <InputAdornment sx={{ cursor: "pointer" }} position="end">
+                    {isLoading || isValidating ? (
+                      <CircularProgress size={25} sx={{ color: "white" }} />
+                    ) : (
+                      <IconButton onClick={handleSearch}>
+                        <SearchIcon sx={{ color: "white" }} />
+                      </IconButton>
+                    )}
+                  </InputAdornment>
+                ),
+              }}
+            />
+          )}
         />
-      )}
-    />
+      </Stack>
+    </ClickAwayListener>
   );
 }
 
