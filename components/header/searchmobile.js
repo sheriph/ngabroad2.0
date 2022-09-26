@@ -66,7 +66,6 @@ export default function SearchMobile() {
   const [openSearch, setOpenSearch] = useRecoilState(mobileSearchOpen_);
   const [text, setText] = React.useState("");
   const [value, setValue] = useRecoilState(searchText_);
-  const [options, setOptions] = React.useState([]);
   const router = useRouter();
 
   const fetchPosts = async (key) => {
@@ -75,8 +74,7 @@ export default function SearchMobile() {
       console.log("text", text);
       const res = await axios.post("/api/autosearch", { text });
       console.log("res.data", res.data);
-      setOptions(res.data);
-      res.data;
+      return res.data;
     } catch (error) {
       console.log("error", error);
     }
@@ -94,15 +92,12 @@ export default function SearchMobile() {
     console.log("text", value);
     setText(value);
   };
-  
 
-  React.useEffect(() => {
+  /*   React.useEffect(() => {
     return () => {
       setOpenSearch(false);
     };
-  }, [null]);
-
-  console.log("options", options);
+  }, [null]); */
 
   return (
     <Dialog
@@ -112,108 +107,84 @@ export default function SearchMobile() {
       // @ts-ignore
       TransitionComponent={Transition}
     >
-      <Stack
-        sx={{
-          backgroundColor: "primary.main",
-          p: 1,
-          "& .MuiAutocomplete-listbox": { maxHeight: "100vh" },
-        }}
-        spacing={2}
-        direction="row"
-      >
-        <IconButton
-          sx={{ color: "white" }}
-          onClick={() => setOpenSearch(false)}
+      <Stack spacing={2}>
+        <Stack
+          sx={{
+            backgroundColor: "primary.main",
+            p: 1,
+          }}
+          spacing={2}
+          direction="row"
         >
-          <KeyboardArrowUpOutlinedIcon />
-        </IconButton>
-        <Autocomplete
-          disablePortal
-          PopperComponent={PopperMy}
-          fullWidth
-          open={Boolean(options?.length > 0)}
-          inputValue={value}
-          disableClearable
-          onInputChange={(e, v, r) => {
-            setValue(v);
-          }}
-          componentsProps={{
-            paper: {
-              variant: "outlined",
-            },
-            clearIndicator: { sx: { color: "white" } },
-            // popper: { modifiers: [] },
-          }}
-          size="small"
-          id="combo-box-demo"
-          // @ts-ignore
-          options={options}
-          // @ts-ignore
-          getOptionLabel={(option) => option?.title}
-          freeSolo
-          renderOption={(props, option) => (
-            <Box
-              component="li"
-              // sx={{ "& > img": { mr: 2, flexShrink: 0 } }}
-              {...props}
-              onClick={() => {
-                // @ts-ignore
-                router.push(`/${option.slug}`);
-              }}
-            >
-              <Stack spacing={1}>
-                <Typography variant="h2">
-                  {
-                    // @ts-ignore
-                    option?.title
-                  }
-                </Typography>
-                <IntroRender
-                  // @ts-ignore
-                  content={truncate(option.content, { length: 150 })}
-                />
-                <Divider />
+          <IconButton
+            sx={{ color: "white" }}
+            onClick={() => setOpenSearch(false)}
+          >
+            <KeyboardArrowUpOutlinedIcon />
+          </IconButton>
+
+          <TextField
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            fullWidth
+            sx={{
+              backgroundColor: (t) => alpha(t.palette.common.white, 0.15),
+              borderRadius: (t) => t.shape.borderRadius,
+              "& .MuiAutocomplete-endAdornment": { mr: 2 },
+            }}
+            //{...params}
+            placeholder="Search ..."
+            variant="standard"
+            inputProps={{
+              // ...params.inputProps,
+              style: { color: "white" },
+              autoFocus: true,
+            }}
+            InputProps={{
+              // ...params.InputProps,
+              disableUnderline: true,
+              sx: {
+                height: 40,
+                px: 2,
+              },
+              endAdornment: (
+                <InputAdornment sx={{ cursor: "pointer" }} position="end">
+                  {isLoading || isValidating ? (
+                    <CircularProgress size={25} sx={{ color: "white" }} />
+                  ) : (
+                    <IconButton onClick={handleSearch}>
+                      <SearchIcon sx={{ color: "white" }} />
+                    </IconButton>
+                  )}
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Stack>
+        <Stack
+          divider={<Divider orientation="horizontal" flexItem />}
+          spacing={1}
+          sx={{ p: 2 }}
+        >
+          {data
+            // @ts-ignore
+            ?.map((post, index) => (
+              <Stack key={index}>
+                <Stack spacing={1}>
+                  <Link
+                    sx={{ textDecorationStyle: "dotted" }}
+                    href={`/${post.slug}`}
+                    variant="h2"
+                  >
+                    {post?.title}
+                  </Link>
+                  <IntroRender
+                    content={truncate(post.content, { length: 150 })}
+                  />
+                </Stack>
               </Stack>
-            </Box>
-          )}
-          //    sx={{ "& .MuiAutocomplete-endAdornment": { mr: 2 } }}
-          renderInput={(params) => (
-            <TextField
-              sx={{
-                backgroundColor: (t) => alpha(t.palette.common.white, 0.15),
-                borderRadius: (t) => t.shape.borderRadius,
-                "& .MuiAutocomplete-endAdornment": { mr: 2 },
-              }}
-              {...params}
-              placeholder="Search ..."
-              variant="standard"
-              inputProps={{
-                ...params.inputProps,
-                style: { color: "white" },
-                autoFocus: true,
-              }}
-              InputProps={{
-                ...params.InputProps,
-                disableUnderline: true,
-                sx: {
-                  height: 40,
-                  px: 2,
-                },
-                endAdornment: (
-                  <InputAdornment sx={{ cursor: "pointer" }} position="end">
-                    {isLoading || isValidating ? (
-                      <CircularProgress size={25} sx={{ color: "white" }} />
-                    ) : (
-                      <IconButton onClick={handleSearch}>
-                        <SearchIcon sx={{ color: "white" }} />
-                      </IconButton>
-                    )}
-                  </InputAdornment>
-                ),
-              }}
-            />
-          )}
-        />
+            ))}
+        </Stack>
       </Stack>
     </Dialog>
   );

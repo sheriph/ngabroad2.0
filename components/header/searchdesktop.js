@@ -60,8 +60,8 @@ export default function SearchDesktop() {
   const [text, setText] = React.useState("");
   const [value, setValue] = useRecoilState(searchText_);
   // const [options, setOptions] = React.useState([]);
+  const [openSearch, setOpenSearch] = React.useState(false);
   const router = useRouter();
-  const [open, setOpen] = React.useState(false);
 
   const fetchPosts = async (key) => {
     try {
@@ -69,9 +69,8 @@ export default function SearchDesktop() {
       console.log("text", text);
       const res = await axios.post("/api/autosearch", { text });
       console.log("res.data", res.data);
-      //  setOptions(res.data);
-      setOpen(true);
-      res.data;
+
+      return res.data;
     } catch (error) {
       console.log("error", error);
     }
@@ -86,18 +85,23 @@ export default function SearchDesktop() {
   );
 
   const handleSearch = () => {
-    console.log("text", value);
-    console.log("data", data, isLoading);
     setText(value);
-    if (data && !isLoading) setOpen(true);
+    setOpenSearch(true);
   };
+
+  const container = React.useRef(null);
+
+  const [anchorEl, setAnchorEl] = React.useState(null);
+
+  const open = Boolean(anchorEl);
+  const id = open ? "simple-popper" : undefined;
 
   console.log("data", data);
 
   return (
-    <ClickAwayListener onClickAway={() => setOpen(false)}>
-      <Stack sx={{ "& .MuiAutocomplete-listbox": { maxHeight: "70vh" } }}>
-        <Autocomplete
+    <ClickAwayListener onClickAway={() => setOpenSearch(false)}>
+      <Stack>
+        {/* <Autocomplete
           disablePortal
           fullWidth
           componentsProps={{
@@ -178,7 +182,83 @@ export default function SearchDesktop() {
               }}
             />
           )}
+        /> */}
+        <TextField
+          ref={container}
+          aria-describedby={id}
+          fullWidth
+          sx={{
+            backgroundColor: (t) => alpha(t.palette.common.white, 0.15),
+            borderRadius: (t) => t.shape.borderRadius,
+            "& .MuiAutocomplete-endAdornment": { mr: 2 },
+            width: 400,
+          }}
+          placeholder="Search ..."
+          variant="standard"
+          inputProps={{
+            style: { color: "white" },
+          }}
+          InputProps={{
+            disableUnderline: true,
+            sx: { height: 35, px: 2 },
+            endAdornment: (
+              <InputAdornment sx={{ cursor: "pointer" }} position="end">
+                {isLoading || isValidating ? (
+                  <CircularProgress size={25} sx={{ color: "white" }} />
+                ) : (
+                  <IconButton onClick={handleSearch}>
+                    <SearchIcon sx={{ color: "white" }} />
+                  </IconButton>
+                )}
+              </InputAdornment>
+            ),
+          }}
         />
+        <Popper
+          sx={{
+            width: 400,
+            zIndex: (t) => t.zIndex.appBar,
+            top: "10px",
+          }}
+          id={id}
+          open={openSearch && Boolean(data)}
+          anchorEl={container.current}
+        >
+          <Stack
+            sx={{
+              p: 1,
+              bgcolor: "background.paper",
+              borderRadius: 1,
+              maxHeight: "70vh",
+              overflow: "auto",
+            }}
+          >
+            <Stack
+              divider={<Divider orientation="horizontal" flexItem />}
+              spacing={1}
+              sx={{ p: 2 }}
+            >
+              {data
+                // @ts-ignore
+                ?.map((post, index) => (
+                  <Stack key={index}>
+                    <Stack spacing={1}>
+                      <Link
+                        sx={{ textDecorationStyle: "dotted" }}
+                        href={`/${post.slug}`}
+                        variant="h2"
+                      >
+                        {post?.title}
+                      </Link>
+                      <IntroRender
+                        content={truncate(post.content, { length: 150 })}
+                      />
+                    </Stack>
+                  </Stack>
+                ))}
+            </Stack>
+          </Stack>
+        </Popper>
       </Stack>
     </ClickAwayListener>
   );
