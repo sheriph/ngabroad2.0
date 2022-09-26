@@ -8,14 +8,7 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 export default function PostsCard({ post, comments }) {
   console.log("comments", comments);
   return (
-    <Box
-      sx={{
-        position: { xs: "inherit", md: "relative" },
-        left: { xs: 0, md: "250px" },
-        width: { xs: "100%", md: "calc(100% - 270px)" },
-        marginLeft: { xs: `0 !important`, md: `16px !important` },
-      }}
-    >
+    <Box>
       <Stack spacing={1}>
         <Stack
           sx={{ display: { xs: "flex", md: "none" } }}

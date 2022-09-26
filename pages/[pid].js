@@ -5,12 +5,12 @@ import getPost from "../lib/mongodb/getpost";
 import getPostComments from "../lib/mongodb/getpostcomments";
 import { useSetRecoilState } from "recoil";
 import { post_ } from "../lib/recoil";
+import { Container } from "@mui/material";
 
 const SinglePostComponent = dynamic(
   () => import("../components/others/singlepostcomponent"),
   { ssr: false }
 );
-
 
 export default function Questions({ post, comments }) {
   console.log("post comments", post, comments);
@@ -19,7 +19,13 @@ export default function Questions({ post, comments }) {
     setPost(post);
   }, [null]);
   // @ts-ignore
-  return <SinglePostComponent comments={comments} post={post} />;
+  return (
+    <Container>
+      {/* 
+// @ts-ignore */}
+      <SinglePostComponent comments={comments} post={post} />
+    </Container>
+  );
 }
 
 export const getStaticPaths = async () => {

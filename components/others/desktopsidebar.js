@@ -3,6 +3,7 @@ import {
   Button,
   Checkbox,
   Chip,
+  Container,
   Divider,
   LinearProgress,
   List,
@@ -155,39 +156,18 @@ export default function DesktopSideBar({ ssrTags }) {
 
   if (!ssrTags) {
     return (
-      <Box
-        sx={{
-          width: "250px",
-          position: "fixed",
-          overflowY: "scroll",
-          overflowX: "hidden",
-          bottom: 0,
-          top: 80,
-          display: { xs: "none", md: "block" },
-        }}
-      >
+      <Container>
         {router.pathname === "/forum" ? (
           <></>
         ) : (
           <Button href="/forum">Back to forum posts</Button>
         )}
-      </Box>
+      </Container>
     );
   }
 
   return (
-    <Box
-      sx={{
-        width: "250px",
-        //   position: "fixed",
-        position: { xs: "unset", md: "fixed" },
-        overflowY: "scroll",
-        overflowX: "hidden",
-        bottom: 0,
-        top: 80,
-        //   display: { xs: "none", md: "block" },
-      }}
-    >
+    <Box>
       <Stack>
         <List dense component="nav" aria-label="category">
           {sidebarFilter.map((filter, index) => {
@@ -222,7 +202,7 @@ export default function DesktopSideBar({ ssrTags }) {
               );
             }
             return (
-              <ListItem key={filter.name}>
+              <ListItem sx={{ pr: 0 }} key={filter.name}>
                 <CustomListItemButton
                   selected={filter.check}
                   onClick={handleFilter}

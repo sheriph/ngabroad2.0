@@ -15,10 +15,23 @@ export default async function handler(req, res) {
 
     await client.connect();
 
+    // sort returned documents by descending text relevance score
+    const sort = { score: { $meta: "textScore" } };
+    // Include only the `title` and `score` fields in each returned document
+    const projection = {
+      _id: 0,
+      title: 1,
+      score: { $meta: "textScore" },
+      content: 1,
+      slug: 1,
+    };
+
     const response = await client
       .db("nga")
       .collection("posts")
-      .find({ $text: { $search: text } });
+      .find({ $text: { $search: text } })
+      .sort(sort)
+      .project(projection);
     const resToArray = await response.toArray();
     console.log("response", resToArray);
 

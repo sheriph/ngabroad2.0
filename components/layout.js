@@ -1,4 +1,4 @@
-import { Box, Container, Stack } from "@mui/material";
+import { Box, Container, Stack, Toolbar } from "@mui/material";
 import React from "react";
 import { styled } from "@mui/material/styles";
 import HeaderApp from "./header/headerapp";
@@ -41,7 +41,8 @@ export default function Layout({ children }) {
         <BlockingLoading isAnimating={blockLoading} />
         <Box component={Container}>
           <HeaderApp post={post} />
-          <HeaderAppOffset />
+          {/* <Toolbar /> */}
+          <Box sx={{ mb: 7 }} />
           {children}
         </Box>
         <Footer />

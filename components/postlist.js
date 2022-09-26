@@ -1,5 +1,4 @@
 import { Button, Divider, Drawer, Stack, useMediaQuery } from "@mui/material";
-import FilterListIcon from "@mui/icons-material/FilterList";
 
 import React, { useEffect, useState } from "react";
 import PostCard from "./postcard";
@@ -14,11 +13,7 @@ import DesktopSideBar from "./others/desktopsidebar";
 
 export default function PostList({ ssrTags }) {
   const [blockLoading, setBlockLoading] = useRecoilState(blockLoading_);
-  const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [posts, setPosts] = useRecoilState(posts_);
-  const handleDrawer = () => setDrawerOpen(!drawerOpen);
-  // @ts-ignore
-  const mobile = useMediaQuery("(max-width:900px)", { noSsr: true });
 
   const [dbFilter, setDBfilter] = useRecoilState(dbFilter_);
   const {
@@ -49,28 +44,8 @@ export default function PostList({ ssrTags }) {
   };
 
   return (
-    <Box
-      sx={{
-        position: { xs: "inherit", md: "relative" },
-        left: { xs: 0, md: "250px" },
-        width: { xs: "100%", md: "calc(100% - 270px)" },
-        marginLeft: { xs: `0 !important`, md: `16px !important` },
-      }}
-    >
-      <Stack spacing={2}>
-        {/* Mobile Head */}
-        <Button
-          sx={{ display: { xs: "flex", md: "none" } }}
-          onClick={handleDrawer}
-          endIcon={<FilterListIcon />}
-        >
-          Filter
-        </Button>
-        <Drawer anchor="left" open={drawerOpen} onClose={handleDrawer}>
-          <Box sx={{ display: { xs: "block", md: "none" } }}>
-            <DesktopSideBar ssrTags={ssrTags} />
-          </Box>
-        </Drawer>
+    <Box>
+      <Stack>
         <Stack
           spacing={2}
           divider={<Divider orientation="horizontal" flexItem />}

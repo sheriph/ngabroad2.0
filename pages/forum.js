@@ -2,6 +2,7 @@ import React from "react";
 import dynamic from "next/dynamic";
 import useSWRImmutable from "swr/immutable";
 import axios from "axios";
+import { Container } from "@mui/material";
 
 const PostComponent = dynamic(() => import("../components/postcomponent"), {
   ssr: false,
@@ -24,5 +25,11 @@ export default function Questions() {
 
   console.log("ssrTags", ssrTags);
   // @ts-ignore
-  return <PostComponent ssrTags={ssrTags} />;
+  return (
+    <Container>
+      {/* 
+    // @ts-ignore */}
+      <PostComponent ssrTags={ssrTags} />
+    </Container>
+  );
 }
