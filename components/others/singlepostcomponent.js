@@ -1,9 +1,11 @@
 import {
   Autocomplete,
+  Box,
   Button,
   ButtonGroup,
   Collapse,
   Divider,
+  Drawer,
   List,
   ListItemButton,
   ListItemIcon,
@@ -14,7 +16,9 @@ import {
   TextField,
   ToggleButton,
   ToggleButtonGroup,
+  Toolbar,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
 import React, { useEffect } from "react";
 
@@ -32,21 +36,36 @@ const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
 }));
 
 export default function SinglePostComponent({ post, comments }) {
+  const mobile = useMediaQuery("(max-width:900px)", { noSsr: true });
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
+  const handleDrawer = () => setDrawerOpen(!drawerOpen);
+
   return (
-    <Stack sx={{ p: { xs: 1, sm: 2 } }} direction="row" spacing={2}>
-      <DesktopSideBar ssrTags={null} />
-      <Divider
-        sx={{
-          position: "relative",
-          left: "250px",
-          minHeight: 700,
-          margin: `0 !important`,
-          display: { xs: "none", md: "block" },
-        }}
-        orientation="vertical"
-        flexItem
-      />
-      <PostsCard comments={comments} post={post} />
+    <Stack direction="row">
+      <Box>
+        <Drawer
+          onClose={handleDrawer}
+          open={drawerOpen}
+          variant={mobile ? "temporary" : "permanent"}
+          sx={{
+            width: 250,
+            //  pl: 2,
+            flexShrink: 0,
+            [`& .MuiDrawer-paper`]: {
+              width: 250,
+              boxSizing: "border-box",
+            },
+          }}
+        >
+          <Toolbar />
+          <Box sx={{ overflow: "auto" }}>
+            <DesktopSideBar ssrTags={null} />
+          </Box>
+        </Drawer>
+      </Box>
+      <Box component="main" sx={{ flexGrow: 1 }}>
+        <PostsCard comments={comments} post={post} />
+      </Box>
     </Stack>
   );
 }

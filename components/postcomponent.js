@@ -3,7 +3,9 @@ import {
   Button,
   ButtonGroup,
   Collapse,
+  Container,
   Divider,
+  Drawer,
   List,
   ListItemButton,
   ListItemIcon,
@@ -14,40 +16,57 @@ import {
   TextField,
   ToggleButton,
   ToggleButtonGroup,
+  Toolbar,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
 import React, { useEffect } from "react";
 import { Box } from "@mui/system";
 import PostList from "./postlist";
 import { styled } from "@mui/styles";
 import DesktopSideBar from "./others/desktopsidebar";
-
-const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
-  "&.Mui-selected": {
-    borderTopRightRadius: 0,
-    borderBottomRightRadius: 0,
-    borderRight: "5px solid",
-    borderColor: "primary.main",
-  },
-}));
+import FilterListIcon from "@mui/icons-material/FilterList";
 
 export default function PostComponent({ ssrTags }) {
+  const mobile = useMediaQuery("(max-width:900px)", { noSsr: true });
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
+  const handleDrawer = () => setDrawerOpen(!drawerOpen);
+
   return (
-    <Stack sx={{ p: 1 }} direction="row" spacing={2}>
-      <Box sx={{ display: { xs: "none", md: "block" } }}>
-        <DesktopSideBar ssrTags={ssrTags} />
+    <Stack direction="row">
+      <Box>
+        <Drawer
+          onClose={handleDrawer}
+          open={drawerOpen}
+          variant={mobile ? "temporary" : "permanent"}
+          sx={{
+            width: 250,
+            //  pl: 2,
+            flexShrink: 0,
+            [`& .MuiDrawer-paper`]: {
+              width: 250,
+              boxSizing: "border-box",
+            },
+          }}
+        >
+          <Toolbar />
+          <Box sx={{ overflow: "auto" }}>
+            <DesktopSideBar ssrTags={ssrTags} />
+          </Box>
+        </Drawer>
       </Box>
-      <Divider
-        sx={{
-          position: "relative",
-          left: "250px",
-          margin: `0 !important`,
-          display: { xs: "none", md: "block" },
-        }}
-        orientation="vertical"
-        flexItem
-      />
-      <PostList ssrTags={ssrTags} />
+      <Box component="main" sx={{ flexGrow: 1 }}>
+        {/* Mobile Head */}
+        <Stack
+          justifyContent="center"
+          sx={{ display: { xs: "flex", md: "none" }, mb: 1 }}
+        >
+          <Button onClick={handleDrawer} endIcon={<FilterListIcon />}>
+            Filter
+          </Button>
+        </Stack>
+        <PostList ssrTags={ssrTags} />
+      </Box>
     </Stack>
   );
 }
