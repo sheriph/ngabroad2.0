@@ -10,16 +10,15 @@ import React from "react";
 import PersonIcon from "@mui/icons-material/Person";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
+import ChildCareOutlinedIcon from "@mui/icons-material/ChildCareOutlined";
+import { useRecoilState } from "recoil";
+import { passengers_ } from "../../lib/recoil";
 
 export default function Passengers() {
-  const [passengers, setPassengers] = React.useState({
-    adult: 1,
-    child: 0,
-    infant: 0,
-  });
+  const [passengers, setPassengers] = useRecoilState(passengers_);
   return (
-    <FormControl sx={{ width: { xs: "80%", md: "250px" } }}>
-      <Typography sx={{ pl: 2, fontWeight: "bold", mb: 2 }}>
+    <FormControl sx={{ width: { xs: "100%", md: "300px" } }}>
+      <Typography sx={{ pl: 2, fontWeight: "bold", mb: 1 }}>
         Passengers
       </Typography>
       <Stack spacing={2}>
@@ -69,7 +68,7 @@ export default function Passengers() {
         <Stack direction="row" justifyContent="space-between">
           <Stack direction="row">
             <IconButton>
-              <PersonIcon />
+              <ChildCareOutlinedIcon />
             </IconButton>
             <Stack>
               <Typography>Children</Typography>
@@ -112,7 +111,7 @@ export default function Passengers() {
         <Stack direction="row" justifyContent="space-between">
           <Stack direction="row">
             <IconButton>
-              <PersonIcon />
+              <ChildCareOutlinedIcon />
             </IconButton>
             <Stack>
               <Typography>Infant</Typography>

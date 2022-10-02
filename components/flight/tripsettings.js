@@ -16,25 +16,32 @@ import { truncate } from "lodash";
 import Trip from "./trip";
 import BookingClass from "./bookingclass";
 import Passengers from "./passengers";
+import { useRecoilValue } from "recoil";
+import { class_, passengers_, trip_ } from "../../lib/recoil";
+import { prettyClass, prettyTrip } from "../../lib/utility";
 
 export default function TripSettings() {
   // @ts-ignore
   const mobile = useMediaQuery((theme) => theme.breakpoints.down("md"));
   const [drawerState, setDrawerState] = React.useState(false);
+  const trip = useRecoilValue(trip_);
+  const passengers = useRecoilValue(passengers_);
+  const bookingClass = useRecoilValue(class_);
 
   return (
     <Stack>
-      <ButtonGroup size="small" aria-label="small button group">
-        <Button onClick={() => setDrawerState(true)} color="info">
-          <SettingsOutlinedIcon />
-        </Button>
+      <ButtonGroup
+        onClick={() => setDrawerState(true)}
+        size="small"
+        aria-label="small button group"
+      >
         <Button
           disableFocusRipple
           disableRipple
           disableTouchRipple
           startIcon={<SwapHorizOutlinedIcon />}
         >
-          Return
+          {prettyTrip(trip)}
         </Button>
         <Button
           disableFocusRipple
@@ -42,7 +49,7 @@ export default function TripSettings() {
           disableTouchRipple
           startIcon={<AirlineSeatReclineExtraOutlinedIcon />}
         >
-          {truncate("Premium Economy", {
+          {truncate(prettyClass(bookingClass), {
             length: mobile ? 6 : 100,
             omission: "..",
           })}
@@ -53,7 +60,7 @@ export default function TripSettings() {
           disableTouchRipple
           startIcon={<PeopleAltOutlinedIcon />}
         >
-          3
+          {Object.values(passengers).reduce((a, b) => a + b, 0)}
         </Button>
       </ButtonGroup>
       <Drawer
@@ -61,24 +68,28 @@ export default function TripSettings() {
         open={drawerState}
         onClose={() => setDrawerState((prev) => !prev)}
       >
-        <Stack spacing={2} sx={{ p: 2 }}>
+        <Stack sx={{ p: 2 }}>
           <Grid spacing={2} container>
-            <Grid xs={12} sm={6} md={4} item>
+            <Grid xs={12} sm={6} md={3} item>
               <Trip />
             </Grid>
-            <Grid xs={12} sm={6} md={4} item>
+            <Grid xs={12} sm={6} md={3} item>
               <BookingClass />
             </Grid>
-            <Grid xs={12} sm={6} md={4} item>
+            <Grid xs={12} sm={6} md={6} item>
               <Passengers />
             </Grid>
           </Grid>
-          <Stack spacing={4} justifyContent="center" direction="row">
-            <Button size="small" variant="contained">
-              Cancel
-            </Button>
-            <Button size="small" variant="contained">
-              Apply
+          <Stack
+            sx={{ mt: 2, display: { xs: "flex", md: "none" } }}
+            justifyContent="center"
+          >
+            <Button
+              onClick={() => setDrawerState(false)}
+              size="small"
+              variant="outlined"
+            >
+              Close
             </Button>
           </Stack>
         </Stack>

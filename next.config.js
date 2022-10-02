@@ -23,6 +23,9 @@ const nextConfig = {
   webpack5: true,
   reactStrictMode: true,
   trailingSlash: true,
+  experimental: {
+    scrollRestoration: true,
+  },
   env: {
     MONGODB_URI: process.env.MONGODB_URI,
   },

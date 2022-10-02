@@ -4,21 +4,25 @@ import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
-import { Typography } from "@mui/material";
+import { Typography, useMediaQuery } from "@mui/material";
+import { useRecoilState } from "recoil";
+import { class_ } from "../../lib/recoil";
 
 export default function BookingClass() {
-  const [value, setValue] = React.useState("economy");
-
+  const [value, setValue] = useRecoilState(class_);
+  // @ts-ignore
+  const mobile = useMediaQuery((theme) => theme.breakpoints.down("md"));
   const handleChange = (event) => setValue(event.target.value);
 
   return (
-    <FormControl sx={{ width: { xs: "80%", md: "200px" } }}>
-      <Typography sx={{ pl: 2, fontWeight: "bold", mb: 2 }}>Classes</Typography>
+    <FormControl>
+      <Typography sx={{ pl: 2, fontWeight: "bold", mb: 1 }}>Classes</Typography>
       <RadioGroup
         aria-labelledby="demo-controlled-radio-buttons-group"
         name="controlled-radio-buttons-group"
         value={value}
         onChange={handleChange}
+        row={mobile ? true : false}
       >
         <FormControlLabel
           sx={{

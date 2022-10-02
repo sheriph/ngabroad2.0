@@ -30,7 +30,15 @@ import { useRouter } from "next/router";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
 import DoneAllOutlinedIcon from "@mui/icons-material/DoneAllOutlined";
 import { countries, tags, useFetchPosts } from "../../lib/utility";
-import { flatten, get, pullAll, uniq } from "lodash";
+import {
+  flatten,
+  get,
+  lowerCase,
+  pullAll,
+  startCase,
+  truncate,
+  uniq,
+} from "lodash";
 
 const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
   "&.Mui-selected": {
@@ -50,11 +58,13 @@ export default function DesktopSideBar({ ssrTags, ssrPosts }) {
     { name: "", check: false },
   ]);
 
+  console.log("sidebarFilter", sidebarFilter);
+
   const [posts, setPosts] = useRecoilState(posts_);
 
   React.useEffect(() => {
     if (ssrTags) setSidebarFilter(ssrTags);
-  }, [JSON.stringify(ssrTags)]);
+  }, [null]);
 
   const handleFilter = (e) => {
     console.log("e.target.innerText", e.target.innerText);
@@ -65,6 +75,7 @@ export default function DesktopSideBar({ ssrTags, ssrPosts }) {
       }
       return filter;
     });
+    runFilter(newRenderFilter);
     setSidebarFilter([...newRenderFilter]);
   };
 
@@ -80,9 +91,10 @@ export default function DesktopSideBar({ ssrTags, ssrPosts }) {
     );
   }
 
-  React.useEffect(() => {
-    if (!sidebarFilter) return;
-    const filterArray = [...sidebarFilter]
+  const runFilter = (newSidebarFilter) => {
+    if (!newSidebarFilter) return;
+    console.log("running filter");
+    const filterArray = [...newSidebarFilter]
       .filter((item) => item.check)
       .map((item) => item.name);
 
@@ -136,14 +148,7 @@ export default function DesktopSideBar({ ssrTags, ssrPosts }) {
     console.log("newPosts", newPosts);
     // @ts-ignore
     setPosts(newPosts);
-  }, [
-    sidebarFilter
-      .filter((item) => item.check)
-      .map((item) => item.name)
-      .toLocaleString(),
-  ]);
-
-  console.log("sidebarFilter", sidebarFilter);
+  };
 
   console.log("posts", posts);
 

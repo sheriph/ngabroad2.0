@@ -37,6 +37,7 @@ export default function PostComponent({ ssrTags, ssrPosts }) {
       <Box>
         <Drawer
           onClose={handleDrawer}
+          keepMounted
           open={drawerOpen}
           variant={mobile ? "temporary" : "permanent"}
           sx={{

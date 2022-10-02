@@ -21,6 +21,7 @@ import axios from "axios";
 import ArticleRender from "./others/articlerender";
 import { default as NextLink } from "next/link";
 import LazyLoad from "react-lazyload";
+import IntroRender from "./others/introrender";
 
 var relativeTime = require("dayjs/plugin/relativeTime");
 dayjs.extend(relativeTime);
@@ -52,12 +53,11 @@ export default function PostCard({ post }) {
           <Stack>
             <NextLink href={`/${encodeURIComponent(post.slug)}`} passHref>
               <Link
-                variant="h1"
+                variant="h2"
                 textAlign="left"
                 sx={{
                   p: 0,
                   justifyContent: "flex-start",
-                  color: "text.primary",
                   textDecorationStyle: "dotted",
                 }}
                 gutterBottom
@@ -69,33 +69,11 @@ export default function PostCard({ post }) {
                 })}
               </Link>
             </NextLink>
-            {/* {post.post_type === "question" && commentCount === 0 ? (
-            <Stack sx={{}}>
-              <Stack alignItems="center">
-                <NextLink
-                  href={`/profile/${encodeURIComponent(username)}`}
-                  passHref
-                >
-                  <Link underline="always" variant="caption">
-                    @{username} needs your help to figure this out
-                  </Link>
-                </NextLink>
-                <NextLink href={`/${encodeURIComponent(post.slug)}`} passHref>
-                  <Button
-                    sx={{ width: "fit-content" }}
-                    startIcon={<QuestionAnswerOutlinedIcon />}
-                    component="a"
-                  >
-                    Provide an Answer
-                  </Button>
-                </NextLink>
-              </Stack>
-            </Stack>
-          ) : (
+
             <React.Fragment>
               {post.post_type === "post" && (
-                <Stack spacing={1}>
-                  <ArticleRender
+                <Stack>
+                  <IntroRender
                     content={truncate(post.content, {
                       length: 150,
                       omission: ` ...`,
@@ -104,12 +82,12 @@ export default function PostCard({ post }) {
                 </Stack>
               )}
             </React.Fragment>
-          )} */}
+
             <Grid
               container
               justifyContent="space-between"
               direction="row"
-              sx={{ mt: 2 }}
+              sx={{ mt: 1 }}
             >
               <Grid item>
                 <Stack alignItems="center" spacing={1} direction="row">

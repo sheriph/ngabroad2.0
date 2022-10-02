@@ -6,32 +6,21 @@ import { Typography } from "@mui/material";
 
 export default function IntroRender({ content }) {
   const transform = (node, index) => {
-    if (node.type === "tag" && node.name === "h2") {
+    if (node.type === "tag" && node.name === "h2") return null;
+
+    if (node.type === "tag" && node.name === "h1") return null;
+
+    if (node.type === "tag" && node.name === "img") return null;
+    if (node.type === "tag" && node.name === "figure") return null;
+
+    if (node.type === "text") {
+      console.log("node.data", node.data);
       return (
-        <Typography
-          sx={{ my: "15px", fontWeight: "bold" }}
-          component="span"
-          key={index}
-        >
-          {processNodes(node.children, transform)}
+        <Typography sx={{ all: "unset" }} component="p" key={index}>
+          {node.data}
         </Typography>
       );
     }
-
-    if (node.type === "tag" && node.name === "h1") {
-      return (
-        <Typography
-          sx={{ my: "15px", fontWeight: "bold" }}
-          component="span"
-          key={index}
-        >
-          {processNodes(node.children, transform)}
-        </Typography>
-      );
-    }
-
-    if (node.type === "tag" && node.name === "img") return <></>;
-    if (node.type === "tag" && node.name === "figure") return <></>;
 
     if (node.type === "tag" && node.name === "p") {
       return (
