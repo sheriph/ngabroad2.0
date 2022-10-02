@@ -17,7 +17,7 @@ export default function Trip() {
 
   return (
     <FormControl>
-      <Typography sx={{ pl: 2, fontWeight: "bold", mb: 1 }}>Trip</Typography>
+      <Typography sx={{ pl: 2, fontWeight: "bold" }}>Trip</Typography>
       <RadioGroup
         aria-labelledby="demo-controlled-radio-buttons-group"
         name="controlled-radio-buttons-group"

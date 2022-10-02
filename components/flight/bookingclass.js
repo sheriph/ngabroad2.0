@@ -16,7 +16,7 @@ export default function BookingClass() {
 
   return (
     <FormControl>
-      <Typography sx={{ pl: 2, fontWeight: "bold", mb: 1 }}>Classes</Typography>
+      <Typography sx={{ pl: 2, fontWeight: "bold" }}>Classes</Typography>
       <RadioGroup
         aria-labelledby="demo-controlled-radio-buttons-group"
         name="controlled-radio-buttons-group"

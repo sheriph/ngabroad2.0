@@ -36,7 +36,10 @@ export default function Passengers() {
             <Fab
               color="primary"
               onClick={() =>
-                setPassengers((prev) => ({ ...prev, adult: prev.adult + 1 }))
+                setPassengers((prev) => ({
+                  ...prev,
+                  adult: prev.adult < 9 ? prev.adult + 1 : prev.adult,
+                }))
               }
               sx={{
                 boxShadow: "none",
@@ -50,7 +53,12 @@ export default function Passengers() {
             <Typography>{passengers.adult}</Typography>
             <Fab
               onClick={() =>
-                setPassengers((prev) => ({ ...prev, adult: prev.adult - 1 }))
+                setPassengers((prev) => ({
+                  ...prev,
+                  adult: prev.adult - 1,
+                  infant:
+                    prev.infant < prev.adult - 1 ? prev.infant : prev.adult - 1,
+                }))
               }
               sx={{
                 boxShadow: "none",
@@ -59,7 +67,7 @@ export default function Passengers() {
                 width: "35px",
               }}
               color="primary"
-              disabled={passengers.adult === 0}
+              disabled={passengers.adult === 1}
             >
               <RemoveIcon />
             </Fab>
@@ -78,7 +86,10 @@ export default function Passengers() {
           <Stack spacing={1} alignItems="center" direction="row">
             <Fab
               onClick={() =>
-                setPassengers((prev) => ({ ...prev, child: prev.child + 1 }))
+                setPassengers((prev) => ({
+                  ...prev,
+                  child: prev.child < 9 ? prev.child + 1 : prev.child,
+                }))
               }
               sx={{
                 boxShadow: "none",
@@ -121,7 +132,11 @@ export default function Passengers() {
           <Stack spacing={1} alignItems="center" direction="row">
             <Fab
               onClick={() =>
-                setPassengers((prev) => ({ ...prev, infant: prev.infant + 1 }))
+                setPassengers((prev) => ({
+                  ...prev,
+                  infant:
+                    prev.infant < prev.adult ? prev.infant + 1 : prev.infant,
+                }))
               }
               sx={{
                 boxShadow: "none",
