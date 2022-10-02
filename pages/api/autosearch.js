@@ -34,13 +34,11 @@ export default async function handler(req, res) {
       .project(projection);
     const resToArray = await response.toArray();
     console.log("response", resToArray);
-
+    await client.close();
     res.status(200).json(resToArray);
   } catch (err) {
     console.log(`err`, err);
-    res.status(400).json(err);
-  } finally {
-    console.log(`closing connection`);
     await client.close();
+    res.status(400).json(err);
   }
 }

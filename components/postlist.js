@@ -3,48 +3,14 @@ import { Button, Divider, Drawer, Stack, useMediaQuery } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import PostCard from "./postcard";
 import { Box } from "@mui/system";
-import { useRecoilState } from "recoil";
-import { blockLoading_, dbFilter_, mobileFilter_, posts_ } from "../lib/recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { posts_ } from "../lib/recoil";
 
-import { useFetchPosts } from "../lib/utility";
-
-import ReactVisibilitySensor from "react-visibility-sensor";
-import DesktopSideBar from "./others/desktopsidebar";
-
-export default function PostList({ ssrTags }) {
-  const [blockLoading, setBlockLoading] = useRecoilState(blockLoading_);
-  const [posts, setPosts] = useRecoilState(posts_);
-
-  const [dbFilter, setDBfilter] = useRecoilState(dbFilter_);
-  const {
-    posts: db_posts,
-    isLoading,
-    isValidating,
-  } = useFetchPosts(ssrTags ? JSON.stringify(dbFilter) : undefined);
-
-  React.useEffect(() => {
-    setPosts(db_posts);
-  }, [isLoading, isValidating, JSON.stringify(db_posts)]);
-
-  React.useEffect(() => {
-    if (isLoading || isValidating) {
-      setBlockLoading(true);
-    } else {
-      setBlockLoading(false);
-    }
-  }, [isLoading, isValidating]);
-
-  console.log("ssrTags", ssrTags);
-
-  const readMore = (isVisible) => {
-    console.log("isVisible", isVisible);
-    if (isVisible && posts) {
-      setDBfilter({ ...dbFilter, index: posts.length / 5 + 1 });
-    }
-  };
+export default function PostList() {
+  const posts = useRecoilValue(posts_);
 
   return (
-    <Box>
+    <Box sx={{ mt: { xs: 0, md: 1 } }}>
       <Stack>
         <Stack
           spacing={2}
@@ -53,16 +19,6 @@ export default function PostList({ ssrTags }) {
           {(posts || []).map((post, index) => (
             <React.Fragment key={index}>
               <PostCard key={index} post={post} />
-              <ReactVisibilitySensor
-                active={Boolean(posts?.length - 1 === index)}
-                onChange={readMore}
-              >
-                {Boolean(posts?.length - 1 === index) ? (
-                  <Box sx={{ width: "100%", height: "30px" }}></Box>
-                ) : (
-                  <></>
-                )}
-              </ReactVisibilitySensor>
             </React.Fragment>
           ))}
         </Stack>

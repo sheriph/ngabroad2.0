@@ -20,9 +20,10 @@ import dayjs from "dayjs";
 import axios from "axios";
 import ArticleRender from "./others/articlerender";
 import { default as NextLink } from "next/link";
+import LazyLoad from "react-lazyload";
 
-var advancedFormat = require("dayjs/plugin/advancedFormat");
-dayjs.extend(advancedFormat);
+var relativeTime = require("dayjs/plugin/relativeTime");
+dayjs.extend(relativeTime);
 
 const getCommentCount = async (key) => {
   try {
@@ -39,35 +40,36 @@ const getCommentCount = async (key) => {
 export default function PostCard({ post }) {
   const answer = false;
   const { data: username } = useSWRImmutable(post.user_id, getUsername);
-  const { data: commentCount } = useSWRImmutable(
+  /*  const { data: commentCount } = useSWRImmutable(
     post._id ? `${post._id}_getcommentcountinforum` : undefined,
     getCommentCount
-  );
+  ); */
 
   return (
-    <Stack spacing={2} direction="row" sx={{ ml: `-15px !important` }}>
-      <Stack sx={{ ml: { xs: 1, sm: 2 } }}>
+    <LazyLoad once>
+      <Stack direction="row">
         <Stack>
-          <NextLink href={`/${encodeURIComponent(post.slug)}`} passHref>
-            <Link
-              variant="h1"
-              textAlign="left"
-              sx={{
-                p: 0,
-                justifyContent: "flex-start",
-                color: "text.primary",
-                textDecorationStyle: "dotted",
-              }}
-              gutterBottom
-              underline="always"
-            >
-              {truncate(startCase(lowerCase(post.title)), {
-                length: 150,
-                omission: " ...",
-              })}
-            </Link>
-          </NextLink>
-          {post.post_type === "question" && commentCount === 0 ? (
+          <Stack>
+            <NextLink href={`/${encodeURIComponent(post.slug)}`} passHref>
+              <Link
+                variant="h1"
+                textAlign="left"
+                sx={{
+                  p: 0,
+                  justifyContent: "flex-start",
+                  color: "text.primary",
+                  textDecorationStyle: "dotted",
+                }}
+                gutterBottom
+                underline="always"
+              >
+                {truncate(startCase(lowerCase(post.title)), {
+                  length: 150,
+                  omission: " ...",
+                })}
+              </Link>
+            </NextLink>
+            {/* {post.post_type === "question" && commentCount === 0 ? (
             <Stack sx={{}}>
               <Stack alignItems="center">
                 <NextLink
@@ -102,54 +104,55 @@ export default function PostCard({ post }) {
                 </Stack>
               )}
             </React.Fragment>
-          )}
-          <Grid
-            container
-            justifyContent="space-between"
-            direction="row"
-            sx={{ mt: 2 }}
-          >
-            <Grid item>
-              <Stack alignItems="center" spacing={1} direction="row">
-                <Stack spacing={2} alignItems="center" direction="row">
-                  <Stack spacing={0.5} alignItems="center" direction="row">
-                    <PersonOutlineOutlinedIcon
-                      sx={{ fontSize: "1rem" }}
-                      fontSize="small"
-                    />
-                    <NextLink
-                      href={`/profile/${encodeURIComponent(username)}`}
-                      passHref
-                    >
-                      <Link underline="always" variant="caption">
-                        @{username}
-                      </Link>
-                    </NextLink>
-                  </Stack>
-                  <Stack spacing={0.5} alignItems="center" direction="row">
-                    <AccessTimeOutlinedIcon
-                      sx={{ fontSize: "1rem" }}
-                      fontSize="small"
-                    />
-                    <Typography variant="caption">
-                      {dayjs(post.createdAt).format("Do MMM, YYYY - hh:mm a")}
-                    </Typography>
-                  </Stack>
-                  <Stack>
-                    <Stack alignItems="center" spacing={1} direction="row">
-                      <CommentOutlinedIcon
+          )} */}
+            <Grid
+              container
+              justifyContent="space-between"
+              direction="row"
+              sx={{ mt: 2 }}
+            >
+              <Grid item>
+                <Stack alignItems="center" spacing={1} direction="row">
+                  <Stack spacing={2} alignItems="center" direction="row">
+                    <Stack spacing={0.5} alignItems="center" direction="row">
+                      <PersonOutlineOutlinedIcon
                         sx={{ fontSize: "1rem" }}
                         fontSize="small"
                       />
-                      <Typography>{commentCount}</Typography>
+                      <NextLink
+                        href={`/profile/${encodeURIComponent(username)}`}
+                        passHref
+                      >
+                        <Link underline="always" variant="caption">
+                          @{username}
+                        </Link>
+                      </NextLink>
                     </Stack>
+                    <Stack spacing={0.5} alignItems="center" direction="row">
+                      <AccessTimeOutlinedIcon
+                        sx={{ fontSize: "1rem" }}
+                        fontSize="small"
+                      />
+                      <Typography variant="caption">
+                        {dayjs().to(dayjs(post.createdAt))}
+                      </Typography>
+                    </Stack>
+                    {/* <Stack>
+                      <Stack alignItems="center" spacing={1} direction="row">
+                        <CommentOutlinedIcon
+                          sx={{ fontSize: "1rem" }}
+                          fontSize="small"
+                        />
+                        <Typography>{commentCount}</Typography>
+                      </Stack>
+                    </Stack> */}
                   </Stack>
                 </Stack>
-              </Stack>
+              </Grid>
             </Grid>
-          </Grid>
+          </Stack>
         </Stack>
       </Stack>
-    </Stack>
+    </LazyLoad>
   );
 }

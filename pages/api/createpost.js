@@ -50,13 +50,11 @@ export default async function handler(req, res) {
       .db("nga")
       .collection("posts")
       .insertOne(newPost);
-
+    await client.close();
     res.status(200).json(truncate(slug, { length: 100, omission: "" }));
   } catch (error) {
     console.log("error", error);
-    res.status(400).json({ message: error.message, info: error.errInfo });
-  } finally {
-    console.log(`closing connection`);
     await client.close();
+    res.status(400).json({ message: error.message, info: error.errInfo });
   }
 }

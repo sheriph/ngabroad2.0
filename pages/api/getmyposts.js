@@ -28,14 +28,11 @@ export default async function handler(req, res) {
       .find(query, options)
       .toArray();
     console.log("posts", posts);
+    await client.close();
     res.status(200).json(posts);
   } catch (err) {
     console.log(`err`, err);
+    await client.close();
     res.status(400).json(err);
-  } finally {
-    console.log(`closing connection`);
-    setTimeout(async () => {
-      await client.close();
-    }, 1500);
   }
 }

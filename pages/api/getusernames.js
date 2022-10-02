@@ -29,13 +29,11 @@ export default async function handler(req, res) {
       .map((username) => get(username, "username", ""))
       .filter((username) => username);
     console.log("usernames", usernames);
-
+    await client.close();
     res.status(200).json(usernames);
   } catch (err) {
     console.log(`err`, err);
-    res.status(400).json(err);
-  } finally {
-    console.log(`closing connection`);
     await client.close();
+    res.status(400).json(err);
   }
 }

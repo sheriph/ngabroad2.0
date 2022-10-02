@@ -29,7 +29,7 @@ import { styled } from "@mui/styles";
 import { useRouter } from "next/router";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
 import DoneAllOutlinedIcon from "@mui/icons-material/DoneAllOutlined";
-import { useFetchPosts } from "../../lib/utility";
+import { countries, tags, useFetchPosts } from "../../lib/utility";
 import { flatten, get, pullAll, uniq } from "lodash";
 
 const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
@@ -41,28 +41,20 @@ const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
   },
 }));
 
-export default function DesktopSideBar({ ssrTags }) {
+export default function DesktopSideBar({ ssrTags, ssrPosts }) {
   const router = useRouter();
-  const [blockLoading, setBlockLoading] = useRecoilState(blockLoading_);
 
   console.log("router", router.pathname);
 
-  const [sidebarFilter, setSidebarFilter] = useRecoilState(sidebarFilter_);
-  const [dbFilter, setDBfilter] = useRecoilState(dbFilter_);
-
-  const {
-    posts: db_posts,
-    isLoading,
-    isValidating,
-  } = useFetchPosts(ssrTags ? JSON.stringify(dbFilter) : undefined);
+  const [sidebarFilter, setSidebarFilter] = React.useState([
+    { name: "", check: false },
+  ]);
 
   const [posts, setPosts] = useRecoilState(posts_);
 
   React.useEffect(() => {
-    setPosts(db_posts);
-  }, [isLoading, isValidating, JSON.stringify(db_posts)]);
-
-  console.log("isLoading, isValidating", isLoading, isValidating);
+    if (ssrTags) setSidebarFilter(ssrTags);
+  }, [JSON.stringify(ssrTags)]);
 
   const handleFilter = (e) => {
     console.log("e.target.innerText", e.target.innerText);
@@ -76,84 +68,6 @@ export default function DesktopSideBar({ ssrTags }) {
     setSidebarFilter([...newRenderFilter]);
   };
 
-  console.log("ssrTags", ssrTags);
-
-  React.useEffect(() => {
-    if (!ssrTags) return;
-
-    const post_type = ["post", "question"];
-
-    const allTags = [
-      "post_type",
-      ...post_type,
-      "tags",
-      ...ssrTags.otherTags,
-      "countries",
-      ...ssrTags.countries,
-    ];
-
-    const newFilter = [...allTags.map((tag) => ({ name: tag, check: false }))];
-
-    console.log("newFilter", newFilter, sidebarFilter);
-
-    // @ts-ignore
-    setSidebarFilter(
-      newFilter.length === sidebarFilter.length ? sidebarFilter : newFilter
-    );
-  }, [null]);
-
-  React.useEffect(() => {
-    if (!ssrTags) return;
-    let dbfilterTemplate = {
-      post_type: [],
-      countries: [],
-      otherTags: [],
-      index: 1,
-    };
-    const filterValuesArray1 = sidebarFilter
-      .filter((item) => item.check)
-      .map((item) => item.name);
-    const filterValuesArray2 = sidebarFilter
-      .filter((item) => item.check)
-      .map((item) => item.name);
-    const filterValuesArray3 = sidebarFilter
-      .filter((item) => item.check)
-      .map((item) => item.name);
-    const post_type = ["post", "question"];
-    const countriesandtags = [...ssrTags.countries, ...ssrTags.otherTags];
-    const lessPostType = pullAll(filterValuesArray1, countriesandtags);
-    // @ts-ignore
-    dbfilterTemplate.post_type = lessPostType;
-    const post_typeandtags = [...post_type, ...ssrTags.otherTags];
-    const lessCountries = pullAll(filterValuesArray2, post_typeandtags);
-    // @ts-ignore
-    dbfilterTemplate.countries = lessCountries;
-    const post_typeandcountries = [...post_type, ...ssrTags.countries];
-    const lessOtherTags = pullAll(filterValuesArray3, post_typeandcountries);
-    // @ts-ignore
-    dbfilterTemplate.otherTags = lessOtherTags;
-
-    console.log("dbfilterTemplate", dbfilterTemplate);
-    setDBfilter(dbfilterTemplate);
-  }, [
-    sidebarFilter
-      .filter((item) => item.check)
-      .map((item) => item.name)
-      .toLocaleString(),
-  ]);
-
-  React.useEffect(() => {
-    if (isLoading || isValidating) {
-      setBlockLoading(true);
-    } else {
-      setBlockLoading(false);
-    }
-  }, [isLoading, isValidating]);
-
-  console.log("sidebarFilter", sidebarFilter);
-
-  console.log("posts", posts);
-
   if (!ssrTags) {
     return (
       <Container>
@@ -165,6 +79,73 @@ export default function DesktopSideBar({ ssrTags }) {
       </Container>
     );
   }
+
+  React.useEffect(() => {
+    if (!sidebarFilter) return;
+    const filterArray = [...sidebarFilter]
+      .filter((item) => item.check)
+      .map((item) => item.name);
+
+    //  const post_type = ["post", "question"];
+    const post_type = pullAll(
+      [...filterArray],
+      [...Object.keys(tags), ...countries.map((country) => country.name)]
+    );
+
+    const otherTags = pullAll(
+      [...filterArray],
+      ["post", "question", ...countries.map((country) => country.name)]
+    );
+
+    const filterCountries = pullAll(
+      [...filterArray],
+      ["post", "question", ...Object.keys(tags)]
+    );
+    const filterArguments = {
+      post_type,
+      otherTags,
+      countries: filterCountries,
+    };
+    console.log("filterArguments", filterArguments);
+    const newPosts = [...ssrPosts].filter((post) => {
+      if (
+        post_type.length === 0 &&
+        otherTags.length === 0 &&
+        filterCountries.length === 0
+      ) {
+        return true;
+      }
+      let condition = [];
+      if (post_type.length > 0) {
+        condition.push(post_type.includes(post.post_type));
+      }
+      if (otherTags.length > 0) {
+        condition.push(
+          otherTags.toString().includes(post.tags.otherTags.toString())
+        );
+      }
+      if (filterCountries.length > 0) {
+        condition.push(
+          filterCountries.toString().includes(post.tags.countries.toString())
+        );
+      }
+
+      return condition.includes(true);
+    });
+
+    console.log("newPosts", newPosts);
+    // @ts-ignore
+    setPosts(newPosts);
+  }, [
+    sidebarFilter
+      .filter((item) => item.check)
+      .map((item) => item.name)
+      .toLocaleString(),
+  ]);
+
+  console.log("sidebarFilter", sidebarFilter);
+
+  console.log("posts", posts);
 
   return (
     <Box>

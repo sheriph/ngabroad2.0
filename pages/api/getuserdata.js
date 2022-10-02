@@ -52,11 +52,10 @@ export default async function handler(req, res) {
       .db("nga")
       .collection("users")
       .findOne({ email: email });
+    await client.close();
     res.status(200).json(userData);
   } catch (error) {
-    res.status(400).json(error);
-  } finally {
-    console.log(`closing connection`);
     await client.close();
+    res.status(400).json(error);
   }
 }

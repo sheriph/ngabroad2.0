@@ -20,7 +20,14 @@ export default function PostsCard({ post, comments }) {
           <MobileCategoryChanger /> */}
           <NextLink href="/forum" passHref>
             <Link
-              sx={{ alignItems: "center", display: "flex", ml: 0, pl: 0 }}
+              sx={{
+                alignItems: "center",
+                display: "flex",
+                ml: 0,
+                pl: 0,
+                mb: 2,
+                mt: 1,
+              }}
               variant="caption"
               gutterBottom
             >

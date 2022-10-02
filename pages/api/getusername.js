@@ -20,13 +20,12 @@ export default async function handler(req, res) {
     const userData = await client.db("nga").collection("users").findOne(query);
     // @ts-ignore
     console.log("userData", userData);
+    await client.close();
     // @ts-ignore
     res.status(200).json(userData?.username);
   } catch (error) {
     console.log("error.message", error.message);
-    res.status(400).json(error.message);
-  } finally {
-    console.log(`closing connection`);
     await client.close();
+    res.status(400).json(error.message);
   }
 }

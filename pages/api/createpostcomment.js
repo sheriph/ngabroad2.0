@@ -53,13 +53,11 @@ export default async function handler(req, res) {
       .db("nga")
       .collection("postscomments")
       .insertOne(newPost);
-
+    await client.close();
     res.status(200).json(insert.acknowledged);
   } catch (error) {
     console.log("error", error);
-    res.status(400).json({ message: error.message, info: error.errInfo });
-  } finally {
-    console.log(`closing connection`);
     await client.close();
+    res.status(400).json({ message: error.message, info: error.errInfo });
   }
 }

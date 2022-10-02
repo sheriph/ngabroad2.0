@@ -124,20 +124,9 @@ export default function HeaderApp(props) {
             {user ? (
               <AccountMenu user={user} />
             ) : (
-              <Box>
-                {loading ? (
-                  <Skeleton
-                    sx={{ bgcolor: "text.disabled" }}
-                    width="40px"
-                    height="40px"
-                    variant="circular"
-                  />
-                ) : (
-                  <Button onClick={() => setLogin(true)} color="inherit">
-                    Login
-                  </Button>
-                )}
-              </Box>
+              <Button onClick={() => setLogin(true)} color="inherit">
+                Login
+              </Button>
             )}
           </Toolbar>
         </Container>

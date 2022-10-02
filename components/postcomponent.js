@@ -27,7 +27,7 @@ import { styled } from "@mui/styles";
 import DesktopSideBar from "./others/desktopsidebar";
 import FilterListIcon from "@mui/icons-material/FilterList";
 
-export default function PostComponent({ ssrTags }) {
+export default function PostComponent({ ssrTags, ssrPosts }) {
   const mobile = useMediaQuery("(max-width:900px)", { noSsr: true });
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const handleDrawer = () => setDrawerOpen(!drawerOpen);
@@ -51,7 +51,7 @@ export default function PostComponent({ ssrTags }) {
         >
           <Toolbar />
           <Box sx={{ overflow: "auto" }}>
-            <DesktopSideBar ssrTags={ssrTags} />
+            <DesktopSideBar ssrPosts={ssrPosts} ssrTags={ssrTags} />
           </Box>
         </Drawer>
       </Box>
@@ -65,7 +65,7 @@ export default function PostComponent({ ssrTags }) {
             Filter
           </Button>
         </Stack>
-        <PostList ssrTags={ssrTags} />
+        <PostList />
       </Box>
     </Stack>
   );

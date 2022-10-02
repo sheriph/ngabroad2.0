@@ -53,13 +53,11 @@ export default async function handler(req, res) {
           .db("nga")
           .collection("follows")
           .updateOne(query, { $set: { ...newFollow } }, { upsert: true });
-
+    await client.close();
     res.status(200).json(true);
   } catch (error) {
     console.log("error", error);
-    res.status(400).json({ message: error.message, info: error.errInfo });
-  } finally {
-    console.log(`closing connection`);
     await client.close();
+    res.status(400).json({ message: error.message, info: error.errInfo });
   }
 }

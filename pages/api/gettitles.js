@@ -27,13 +27,11 @@ export default async function handler(req, res) {
       .findOne(query, options);
 
     console.log("response", response);
-
+    await client.close();
     res.status(200).json(response);
   } catch (err) {
     console.log(`err`, err);
-    res.status(400).json(err);
-  } finally {
-    console.log(`closing connection`);
     await client.close();
+    res.status(400).json(err);
   }
 }

@@ -32,12 +32,11 @@ export default async function handler(req, res) {
       .collection("users")
       .updateOne(queryOperation, updateOperation);
     console.log("update", update);
+    await client.close();
     res.status(200).json(update.acknowledged);
   } catch (error) {
     console.log(`err`, error.message, error.errInfo);
-    res.status(400).json({ message: error.message, info: error.errInfo });
-  } finally {
-    console.log(`closing connection`);
     await client.close();
+    res.status(400).json({ message: error.message, info: error.errInfo });
   }
 }

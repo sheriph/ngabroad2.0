@@ -26,14 +26,11 @@ export default async function handler(req, res) {
       .collection("postscomments")
       .countDocuments(query);
     console.log("commentCount", commentCount);
+    await client.close();
     res.status(200).json(commentCount);
   } catch (err) {
     console.log(`err`, err);
+    await client.close();
     res.status(400).json(err);
-  } finally {
-    console.log(`closing connection`);
-    setTimeout(async () => {
-      await client.close();
-    }, 1500);
   }
 }

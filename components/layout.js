@@ -36,10 +36,10 @@ export default function Layout({ children }) {
 
   return (
     <Container disableGutters>
-      <Stack spacing={1}>
-        <Loading isAnimating={loading || isValidating || loadingUser} />
+      <Stack>
+        <Loading isAnimating={loading} />
         <BlockingLoading isAnimating={blockLoading} />
-        <Box component={Container}>
+        <Box>
           <HeaderApp post={post} />
           {/* <Toolbar /> */}
           <Box sx={{ mb: 7 }} />

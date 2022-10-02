@@ -27,13 +27,11 @@ export default async function handler(req, res) {
     const countries = uniq(flatten(tags.map((doc) => doc.tags.countries)));
     const otherTags = uniq(flatten(tags.map((doc) => doc.tags.otherTags)));
     const ssrTags = { countries, otherTags };
-
+    await client.close();
     res.status(200).json(ssrTags);
   } catch (err) {
     console.log(`err`, err);
-    res.status(400).json(err);
-  } finally {
-    console.log(`closing connection`);
     await client.close();
+    res.status(400).json(err);
   }
 }

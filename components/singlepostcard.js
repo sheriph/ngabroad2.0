@@ -53,9 +53,8 @@ import QuoteReadMore from "./others/quotereadmore";
 import ArticleRender from "./others/articlerender";
 import { toast } from "react-toastify";
 
-const advancedFormat = require("dayjs/plugin/advancedFormat");
-
-dayjs.extend(advancedFormat);
+var relativeTime = require("dayjs/plugin/relativeTime");
+dayjs.extend(relativeTime);
 
 export default function SinglePostCard({
   post,
@@ -394,7 +393,7 @@ export default function SinglePostCard({
                 </Skeleton>
               )}
               <Typography variant="caption">
-                {dayjs(post.createdAt).format("Do MMMM, YYYY hh:mm a")}
+                {dayjs().to(dayjs(post.createdAt))}
               </Typography>
             </Stack>
             <Stack spacing={1} direction="row">

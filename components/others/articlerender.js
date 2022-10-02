@@ -3,7 +3,7 @@ import ReactHtmlParser, { processNodes } from "react-html-parser";
 
 import React from "react";
 import { Link, Stack, Typography } from "@mui/material";
-import Image from "next/image";
+import Image from "next/future/image";
 
 const shimmer = (w, h) => `
 <svg width="${w}" height="${h}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -77,6 +77,15 @@ export default function ArticleRender({ content }) {
       );
     }
 
+    if (node.type === "text") {
+      console.log("node.data", node.data);
+      return (
+        <Typography sx={{ all: "unset" }} component="p" key={index}>
+          {node.data}
+        </Typography>
+      );
+    }
+
     if (node.type === "tag" && node.name === "a") {
       const { href } = node.attribs;
       return (
@@ -99,19 +108,18 @@ export default function ArticleRender({ content }) {
 
       return (
         <Box
-          sx={{ height: "auto" }}
-          display="block"
+          sx={{ height: { xs: "320px", md: "640px" }, width: "100%" }}
+          // display="block"
           justifyContent="center"
+          position="relative"
           key={index}
         >
           <Image
             src={src}
             alt={alt}
-            width="100%"
-            height="100%"
-            layout="responsive"
-            objectFit="contain"
+            style={{ objectFit: "contain" }}
             placeholder="blur"
+            fill
             ///   blurDataURL={`data:image/svg+xml;base64,${toBase64(
             //     shimmer(300, 400)
             //    )}`}
