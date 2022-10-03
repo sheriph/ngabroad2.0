@@ -11,9 +11,11 @@ import "react-toastify/dist/ReactToastify.css";
 import Amplify, { Auth } from "aws-amplify";
 import { ToastContainer } from "react-toastify";
 import { RecoilRoot } from "recoil";
-import "../styles/global.css";
 import { Authenticator } from "@aws-amplify/ui-react";
 import "@aws-amplify/ui-react/styles.css";
+import "react-datepicker/dist/react-datepicker.css";
+import "../styles/global.css";
+
 
 import config from "../src/aws-exports";
 import Layout from "../components/layout";

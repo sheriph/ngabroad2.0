@@ -5,3 +5,6 @@
 .ck.ck-editor__main > .ck-editor__editable.ck-rounded-corners {
   min-height: 200px;
 }
+.react-datepicker-wrapper {
+  width: auto !important;
+}
