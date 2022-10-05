@@ -81,7 +81,7 @@ export default function Locations({ index }) {
           divider={<Divider orientation="vertical" flexItem />}
           component={Paper}
           variant="outlined"
-          sx={{ cursor: "pointer",  }}
+          sx={{ cursor: "pointer" }}
           //  aria-describedby={id}
           ref={container}
         >

@@ -90,11 +90,9 @@ export default function SearchDesktop() {
   };
 
   const container = React.useRef(null);
-
-  const [anchorEl, setAnchorEl] = React.useState(null);
-
-  const open = Boolean(anchorEl);
-  const id = open ? "simple-popper" : undefined;
+  //const [anchorEl, setAnchorEl] = React.useState(null);
+  //const open = Boolean(anchorEl);
+  //const id = open ? "simple-popper" : undefined;
 
   console.log("data", data);
 
@@ -103,7 +101,7 @@ export default function SearchDesktop() {
       <Stack>
         <TextField
           ref={container}
-          aria-describedby={id}
+         // aria-describedby={id}
           fullWidth
           sx={{
             backgroundColor: (t) => alpha(t.palette.common.white, 0.15),
@@ -138,7 +136,7 @@ export default function SearchDesktop() {
             zIndex: (t) => t.zIndex.appBar,
             top: "10px",
           }}
-          id={id}
+         // id={id}
           open={openSearch && Boolean(data)}
           anchorEl={container.current}
         >

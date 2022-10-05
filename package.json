@@ -22,6 +22,7 @@
     "axios": "^0.24.0",
     "ckeditor4-react": "^3.0.0",
     "clsx": "latest",
+    "cookies-next": "^2.1.1",
     "dayjs": "^1.10.7",
     "formidable": "^2.0.1",
     "intersection-observer": "^0.12.2",

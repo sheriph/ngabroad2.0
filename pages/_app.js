@@ -15,10 +15,13 @@ import { Authenticator } from "@aws-amplify/ui-react";
 import "@aws-amplify/ui-react/styles.css";
 import "react-datepicker/dist/react-datepicker.css";
 import "../styles/global.css";
-
-
 import config from "../src/aws-exports";
 import Layout from "../components/layout";
+import dynamic from "next/dynamic";
+
+/* const Layout = dynamic(() => import("../components/layout"), {
+  ssr: false,
+}); */
 
 Amplify.configure({
   ...config,
