@@ -14,6 +14,7 @@ import {
   Popper,
   Stack,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
 import LocationCityOutlinedIcon from "@mui/icons-material/LocationCityOutlined";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
@@ -24,6 +25,7 @@ import { alpha } from "@mui/material/styles";
 import { useRecoilState } from "recoil";
 import { locations_ } from "../../lib/recoil";
 import axios from "axios";
+import { styled, createTheme, ThemeProvider } from "@mui/material/styles";
 
 const getLocations = async (key) => {
   try {
@@ -37,6 +39,11 @@ const getLocations = async (key) => {
   }
 };
 
+const Transition = React.forwardRef(function Transition(props, ref) {
+  // @ts-ignore
+  return <Slide direction="down" ref={ref} {...props} />;
+});
+
 export default function Locations({ index }) {
   const point = !Boolean(index % 2) ? "From" : "To";
   const container = React.useRef(null);
@@ -44,6 +51,7 @@ export default function Locations({ index }) {
   const [inputOpen, setInputOpen] = React.useState(false);
   const [userQuery, setUserQuery] = React.useState("");
   const [text, setText] = React.useState("");
+  const mobile = useMediaQuery("(max-width:900px)", { noSsr: true });
   const {
     data: searchResult,
     error,
@@ -74,9 +82,24 @@ export default function Locations({ index }) {
     return delayedQuery.cancel;
   }, [userQuery, delayedQuery]);
 
+  console.log("locations", locations);
+
+  const StyledPaper = styled(Paper)`
+    ${({ theme }) => `
+  cursor: pointer;
+  transition: ${theme.transitions.create(["background-color", "transform"], {
+    duration: theme.transitions.duration.standard,
+  })};
+  &:hover {
+    background-color: ${theme.palette.secondary.main};
+    transform: scale(1.3);
+  }
+  `}
+  `;
+
   return (
     <ClickAwayListener onClickAway={() => setInputOpen(false)}>
-      <Box component={Paper} elevation={inputOpen ? 24 : 0} width="100%">
+      <Box component={Paper} elevation={inputOpen ? 15 : 0} width="100%">
         <Stack
           divider={<Divider orientation="vertical" flexItem />}
           component={Paper}
@@ -89,7 +112,7 @@ export default function Locations({ index }) {
             <Stack
               alignItems="center"
               spacing={1}
-              sx={{ p: 1 }}
+              sx={{ p: 1, height: 40 }}
               direction="row"
             >
               <Typography sx={{ color: "text.disabled" }}>{point}</Typography>
@@ -120,12 +143,36 @@ export default function Locations({ index }) {
         </Stack>
         <Popper
           sx={{
-            width: 400,
+            width: { md: 400 },
             // zIndex: (t) => t.zIndex.appBar,
           }}
-          placement="bottom-start"
           anchorEl={container.current}
           open={inputOpen}
+          // transition
+          popperOptions={{
+            placement: "bottom-start",
+          }}
+          modifiers={[
+            {
+              name: "matchReferenceSize",
+              enabled: true,
+              fn: ({ state, instance }) => {
+                const widthOrHeight =
+                  state.placement.startsWith("left") ||
+                  state.placement.startsWith("right")
+                    ? "height"
+                    : "width";
+                const popperSize = state.rects.popper[widthOrHeight];
+                const referenceSize = state.rects.reference[widthOrHeight];
+                if (popperSize >= referenceSize) return;
+
+                state.styles.popper[widthOrHeight] = `${referenceSize}px`;
+                instance.update();
+              },
+              phase: "beforeWrite",
+              requires: ["computeStyles"],
+            },
+          ]}
         >
           <Stack spacing={1} component={Paper} variant="outlined">
             {get(searchResult, "data", []).map((value, key) => (
@@ -150,7 +197,9 @@ export default function Locations({ index }) {
                         }`;
 
                   const update = { prettyText: prettyText, data: value };
-                  setLocations((prev) => fill(prev, update, index, index + 1));
+                  setLocations((prev) =>
+                    fill([...prev], update, index, index + 1)
+                  );
                   // setText({ prettyText, data: value });
                   setTimeout(() => setInputOpen(false), 0);
                 }}

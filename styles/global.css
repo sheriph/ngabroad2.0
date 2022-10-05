@@ -6,5 +6,5 @@
   min-height: 200px;
 }
 .react-datepicker-wrapper {
-  width: auto !important;
+  width: 100% !important;
 }

@@ -35,7 +35,7 @@ export default function Layout({ children }) {
   }, [Router]);
 
   return (
-    <Container disableGutters>
+    <Container>
       <Stack>
         <Loading isAnimating={loading} />
         <BlockingLoading isAnimating={blockLoading} />

@@ -86,7 +86,7 @@ export default function HeaderApp(props) {
   return (
     <HideOnScroll {...props}>
       <AppBar sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-        <Container>
+        <Container disableGutters>
           <SearchMobile />
           <Toolbar sx={{ px: { xs: 0, sm: 2 } }} variant="dense">
             <Stack sx={{ mr: 1 }}>LOGO</Stack>

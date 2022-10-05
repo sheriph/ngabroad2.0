@@ -34,6 +34,7 @@ export default function TripSettings() {
         onClick={() => setDrawerState(true)}
         size="small"
         aria-label="small button group"
+        variant="text"
       >
         <Button
           disableFocusRipple

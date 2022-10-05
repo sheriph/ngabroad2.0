@@ -10,24 +10,30 @@ import TripSettings from "../components/flight/tripsettings";
 import { setCookie } from "cookies-next";
 import axios from "axios";
 import { deleteCookie, getCookie } from "cookies-next";
+import FlightSearchForm from "../components/flight/flightsearchform";
 
 export default function NewComp() {
   return (
-    <Box
-      display="flex"
-      flexDirection={"column"}
-      justifyContent="center"
-      alignItems="center"
-    >
-      {/* <BookingClass /> */}
-      {/* <Passengers /> */}
-      {/* <Trip /> */}
-      {/*  <TripSettings /> */}
-      {/*  <DateRange /> */}
-      {/* <Dates item={1} /> */}
-      <Box width={400}>
+    <React.Fragment>
+      <Box
+        display="flex"
+        flexDirection={"column"}
+        justifyContent="center"
+        alignItems="center"
+      >
+        {/* <BookingClass /> */}
+        {/* <Passengers /> */}
+        {/* <Trip /> */}
+        {/*  <TripSettings /> */}
+        {/*  <DateRange /> */}
+        {/* <Dates item={1} /> */}
+        {/* <Box width={400}>
         <Locations index={0} />
+      </Box> */}
       </Box>
-    </Box>
+      <Stack alignItems="center" justifyContent="center">
+        <FlightSearchForm />
+      </Stack>
+    </React.Fragment>
   );
 }

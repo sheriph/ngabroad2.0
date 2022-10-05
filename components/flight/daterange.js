@@ -39,21 +39,30 @@ export default function DateRange() {
       <Stack
         direction="row"
         divider={<Divider orientation="vertical" flexItem />}
-        component={Paper}
-        variant="outlined"
+        // component={Paper}
+        // variant="outlined"
         onClick={onClick}
         ref={ref}
-        sx={{ cursor: "pointer" }}
+        sx={{
+          cursor: "pointer",
+          height: 40,
+          backgroundColor: "background.paper",
+          border: 1,
+          borderColor: "grey.300",
+          borderRadius: 1,
+        }}
       >
-        <Stack spacing={1} sx={{ p: 1 }} direction="row">
+        <Stack spacing={1} sx={{ p: 1, width: "50%" }} direction="row">
           <Typography sx={{ color: "text.disabled" }}>Depart</Typography>
-          <Typography>{dayjs(startDate).format("ddd MMM D")}</Typography>
+          <Typography sx={{ overflow: "hidden" }}>
+            {dayjs(startDate).format("ddd MMM D")}
+          </Typography>
         </Stack>
-        <Stack spacing={1} sx={{ p: 1 }} direction="row">
+        <Stack spacing={1} sx={{ p: 1, width: "50%" }} direction="row">
           {dayjs(endDate).isValid() && (
             <Typography sx={{ color: "text.disabled" }}>Return</Typography>
           )}
-          <Typography>
+          <Typography sx={{ overflow: "hidden" }}>
             {dayjs(endDate).isValid() ? (
               dayjs(endDate).format("ddd MMM D")
             ) : (
