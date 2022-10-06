@@ -86,9 +86,9 @@ export default function HeaderApp(props) {
   return (
     <HideOnScroll {...props}>
       <AppBar sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-        <Container disableGutters>
+        <Box>
           <SearchMobile />
-          <Toolbar sx={{ px: { xs: 0, sm: 2 } }} variant="dense">
+          <Toolbar variant="dense">
             <Stack sx={{ mr: 1 }}>LOGO</Stack>
             <Typography component="div">
               <OtherMenu />
@@ -129,7 +129,7 @@ export default function HeaderApp(props) {
               </Button>
             )}
           </Toolbar>
-        </Container>
+        </Box>
       </AppBar>
     </HideOnScroll>
   );

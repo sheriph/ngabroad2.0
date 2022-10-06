@@ -41,6 +41,7 @@ export default function TripSettings() {
           disableRipple
           disableTouchRipple
           startIcon={<SwapHorizOutlinedIcon />}
+          sx={{ whiteSpace: "nowrap" }}
         >
           {prettyTrip(trip)}
         </Button>
@@ -49,6 +50,7 @@ export default function TripSettings() {
           disableRipple
           disableTouchRipple
           startIcon={<AirlineSeatReclineExtraOutlinedIcon />}
+          sx={{ whiteSpace: "nowrap" }}
         >
           {truncate(prettyClass(bookingClass), {
             length: mobile ? 6 : 100,

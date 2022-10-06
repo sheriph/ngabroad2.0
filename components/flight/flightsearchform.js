@@ -9,7 +9,7 @@ import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 export default function FlightSearchForm() {
   return (
     <Stack>
-      <Container>
+      <Stack>
         <Grid container spacing={1}>
           <Grid item xs={12} md={4}>
             <Locations index={0} />
@@ -39,7 +39,7 @@ export default function FlightSearchForm() {
             </Button>
           </Grid>
         </Grid>
-      </Container>
+      </Stack>
     </Stack>
   );
 }
