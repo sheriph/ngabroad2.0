@@ -26,6 +26,8 @@ import { useRecoilState } from "recoil";
 import { locations_ } from "../../lib/recoil";
 import axios from "axios";
 import { styled, createTheme, ThemeProvider } from "@mui/material/styles";
+import FlightTakeoffOutlinedIcon from "@mui/icons-material/FlightTakeoffOutlined";
+import FlightLandOutlinedIcon from "@mui/icons-material/FlightLandOutlined";
 
 const getLocations = async (key) => {
   try {
@@ -39,13 +41,12 @@ const getLocations = async (key) => {
   }
 };
 
-const Transition = React.forwardRef(function Transition(props, ref) {
-  // @ts-ignore
-  return <Slide direction="down" ref={ref} {...props} />;
-});
-
 export default function Locations({ index }) {
-  const point = !Boolean(index % 2) ? "From" : "To";
+  const point = !Boolean(index % 2) ? (
+    <FlightTakeoffOutlinedIcon />
+  ) : (
+    <FlightLandOutlinedIcon />
+  );
   const container = React.useRef(null);
   const [locations, setLocations] = useRecoilState(locations_);
   const [inputOpen, setInputOpen] = React.useState(false);
@@ -99,7 +100,7 @@ export default function Locations({ index }) {
 
   return (
     <ClickAwayListener onClickAway={() => setInputOpen(false)}>
-      <Box component={Paper} elevation={inputOpen ? 15 : 0} width="100%">
+      <Box component={Paper} elevation={inputOpen ? 2 : 0} width="100%">
         <Stack
           divider={<Divider orientation="vertical" flexItem />}
           component={Paper}

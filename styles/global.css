@@ -8,3 +8,6 @@
 .react-datepicker-wrapper {
   width: 100% !important;
 }
+.react-datepicker {
+  padding-bottom: 20px;
+}

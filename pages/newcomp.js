@@ -10,7 +10,15 @@ import TripSettings from "../components/flight/tripsettings";
 import { setCookie } from "cookies-next";
 import axios from "axios";
 import { deleteCookie, getCookie } from "cookies-next";
-import FlightSearchForm from "../components/flight/flightsearchform";
+//import FlightSearchForm from "../components/flight/flightsearchform";
+import dynamic from "next/dynamic";
+
+const FlightSearchForm = dynamic(
+  () => import("../components/flight/flightsearchform"),
+  {
+    ssr: false,
+  }
+);
 
 export default function NewComp() {
   return (
@@ -32,6 +40,8 @@ export default function NewComp() {
       </Box> */}
       </Box>
       <Stack alignItems="center" justifyContent="center">
+        {/* 
+      // @ts-ignore */}
         <FlightSearchForm />
       </Stack>
     </React.Fragment>

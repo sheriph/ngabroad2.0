@@ -22,6 +22,7 @@ export default function DateRange() {
 
   const mobile = useMediaQuery("(max-width:900px)", { noSsr: true });
 
+
   const onChange = (dates) => {
     const [start, end] = dates;
     console.log("dates", dates);
@@ -33,7 +34,7 @@ export default function DateRange() {
 
   // @ts-ignore
   const CustomInput = React.forwardRef(({ value, onClick }, ref) => {
-    //const [a, b] = value.split("-");
+    //  const [a, b] = value.split("-");
 
     return (
       <Stack
@@ -95,6 +96,23 @@ export default function DateRange() {
         )
       }
       //   inline
-    />
+    >
+      <Typography
+        sx={{
+          color: "primary.main",
+          position: "absolute",
+          display: "block",
+          textAlign: "center",
+          left: 0,
+          right: 0,
+          bottom: 0,
+        }}
+        variant="caption"
+      >
+        {!dayjs(startDate).isValid() && "Select a Departure Date"}
+        {" - "}
+        {!dayjs(endDate).isValid() && "Select a Return Date"}
+      </Typography>
+    </ReactDatePicker>
   );
 }
