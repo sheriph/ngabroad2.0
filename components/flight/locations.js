@@ -100,11 +100,29 @@ export default function Locations({ index }) {
 
   return (
     <ClickAwayListener onClickAway={() => setInputOpen(false)}>
-      <Box component={Paper} elevation={inputOpen ? 2 : 0} width="100%">
+      <Box
+        // @ts-ignore
+        sx={{
+          backgroundColor: "background.paper",
+          border: inputOpen ? 0 : 1,
+          borderRadius: 1,
+          borderBottomRightRadius: inputOpen && 0,
+          borderBottomLeftRadius: inputOpen && 0,
+          boxShadow:
+            inputOpen &&
+            "rgba(60, 64, 67, 0.9) 0px 1px 2px 0px, rgba(60, 64, 67, 0.43) 0px 1px 3px 1px",
+          borderColor: "grey.300",
+          // transition: "boxShadow 2s",
+
+          // borderBottom: inputOpen ? 0 : 1,
+        }}
+        // elevation={inputOpen ? 15 : 0}
+        width="100%"
+      >
         <Stack
           divider={<Divider orientation="vertical" flexItem />}
-          component={Paper}
-          variant="outlined"
+          // component={Paper}
+          // variant="outlined"
           sx={{ cursor: "pointer" }}
           //  aria-describedby={id}
           ref={container}
@@ -118,6 +136,11 @@ export default function Locations({ index }) {
             >
               <Typography sx={{ color: "text.disabled" }}>{point}</Typography>
               <InputBase
+                placeholder={
+                  !Boolean(index % 2)
+                    ? "Seach departure city"
+                    : "Search arrival city"
+                }
                 onFocus={() => setInputOpen(true)}
                 // onBlur={() => setInputOpen(false)}
                 value={locations[index].prettyText}
@@ -175,7 +198,15 @@ export default function Locations({ index }) {
             },
           ]}
         >
-          <Stack spacing={1} component={Paper} variant="outlined">
+          <Stack
+            spacing={1}
+            sx={{
+              backgroundColor: "background.paper",
+              borderTop: 0,
+              boxShadow:
+                "rgba(0, 0, 0, 0.55) 0px 1px 1px,rgba(0, 0, 0, 0.07) 0px 2px 2px,rgba(0, 0, 0, 0.07) 0px 4px 4px,rgba(0, 0, 0, 0.19) 0px 8px 8px,rgba(0, 0, 0, 0.07) 0px 16px 16px",
+            }}
+          >
             {get(searchResult, "data", []).map((value, key) => (
               <Stack
                 key={key}

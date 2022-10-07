@@ -18,7 +18,7 @@ export default function Dates({ item }) {
   const [dates, setDates] = React.useState(
     Array.from({ length: 10 }, (_, i) => new Date())
   );
-
+  console.log("dates", dates);
   const [storeDates, setStoreDates] = useRecoilState(dates_);
 
   const mobile = useMediaQuery("(max-width:900px)", { noSsr: true });
@@ -61,13 +61,7 @@ export default function Dates({ item }) {
       customInput={<CustomInput />}
       withPortal={mobile}
       minDate={new Date()}
-      maxDate={
-        new Date(
-          new Date(new Date()).getFullYear(),
-          new Date(new Date()).getMonth(),
-          new Date(new Date()).getDate() + 365
-        )
-      }
+      maxDate={dayjs().add(365, "day").toDate()}
       //   inline
     />
   );
