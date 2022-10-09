@@ -32,7 +32,6 @@ import useSWRImmutable from "swr/immutable";
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
 
-
 export default function FlightSearchForm() {
   const trip = useRecoilValue(trip_);
   const classOfBooking = useRecoilValue(class_);
@@ -201,10 +200,10 @@ export default function FlightSearchForm() {
     // startDate,
     //  endDate,
     //  dates,
-   // locations,
+    locations
     // JSON.parse(originDestinations)
     // JSON.parse(travelers)
-   // queryParams
+    // queryParams
   );
 
   const addTrip = () => {

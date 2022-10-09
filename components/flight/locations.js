@@ -119,7 +119,6 @@ export default function Locations({ index }) {
         // elevation={inputOpen ? 15 : 0}
         width="100%"
       >
-      
         <Stack
           divider={<Divider orientation="vertical" flexItem />}
           // component={Paper}
@@ -169,7 +168,7 @@ export default function Locations({ index }) {
         <Popper
           sx={{
             width: { md: 400 },
-            // zIndex: (t) => t.zIndex.appBar,
+            zIndex: (t) => t.zIndex.drawer + 1,
           }}
           anchorEl={container.current}
           open={inputOpen}
