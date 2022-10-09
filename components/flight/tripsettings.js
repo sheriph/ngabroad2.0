@@ -12,13 +12,13 @@ import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import SwapHorizOutlinedIcon from "@mui/icons-material/SwapHorizOutlined";
 import AirlineSeatReclineExtraOutlinedIcon from "@mui/icons-material/AirlineSeatReclineExtraOutlined";
 import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
-import { truncate } from "lodash";
+import { lowerCase, startCase, truncate } from "lodash";
 import Trip from "./trip";
 import BookingClass from "./bookingclass";
 import Passengers from "./passengers";
 import { useRecoilValue } from "recoil";
 import { class_, passengers_, trip_ } from "../../lib/recoil";
-import { prettyClass, prettyTrip } from "../../lib/utility";
+import { prettyTrip } from "../../lib/utility";
 
 export default function TripSettings() {
   // @ts-ignore
@@ -52,7 +52,7 @@ export default function TripSettings() {
           startIcon={<AirlineSeatReclineExtraOutlinedIcon />}
           sx={{ whiteSpace: "nowrap" }}
         >
-          {truncate(prettyClass(bookingClass), {
+          {truncate(startCase(lowerCase(bookingClass)), {
             length: mobile ? 6 : 100,
             omission: "..",
           })}

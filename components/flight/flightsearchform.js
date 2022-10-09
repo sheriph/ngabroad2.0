@@ -20,14 +20,18 @@ import {
   locations_,
   multiCity_,
   passengers_,
+  queryParams_,
   startDate_,
   trip_,
 } from "../../lib/recoil";
-import { dropRight, initial, last, uniqueId } from "lodash";
+import { dropRight, first, get, initial, last, uniqueId } from "lodash";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import AddLocationOutlinedIcon from "@mui/icons-material/AddLocationOutlined";
+import useSWRImmutable from "swr/immutable";
 import dayjs from "dayjs";
+import { toast } from "react-toastify";
+
 
 export default function FlightSearchForm() {
   const trip = useRecoilValue(trip_);
@@ -38,18 +42,169 @@ export default function FlightSearchForm() {
   const [dates, setDates] = useRecoilState(dates_);
   const [locations, setLocations] = useRecoilState(locations_);
   const [multiCity, setMultiCity] = useRecoilState(multiCity_);
+  const [originDestinations, setOriginDestinations] = React.useState("[]");
+  const [travelers, setTravelers] = React.useState("[]");
+  const [queryParams, setQueryParams] = useRecoilState(queryParams_);
 
-  console.log("multiCity", multiCity, locations);
+  React.useEffect(() => {
+    console.log("running effect");
+    if (trip === "return") {
+      const originDestinations = [
+        {
+          id: "1",
+          originLocationCode: get(first(locations), "data.iataCode", ""),
+          destinationLocationCode: get(last(locations), "data.iataCode", ""),
+          departureDateTimeRange: {
+            date: dayjs(startDate).format("YYYY-MM-DD"),
+            time: "00:00:00",
+          },
+        },
+        {
+          id: "2",
+          originLocationCode: get(last(locations), "data.iataCode", ""),
+          destinationLocationCode: get(first(locations), "data.iataCode", ""),
+          departureDateTimeRange: {
+            date: dayjs(endDate).format("YYYY-MM-DD"),
+            time: "00:00:00",
+          },
+        },
+      ];
+      setOriginDestinations(JSON.stringify(originDestinations));
+    } else if (trip === "one_way") {
+      const originDestinations = [
+        {
+          id: "1",
+          originLocationCode: get(first(locations), "data.iataCode", ""),
+          destinationLocationCode: get(last(locations), "data.iataCode", ""),
+          departureDateTimeRange: {
+            date: dayjs(first(dates)).format("YYYY-MM-DD"),
+            time: "00:00:00",
+          },
+        },
+      ];
+      setOriginDestinations(JSON.stringify(originDestinations));
+    } else if (trip === "multi") {
+      const modifyLocations = locations.map((location, index, arr) => {
+        if (Boolean(index % 2)) return false;
+        return {
+          originLocationCode: get(location, "data.iataCode", ""),
+          destinationLocationCode: get(arr[index + 1], "data.iataCode", ""),
+          departureDateTimeRange: {
+            date: dayjs(dates[index]).format("YYYY-MM-DD"),
+            time: "00:00:00",
+          },
+        };
+      });
+      const originDestinations = modifyLocations
+        .filter((location) => location)
+        .map((location, index) => ({ ...location, id: `${index + 1}` }));
+      setOriginDestinations(JSON.stringify(originDestinations));
+    }
+  }, [
+    JSON.stringify(locations),
+    JSON.stringify(dates),
+    JSON.stringify(startDate),
+    JSON.stringify(endDate),
+    JSON.stringify(trip),
+  ]);
+
+  React.useEffect(() => {
+    const travelers = [
+      ...Array.from(
+        {
+          length: passengers.adult,
+        },
+        (_, i) => ({
+          travelerType: "ADULT",
+        })
+      ),
+      ...Array.from(
+        {
+          length: passengers.child,
+        },
+        (_, i) => ({
+          travelerType: "CHILD",
+        })
+      ),
+      ...Array.from(
+        {
+          length: passengers.infant,
+        },
+        (_, i) => ({
+          travelerType: "HELD_INFANT",
+        })
+      ),
+    ];
+    const adultIds = Array.from(
+      { length: passengers.adult },
+      (_, i) => `${i + 1}`
+    );
+
+    const formattedTravelers = travelers.map((traveler, index) => {
+      if (traveler.travelerType === "HELD_INFANT") {
+        return {
+          ...traveler,
+          id: `${index + 1}`,
+          associatedAdultId: adultIds.pop(),
+        };
+      } else {
+        return {
+          ...traveler,
+          id: `${index + 1}`,
+        };
+      }
+    });
+    setTravelers(JSON.stringify(formattedTravelers));
+  }, [JSON.stringify(passengers)]);
+
+  const flightSearch = () => {
+    if (!locations[0]?.data) {
+      toast.error("Departure Location is required");
+      return;
+    } else if (!locations[1]?.data) {
+      toast.error("Arrival Location is required");
+      return;
+    }
+    const queryParams = {
+      currencyCode: "NGN",
+      originDestinations: originDestinations,
+      travelers: travelers,
+      sources: ["GDS"],
+      searchCriteria: {
+        maxFlightOffers: 10,
+        flightFilters: {
+          cabinRestrictions: [
+            {
+              cabin: classOfBooking,
+              coverage: "MOST_SEGMENTS",
+              originDestinationIds: ["1"],
+            },
+          ],
+          carrierRestrictions: {
+            excludedCarrierCodes: ["OO"],
+          },
+        },
+      },
+    };
+
+    console.log("queryParams", queryParams);
+
+    // @ts-ignore
+    setQueryParams({ ...queryParams });
+  };
 
   console.log(
     "values",
-    trip,
+    //  trip,
     //  classOfBooking,
-    //   passengers,
-    //   startDate,
-    //   endDate,
-    dates,
-    locations
+    //  passengers,
+    // startDate,
+    //  endDate,
+    //  dates,
+   // locations,
+    // JSON.parse(originDestinations)
+    // JSON.parse(travelers)
+   // queryParams
   );
 
   const addTrip = () => {
@@ -63,16 +218,10 @@ export default function FlightSearchForm() {
       },
     ];
 
-    /*    const newLocations = Array.from({ length: 2 }, (_, i) => ({
-      prettyText: "",
-      data: null,
-    })); */
     setLocations((prev) => [...prev, ...newLocations]);
     const newDate = dayjs(last(dates)).add(1, "day").toDate();
-    // const newDates = Array.from({ length: 1 }, (_, i) => new Date());
     console.log("locations 2", locations);
     setDates((prev) => [...prev, newDate]);
-    // @ts-ignore
     const fn = () => {
       setMultiCity((prev) => [
         ...prev,
@@ -85,10 +234,30 @@ export default function FlightSearchForm() {
   };
 
   const minusTrip = () => {
-    setLocations((prev) => [...dropRight(prev, 2)]);
-    setDates((prev) => [...dropRight(prev, 1)]);
-    multiCity.length > 1 && setMultiCity((prev) => initial([...prev]));
+    if (multiCity.length > 1) {
+      setLocations((prev) => [...dropRight(prev, 2)]);
+      setDates((prev) => [...dropRight(prev, 1)]);
+      setMultiCity((prev) => initial([...prev]));
+    }
   };
+
+  const fetchOffers = (key) => {
+    console.log("key", key);
+
+    return "";
+  };
+
+  const {
+    data: flightOffers,
+    error,
+    isLoading,
+  } = useSWRImmutable(
+    queryParams ? JSON.stringify(queryParams) : undefined,
+    fetchOffers,
+    {
+      keepPreviousData: true,
+    }
+  );
 
   if (trip === "return" || trip === "one_way") {
     return (
@@ -119,6 +288,7 @@ export default function FlightSearchForm() {
                 sx={{ ml: 2 }}
                 size="small"
                 startIcon={<SearchOutlinedIcon />}
+                onClick={flightSearch}
               >
                 Search
               </Button>

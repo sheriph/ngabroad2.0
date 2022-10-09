@@ -17,17 +17,10 @@ import { endDate_, startDate_ } from "../../lib/recoil";
 export default function DateRange() {
   const [startDate, setStartDate] = useRecoilState(startDate_);
   const [endDate, setEndDate] = useRecoilState(endDate_);
-  const [intialDate, setInitialDate] = React.useState(new Date());
-  const [finalDate, setFinalDate] = React.useState(new Date());
 
   const mobile = useMediaQuery("(max-width:900px)", { noSsr: true });
-
-
   const onChange = (dates) => {
     const [start, end] = dates;
-    console.log("dates", dates);
-    setInitialDate(start);
-    setFinalDate(end);
     setStartDate(start);
     setEndDate(end);
   };
@@ -79,22 +72,16 @@ export default function DateRange() {
 
   return (
     <ReactDatePicker
-      selected={intialDate}
+      selected={startDate}
       onChange={onChange}
-      startDate={intialDate}
-      endDate={finalDate}
+      startDate={startDate}
+      endDate={endDate}
       customInput={<CustomInput />}
       selectsRange
       withPortal={mobile}
       minDate={new Date()}
       monthsShown={mobile ? 1 : 2}
-      maxDate={
-        new Date(
-          new Date(intialDate).getFullYear(),
-          new Date(intialDate).getMonth(),
-          new Date(intialDate).getDate() + 365
-        )
-      }
+      maxDate={dayjs(startDate).add(365, "day").toDate()}
       //   inline
     >
       <Typography

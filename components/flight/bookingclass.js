@@ -29,7 +29,7 @@ export default function BookingClass() {
             justifyContent: "space-between",
           }}
           labelPlacement="start"
-          value="economy"
+          value="ECONOMY"
           control={<Radio />}
           label="Economy"
         />
@@ -37,21 +37,21 @@ export default function BookingClass() {
         <FormControlLabel
           sx={{ justifyContent: "space-between" }}
           labelPlacement="start"
-          value="premium_economy"
+          value="PREMIUM_ECONOMY"
           control={<Radio />}
           label="Premium Economy"
         />
         <FormControlLabel
           sx={{ justifyContent: "space-between" }}
           labelPlacement="start"
-          value="business"
+          value="BUSINESS"
           control={<Radio />}
           label="Business"
         />
         <FormControlLabel
           sx={{ justifyContent: "space-between" }}
           labelPlacement="start"
-          value="first"
+          value="FIRST"
           control={<Radio />}
           label="First Class"
         />

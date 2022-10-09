@@ -112,13 +112,14 @@ export default function Locations({ index }) {
             inputOpen &&
             "rgba(60, 64, 67, 0.9) 0px 1px 2px 0px, rgba(60, 64, 67, 0.43) 0px 1px 3px 1px",
           borderColor: "grey.300",
-          // transition: "boxShadow 2s",
+          //    transition: "box-shadow 5s",
 
           // borderBottom: inputOpen ? 0 : 1,
         }}
         // elevation={inputOpen ? 15 : 0}
         width="100%"
       >
+      
         <Stack
           divider={<Divider orientation="vertical" flexItem />}
           // component={Paper}

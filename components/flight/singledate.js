@@ -15,10 +15,6 @@ import { useRecoilState } from "recoil";
 import { dates_ } from "../../lib/recoil";
 
 export default function Dates({ item }) {
-  const [dates, setDates] = React.useState(
-    Array.from({ length: 10 }, (_, i) => new Date())
-  );
-  console.log("dates", dates);
   const [storeDates, setStoreDates] = useRecoilState(dates_);
 
   const mobile = useMediaQuery("(max-width:900px)", { noSsr: true });
@@ -26,9 +22,8 @@ export default function Dates({ item }) {
   console.log("storeDates", storeDates[item]);
 
   const onChange = (date) => {
-    let newDates = [...dates];
+    let newDates = [...storeDates];
     newDates[item] = date;
-    setDates(newDates);
     setStoreDates(newDates);
   };
 
@@ -56,7 +51,7 @@ export default function Dates({ item }) {
 
   return (
     <ReactDatePicker
-      selected={dates[item]}
+      selected={storeDates[item]}
       onChange={onChange}
       customInput={<CustomInput />}
       withPortal={mobile}
