@@ -18,6 +18,7 @@ import "../styles/global.css";
 import config from "../src/aws-exports";
 import Layout from "../components/layout";
 import dynamic from "next/dynamic";
+import { SWRConfig } from "swr";
 
 /* const Layout = dynamic(() => import("../components/layout"), {
   ssr: false,
@@ -31,6 +32,26 @@ Auth.configure({
   ...config,
   ssr: true,
 });
+
+const localStorage =
+  typeof window !== `undefined` ? window.localStorage : undefined;
+
+function localStorageProvider() {
+  // When initializing, we restore the data from `localStorage` into a map.
+  const map = new Map(
+    JSON.parse(localStorage?.getItem("swr-custom-cache") || "[]")
+  );
+
+  // Before unloading the app, we write back all the data into `localStorage`.
+  typeof window !== `undefined` &&
+    window.addEventListener("beforeunload", () => {
+      const appCache = JSON.stringify(Array.from(map.entries()));
+      localStorage?.setItem("swr-custom-cache", appCache);
+    });
+
+  // We still use the map for write & read for performance.
+  return map;
+}
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache();
@@ -48,13 +69,15 @@ export default function MyApp(props) {
         {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
         <ToastContainer />
         <CssBaseline />
-        <RecoilRoot>
-          <Authenticator.Provider>
-            <Layout>
-              <Component {...pageProps} />
-            </Layout>
-          </Authenticator.Provider>
-        </RecoilRoot>
+        <SWRConfig value={{ provider: localStorageProvider }}>
+          <RecoilRoot>
+            <Authenticator.Provider>
+              <Layout>
+                <Component {...pageProps} />
+              </Layout>
+            </Authenticator.Provider>
+          </RecoilRoot>
+        </SWRConfig>
       </ThemeProvider>
     </CacheProvider>
   );

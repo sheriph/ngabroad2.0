@@ -21,14 +21,13 @@ const getLocationName = async (iataCode) => {
 export default function LocationName({ iataCode, isAirport }) {
   const { data, isLoading } = useSWRImmutable(iataCode, getLocationName, {
     keepPreviousData: true,
-    
   });
 
   const mobile = useMediaQuery("(max-width:900px)", { noSsr: true });
 
-  console.log("data, iataCode", data, iataCode, isLoading);
+  console.log("iataCode", data, iataCode, isLoading);
 
-  if (isLoading) return <Skeleton width="150px" />;
+  if (!data) return <React.Fragment></React.Fragment>;
 
   return (
     <React.Fragment>

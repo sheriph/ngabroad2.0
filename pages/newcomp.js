@@ -12,6 +12,7 @@ import axios from "axios";
 import { deleteCookie, getCookie } from "cookies-next";
 //import FlightSearchForm from "../components/flight/flightsearchform";
 import dynamic from "next/dynamic";
+import SegmentCard from "../components/flight/segmentcard";
 
 const FlightSearchForm = dynamic(
   () => import("../components/flight/flightsearchform"),
@@ -39,10 +40,11 @@ export default function NewComp() {
         <Locations index={0} />
       </Box> */}
       </Box>
-      <Stack alignItems="center" justifyContent="center">
+      <Stack>
         {/* 
       // @ts-ignore */}
-        <FlightSearchForm />
+        {/* <FlightSearchForm /> */}
+        <SegmentCard segment />
       </Stack>
     </React.Fragment>
   );
