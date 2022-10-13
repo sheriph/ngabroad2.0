@@ -1,12 +1,14 @@
 import { Box, Button, Drawer, Paper, Stack, Typography } from "@mui/material";
 import React from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import ArrowRightAltOutlinedIcon from "@mui/icons-material/ArrowRightAltOutlined";
 import DriveFileRenameOutlineOutlinedIcon from "@mui/icons-material/DriveFileRenameOutlineOutlined";
 import {
+  blockLoading_,
   class_,
   dates_,
   endDate_,
+  flightOffer_,
   locations_,
   multiCity_,
   passengers_,
@@ -15,11 +17,16 @@ import {
   trip_,
 } from "../lib/recoil";
 import HorizontalRuleOutlinedIcon from "@mui/icons-material/HorizontalRuleOutlined";
-import { first, last, truncate } from "lodash";
+import { first, get, last, truncate } from "lodash";
 import dayjs from "dayjs";
+import useSWRImmutable from "swr/immutable";
+import LazyLoad from "react-lazyload";
 
 import dynamic from "next/dynamic";
 import FlightCard from "../components/flight/flightcard";
+import SegmentCards from "../components/flight/segmentcards";
+import { useRouter } from "next/router";
+import axios from "axios";
 
 const FlightSearchForm = dynamic(
   () => import("../components/flight/flightsearchform"),
@@ -27,6 +34,19 @@ const FlightSearchForm = dynamic(
     ssr: false,
   }
 );
+
+const getFlightOffers = async (data) => {
+  try {
+    const name = await axios.post("/api/flights/flightoffers", {
+      data: JSON.stringify(data),
+    });
+
+    return name.data;
+  } catch (error) {
+    console.log("flightOffers error", error);
+    throw new Error(error);
+  }
+};
 
 export default function Flights() {
   const [drawerState, setDrawerState] = React.useState(false);
@@ -39,13 +59,54 @@ export default function Flights() {
   const [locations, setLocations] = useRecoilState(locations_);
   const [multiCity, setMultiCity] = useRecoilState(multiCity_);
   const [queryParams, setQueryParams] = useRecoilState(queryParams_);
+  const setFlightOffer = useSetRecoilState(flightOffer_);
+  const [openDrawer, setOpenDrawer] = React.useState(false);
+  const closeDrawer = () => setOpenDrawer(false);
+  const router = useRouter();
+  const [findFlight, setFindFlight] = React.useState(false);
+  const [blockLoading, setBlockLoading] = useRecoilState(blockLoading_);
+
+  const {
+    data: flightOffers,
+    error,
+    mutate,
+    isLoading,
+    isValidating,
+  } = useSWRImmutable(findFlight ? queryParams : undefined, getFlightOffers, {
+    keepPreviousData: true,
+    shouldRetryOnError: false,
+  });
+
+  React.useEffect(() => {
+    if (router.pathname === "/flights") {
+      setFindFlight(true);
+    }
+  }, [null]);
+
+  React.useEffect(() => {
+    if (isLoading || isValidating) {
+      setBlockLoading(true);
+    } else {
+      setBlockLoading(false);
+    }
+  }, [isLoading, isValidating]);
+
+  console.log(
+    "flightOffers error",
+    error,
+    flightOffers,
+    isLoading,
+    isValidating,
+    queryParams
+  );
+
   return (
     <Stack>
       <Stack component={Paper} variant="outlined" sx={{ mb: 3, p: 1 }}>
         <Box sx={{ display: { xs: "none", md: "block" } }}>
           {/* 
       // @ts-ignore */}
-          <FlightSearchForm />
+          <FlightSearchForm mutate={mutate} />
         </Box>
         <Stack
           direction="row"
@@ -119,19 +180,41 @@ export default function Flights() {
         </Drawer>
       </Stack>
       <Stack spacing={3}>
-        {flightOffers.data.map((flightOffer, index) => (
-          <Stack key={flightOffer.id}>
-            <FlightCard flightOffer={flightOffer} />
+        {get(flightOffers, "data", []).map((flightOffer, index) => (
+          <Stack
+            onClick={() => {
+              console.log("index", index);
+              // @ts-ignore
+              setFlightOffer(flightOffer);
+              setOpenDrawer(true);
+            }}
+            key={flightOffer.id}
+          >
+            <LazyLoad unmountIfInvisible={true} key={index}>
+              <FlightCard flightOffer={flightOffer} />
+            </LazyLoad>
           </Stack>
         ))}
       </Stack>
+      <Drawer
+        sx={{
+          // width: { sm: "100%", md: "700px" },
+          zIndex: (t) => t.zIndex.appBar + 105,
+          "& .MuiDrawer-paper": { width: { xs: "100%", md: 450 } },
+        }}
+        anchor="right"
+        open={openDrawer}
+        onClose={closeDrawer}
+      >
+        <SegmentCards closeDrawer={closeDrawer} />
+      </Drawer>
     </Stack>
   );
 }
 
-const flightOffers = {
+const flightOffers2 = {
   meta: {
-    count: 5,
+    count: 10,
   },
   data: [
     {
@@ -141,56 +224,53 @@ const flightOffers = {
       instantTicketingRequired: false,
       nonHomogeneous: false,
       oneWay: false,
-      lastTicketingDate: "2022-10-12",
-      numberOfBookableSeats: 4,
+      lastTicketingDate: "2022-10-16",
+      numberOfBookableSeats: 7,
       itineraries: [
         {
-          duration: "PT9H45M",
+          duration: "PT29H16M",
           segments: [
             {
               departure: {
                 iataCode: "BOS",
-                terminal: "B",
-                at: "2022-11-01T18:40:00",
+                terminal: "A",
+                at: "2022-11-01T21:59:00",
               },
               arrival: {
-                iataCode: "EWR",
+                iataCode: "LGA",
                 terminal: "C",
-                at: "2022-11-01T20:14:00",
+                at: "2022-11-01T23:18:00",
               },
-              carrierCode: "UA",
-              number: "2396",
+              carrierCode: "DL",
+              number: "5720",
               aircraft: {
-                code: "73G",
+                code: "E75",
               },
-              operating: {
-                carrierCode: "UA",
-              },
-              duration: "PT1H34M",
+              duration: "PT1H19M",
               id: "3",
               numberOfStops: 0,
               blacklistedInEU: false,
             },
             {
               departure: {
-                iataCode: "EWR",
-                terminal: "C",
-                at: "2022-11-01T21:15:00",
+                iataCode: "JFK",
+                terminal: "4",
+                at: "2022-11-02T19:30:00",
               },
               arrival: {
                 iataCode: "MAD",
                 terminal: "1",
-                at: "2022-11-02T09:25:00",
+                at: "2022-11-03T08:15:00",
               },
-              carrierCode: "SN",
-              number: "9027",
+              carrierCode: "DL",
+              number: "126",
               aircraft: {
-                code: "763",
+                code: "76W",
               },
               operating: {
-                carrierCode: "UA",
+                carrierCode: "DL",
               },
-              duration: "PT7H10M",
+              duration: "PT7H45M",
               id: "4",
               numberOfStops: 0,
               blacklistedInEU: false,
@@ -198,101 +278,50 @@ const flightOffers = {
           ],
         },
         {
-          duration: "PT4H45M",
+          duration: "PT22H25M",
           segments: [
             {
               departure: {
                 iataCode: "MAD",
                 terminal: "2",
-                at: "2022-11-18T17:35:00",
+                at: "2022-11-18T20:25:00",
               },
               arrival: {
-                iataCode: "BRU",
-                at: "2022-11-18T20:00:00",
+                iataCode: "AMS",
+                at: "2022-11-18T23:00:00",
               },
-              carrierCode: "SN",
-              number: "3728",
+              carrierCode: "KL",
+              number: "1706",
               aircraft: {
-                code: "320",
+                code: "73J",
               },
               operating: {
-                carrierCode: "SN",
+                carrierCode: "KL",
               },
-              duration: "PT2H25M",
-              id: "11",
+              duration: "PT2H35M",
+              id: "13",
               numberOfStops: 0,
               blacklistedInEU: false,
             },
             {
               departure: {
-                iataCode: "BRU",
-                at: "2022-11-18T21:10:00",
+                iataCode: "AMS",
+                at: "2022-11-19T10:35:00",
               },
               arrival: {
-                iataCode: "LHR",
-                terminal: "2",
-                at: "2022-11-18T21:20:00",
+                iataCode: "BOS",
+                at: "2022-11-19T12:50:00",
               },
-              carrierCode: "SN",
-              number: "2103",
+              carrierCode: "KL",
+              number: "73",
               aircraft: {
-                code: "320",
+                code: "781",
               },
               operating: {
-                carrierCode: "SN",
+                carrierCode: "KL",
               },
-              duration: "PT1H10M",
-              id: "12",
-              numberOfStops: 0,
-              blacklistedInEU: false,
-            },
-          ],
-        },
-        {
-          duration: "PT25H55M",
-          segments: [
-            {
-              departure: {
-                iataCode: "LHR",
-                terminal: "2",
-                at: "2022-11-28T17:50:00",
-              },
-              arrival: {
-                iataCode: "BRU",
-                at: "2022-11-28T19:55:00",
-              },
-              carrierCode: "SN",
-              number: "2096",
-              aircraft: {
-                code: "320",
-              },
-              operating: {
-                carrierCode: "SN",
-              },
-              duration: "PT1H5M",
-              id: "15",
-              numberOfStops: 0,
-              blacklistedInEU: false,
-            },
-            {
-              departure: {
-                iataCode: "BRU",
-                at: "2022-11-29T11:55:00",
-              },
-              arrival: {
-                iataCode: "IAD",
-                at: "2022-11-29T14:45:00",
-              },
-              carrierCode: "SN",
-              number: "8801",
-              aircraft: {
-                code: "77W",
-              },
-              operating: {
-                carrierCode: "UA",
-              },
-              duration: "PT8H50M",
-              id: "16",
+              duration: "PT8H15M",
+              id: "14",
               numberOfStops: 0,
               blacklistedInEU: false,
             },
@@ -300,9 +329,9 @@ const flightOffers = {
         },
       ],
       price: {
-        currency: "NGN",
-        total: "3686078.00",
-        base: "2525250.00",
+        currency: "USD",
+        total: "7090.16",
+        base: "4744.00",
         fees: [
           {
             amount: "0.00",
@@ -313,29 +342,30 @@ const flightOffers = {
             type: "TICKETING",
           },
         ],
-        grandTotal: "3686078.00",
+        grandTotal: "7090.16",
       },
       pricingOptions: {
         fareType: ["PUBLISHED"],
         includedCheckedBagsOnly: false,
       },
-      validatingAirlineCodes: ["SN"],
+      validatingAirlineCodes: ["DL"],
       travelerPricings: [
         {
           travelerId: "1",
           fareOption: "STANDARD",
           travelerType: "ADULT",
           price: {
-            currency: "NGN",
-            total: "1863931.00",
-            base: "1262625.00",
+            currency: "USD",
+            total: "3545.08",
+            base: "2372.00",
           },
           fareDetailsBySegment: [
             {
               segmentId: "3",
               cabin: "FIRST",
-              fareBasis: "DNX00DNC",
-              class: "D",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
+              class: "Z",
               includedCheckedBags: {
                 quantity: 2,
               },
@@ -343,44 +373,29 @@ const flightOffers = {
             {
               segmentId: "4",
               cabin: "BUSINESS",
-              fareBasis: "DNX00DNC",
-              class: "D",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
+              class: "Z",
               includedCheckedBags: {
                 quantity: 2,
               },
             },
             {
-              segmentId: "11",
-              cabin: "BUSINESS",
-              fareBasis: "DNX00DNC",
-              class: "D",
-              includedCheckedBags: {
-                quantity: 1,
-              },
-            },
-            {
-              segmentId: "12",
-              cabin: "BUSINESS",
-              fareBasis: "DNX00DNC",
-              class: "D",
-              includedCheckedBags: {
-                quantity: 1,
-              },
-            },
-            {
-              segmentId: "15",
+              segmentId: "13",
               cabin: "ECONOMY",
-              fareBasis: "QKX47NCT",
-              class: "Q",
+              fareBasis: "VL4X46M3",
+              brandedFare: "DLONEBIZ",
+              class: "L",
               includedCheckedBags: {
                 quantity: 1,
               },
             },
             {
-              segmentId: "16",
+              segmentId: "14",
               cabin: "ECONOMY",
-              fareBasis: "QKX47NCT",
-              class: "Q",
+              fareBasis: "VL4X46M3",
+              brandedFare: "STANDARD6",
+              class: "V",
               includedCheckedBags: {
                 quantity: 1,
               },
@@ -392,46 +407,38 @@ const flightOffers = {
           fareOption: "STANDARD",
           travelerType: "CHILD",
           price: {
-            currency: "NGN",
-            total: "1822147.00",
-            base: "1262625.00",
+            currency: "USD",
+            total: "3545.08",
+            base: "2372.00",
           },
           fareDetailsBySegment: [
             {
               segmentId: "3",
               cabin: "FIRST",
-              fareBasis: "DNX00DNC",
-              class: "D",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
+              class: "Z",
             },
             {
               segmentId: "4",
               cabin: "BUSINESS",
-              fareBasis: "DNX00DNC",
-              class: "D",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
+              class: "Z",
             },
             {
-              segmentId: "11",
-              cabin: "BUSINESS",
-              fareBasis: "DNX00DNC",
-              class: "D",
-            },
-            {
-              segmentId: "12",
-              cabin: "BUSINESS",
-              fareBasis: "DNX00DNC",
-              class: "D",
-            },
-            {
-              segmentId: "15",
+              segmentId: "13",
               cabin: "ECONOMY",
-              fareBasis: "QKX47NCT",
-              class: "Q",
+              fareBasis: "VL4X46M3",
+              brandedFare: "DLONEBIZ",
+              class: "L",
             },
             {
-              segmentId: "16",
+              segmentId: "14",
               cabin: "ECONOMY",
-              fareBasis: "QKX47NCT",
-              class: "Q",
+              fareBasis: "VL4X46M3",
+              brandedFare: "STANDARD6",
+              class: "V",
             },
           ],
         },
@@ -444,156 +451,104 @@ const flightOffers = {
       instantTicketingRequired: false,
       nonHomogeneous: false,
       oneWay: false,
-      lastTicketingDate: "2022-10-10",
-      numberOfBookableSeats: 4,
+      lastTicketingDate: "2022-10-16",
+      numberOfBookableSeats: 7,
       itineraries: [
         {
-          duration: "PT10H45M",
+          duration: "PT29H16M",
           segments: [
             {
               departure: {
                 iataCode: "BOS",
-                terminal: "E",
-                at: "2022-11-01T22:55:00",
+                terminal: "A",
+                at: "2022-11-01T21:59:00",
               },
               arrival: {
-                iataCode: "ZRH",
-                at: "2022-11-02T11:10:00",
+                iataCode: "LGA",
+                terminal: "C",
+                at: "2022-11-01T23:18:00",
               },
-              carrierCode: "LX",
-              number: "53",
+              carrierCode: "DL",
+              number: "5720",
               aircraft: {
-                code: "333",
+                code: "E75",
               },
-              operating: {
-                carrierCode: "LX",
-              },
-              duration: "PT7H15M",
-              id: "5",
+              duration: "PT1H19M",
+              id: "3",
               numberOfStops: 0,
               blacklistedInEU: false,
             },
             {
               departure: {
-                iataCode: "ZRH",
-                at: "2022-11-02T12:15:00",
+                iataCode: "JFK",
+                terminal: "4",
+                at: "2022-11-02T19:30:00",
               },
               arrival: {
                 iataCode: "MAD",
-                terminal: "2",
-                at: "2022-11-02T14:40:00",
+                terminal: "1",
+                at: "2022-11-03T08:15:00",
               },
-              carrierCode: "LX",
-              number: "2026",
+              carrierCode: "DL",
+              number: "126",
               aircraft: {
-                code: "223",
+                code: "76W",
               },
               operating: {
-                carrierCode: "LX",
+                carrierCode: "DL",
               },
-              duration: "PT2H25M",
-              id: "6",
+              duration: "PT7H45M",
+              id: "4",
               numberOfStops: 0,
               blacklistedInEU: false,
             },
           ],
         },
         {
-          duration: "PT15H20M",
+          duration: "PT28H5M",
           segments: [
             {
               departure: {
                 iataCode: "MAD",
                 terminal: "2",
-                at: "2022-11-18T18:45:00",
+                at: "2022-11-18T20:25:00",
               },
               arrival: {
-                iataCode: "ZRH",
-                at: "2022-11-18T21:00:00",
+                iataCode: "AMS",
+                at: "2022-11-18T23:00:00",
               },
-              carrierCode: "LX",
-              number: "2033",
+              carrierCode: "KL",
+              number: "1706",
               aircraft: {
-                code: "221",
+                code: "73J",
               },
               operating: {
-                carrierCode: "LX",
+                carrierCode: "KL",
               },
-              duration: "PT2H15M",
-              id: "7",
+              duration: "PT2H35M",
+              id: "11",
               numberOfStops: 0,
               blacklistedInEU: false,
             },
             {
               departure: {
-                iataCode: "ZRH",
-                at: "2022-11-19T08:10:00",
+                iataCode: "AMS",
+                at: "2022-11-19T16:55:00",
               },
               arrival: {
-                iataCode: "LHR",
-                terminal: "2",
-                at: "2022-11-19T09:05:00",
+                iataCode: "BOS",
+                at: "2022-11-19T18:30:00",
               },
-              carrierCode: "LX",
-              number: "316",
+              carrierCode: "KL",
+              number: "77",
               aircraft: {
-                code: "320",
+                code: "77W",
               },
               operating: {
-                carrierCode: "LX",
+                carrierCode: "KL",
               },
-              duration: "PT1H55M",
-              id: "8",
-              numberOfStops: 0,
-              blacklistedInEU: false,
-            },
-          ],
-        },
-        {
-          duration: "PT24H10M",
-          segments: [
-            {
-              departure: {
-                iataCode: "LHR",
-                terminal: "2",
-                at: "2022-11-28T20:00:00",
-              },
-              arrival: {
-                iataCode: "ZRH",
-                at: "2022-11-28T22:35:00",
-              },
-              carrierCode: "LX",
-              number: "339",
-              aircraft: {
-                code: "223",
-              },
-              operating: {
-                carrierCode: "LX",
-              },
-              duration: "PT1H35M",
-              id: "13",
-              numberOfStops: 0,
-              blacklistedInEU: false,
-            },
-            {
-              departure: {
-                iataCode: "ZRH",
-                at: "2022-11-29T11:35:00",
-              },
-              arrival: {
-                iataCode: "IAD",
-                at: "2022-11-29T15:10:00",
-              },
-              carrierCode: "LX",
-              number: "3200",
-              aircraft: {
-                code: "763",
-              },
-              operating: {
-                carrierCode: "UA",
-              },
-              duration: "PT9H35M",
-              id: "14",
+              duration: "PT7H35M",
+              id: "12",
               numberOfStops: 0,
               blacklistedInEU: false,
             },
@@ -601,9 +556,9 @@ const flightOffers = {
         },
       ],
       price: {
-        currency: "NGN",
-        total: "6596839.00",
-        base: "5205655.00",
+        currency: "USD",
+        total: "7090.16",
+        base: "4744.00",
         fees: [
           {
             amount: "0.00",
@@ -614,76 +569,62 @@ const flightOffers = {
             type: "TICKETING",
           },
         ],
-        grandTotal: "6596839.00",
+        grandTotal: "7090.16",
       },
       pricingOptions: {
         fareType: ["PUBLISHED"],
         includedCheckedBagsOnly: false,
       },
-      validatingAirlineCodes: ["LX"],
+      validatingAirlineCodes: ["DL"],
       travelerPricings: [
         {
           travelerId: "1",
           fareOption: "STANDARD",
           travelerType: "ADULT",
           price: {
-            currency: "NGN",
-            total: "3308657.00",
-            base: "2613065.00",
+            currency: "USD",
+            total: "3545.08",
+            base: "2372.00",
           },
           fareDetailsBySegment: [
             {
-              segmentId: "5",
-              cabin: "BUSINESS",
-              fareBasis: "ZNX09ERC",
+              segmentId: "3",
+              cabin: "FIRST",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
               class: "Z",
               includedCheckedBags: {
                 quantity: 2,
               },
             },
             {
-              segmentId: "6",
+              segmentId: "4",
               cabin: "BUSINESS",
-              fareBasis: "ZNX09ERC",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
               class: "Z",
               includedCheckedBags: {
                 quantity: 2,
               },
             },
             {
-              segmentId: "7",
+              segmentId: "11",
               cabin: "ECONOMY",
-              fareBasis: "GR1",
-              class: "Y",
+              fareBasis: "VL4X46M3",
+              brandedFare: "DLONEBIZ",
+              class: "L",
               includedCheckedBags: {
-                quantity: 2,
+                quantity: 1,
               },
             },
             {
-              segmentId: "8",
+              segmentId: "12",
               cabin: "ECONOMY",
-              fareBasis: "KEUCLSP2",
-              class: "K",
-              includedCheckedBags: {
-                quantity: 2,
-              },
-            },
-            {
-              segmentId: "13",
-              cabin: "ECONOMY",
-              fareBasis: "VEUCLSP0",
+              fareBasis: "VL4X46M3",
+              brandedFare: "STANDARD6",
               class: "V",
               includedCheckedBags: {
-                quantity: 2,
-              },
-            },
-            {
-              segmentId: "14",
-              cabin: "PREMIUM_ECONOMY",
-              fareBasis: "GR1",
-              class: "G",
-              includedCheckedBags: {
-                quantity: 2,
+                quantity: 1,
               },
             },
           ],
@@ -693,46 +634,38 @@ const flightOffers = {
           fareOption: "STANDARD",
           travelerType: "CHILD",
           price: {
-            currency: "NGN",
-            total: "3288182.00",
-            base: "2592590.00",
+            currency: "USD",
+            total: "3545.08",
+            base: "2372.00",
           },
           fareDetailsBySegment: [
             {
-              segmentId: "5",
-              cabin: "BUSINESS",
-              fareBasis: "ZNX09ERC",
+              segmentId: "3",
+              cabin: "FIRST",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
               class: "Z",
             },
             {
-              segmentId: "6",
+              segmentId: "4",
               cabin: "BUSINESS",
-              fareBasis: "ZNX09ERC",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
               class: "Z",
             },
             {
-              segmentId: "7",
+              segmentId: "11",
               cabin: "ECONOMY",
-              fareBasis: "GR1",
-              class: "Y",
+              fareBasis: "VL4X46M3",
+              brandedFare: "DLONEBIZ",
+              class: "L",
             },
             {
-              segmentId: "8",
+              segmentId: "12",
               cabin: "ECONOMY",
-              fareBasis: "KEUCLSP2",
-              class: "K",
-            },
-            {
-              segmentId: "13",
-              cabin: "ECONOMY",
-              fareBasis: "VEUCLSP0",
+              fareBasis: "VL4X46M3",
+              brandedFare: "STANDARD6",
               class: "V",
-            },
-            {
-              segmentId: "14",
-              cabin: "PREMIUM_ECONOMY",
-              fareBasis: "GR1",
-              class: "G",
             },
           ],
         },
@@ -745,156 +678,105 @@ const flightOffers = {
       instantTicketingRequired: false,
       nonHomogeneous: false,
       oneWay: false,
-      lastTicketingDate: "2022-10-10",
-      numberOfBookableSeats: 4,
+      lastTicketingDate: "2022-10-16",
+      numberOfBookableSeats: 7,
       itineraries: [
         {
-          duration: "PT10H45M",
+          duration: "PT29H16M",
           segments: [
             {
               departure: {
                 iataCode: "BOS",
+                terminal: "A",
+                at: "2022-11-01T21:59:00",
+              },
+              arrival: {
+                iataCode: "LGA",
+                terminal: "C",
+                at: "2022-11-01T23:18:00",
+              },
+              carrierCode: "DL",
+              number: "5720",
+              aircraft: {
+                code: "E75",
+              },
+              duration: "PT1H19M",
+              id: "3",
+              numberOfStops: 0,
+              blacklistedInEU: false,
+            },
+            {
+              departure: {
+                iataCode: "JFK",
+                terminal: "4",
+                at: "2022-11-02T19:30:00",
+              },
+              arrival: {
+                iataCode: "MAD",
+                terminal: "1",
+                at: "2022-11-03T08:15:00",
+              },
+              carrierCode: "DL",
+              number: "126",
+              aircraft: {
+                code: "76W",
+              },
+              operating: {
+                carrierCode: "DL",
+              },
+              duration: "PT7H45M",
+              id: "4",
+              numberOfStops: 0,
+              blacklistedInEU: false,
+            },
+          ],
+        },
+        {
+          duration: "PT28H40M",
+          segments: [
+            {
+              departure: {
+                iataCode: "MAD",
+                terminal: "2",
+                at: "2022-11-18T20:25:00",
+              },
+              arrival: {
+                iataCode: "AMS",
+                at: "2022-11-18T23:00:00",
+              },
+              carrierCode: "KL",
+              number: "1706",
+              aircraft: {
+                code: "73J",
+              },
+              operating: {
+                carrierCode: "KL",
+              },
+              duration: "PT2H35M",
+              id: "15",
+              numberOfStops: 0,
+              blacklistedInEU: false,
+            },
+            {
+              departure: {
+                iataCode: "AMS",
+                at: "2022-11-19T17:05:00",
+              },
+              arrival: {
+                iataCode: "BOS",
                 terminal: "E",
-                at: "2022-11-01T22:55:00",
+                at: "2022-11-19T19:05:00",
               },
-              arrival: {
-                iataCode: "ZRH",
-                at: "2022-11-02T11:10:00",
-              },
-              carrierCode: "LX",
-              number: "53",
+              carrierCode: "KL",
+              number: "617",
               aircraft: {
-                code: "333",
+                code: "332",
               },
               operating: {
-                carrierCode: "LX",
+                carrierCode: "KL",
               },
-              duration: "PT7H15M",
-              id: "5",
-              numberOfStops: 0,
-              blacklistedInEU: false,
-            },
-            {
-              departure: {
-                iataCode: "ZRH",
-                at: "2022-11-02T12:15:00",
-              },
-              arrival: {
-                iataCode: "MAD",
-                terminal: "2",
-                at: "2022-11-02T14:40:00",
-              },
-              carrierCode: "LX",
-              number: "2026",
-              aircraft: {
-                code: "223",
-              },
-              operating: {
-                carrierCode: "LX",
-              },
-              duration: "PT2H25M",
-              id: "6",
-              numberOfStops: 0,
-              blacklistedInEU: false,
-            },
-          ],
-        },
-        {
-          duration: "PT17H25M",
-          segments: [
-            {
-              departure: {
-                iataCode: "MAD",
-                terminal: "2",
-                at: "2022-11-18T18:45:00",
-              },
-              arrival: {
-                iataCode: "ZRH",
-                at: "2022-11-18T21:00:00",
-              },
-              carrierCode: "LX",
-              number: "2033",
-              aircraft: {
-                code: "221",
-              },
-              operating: {
-                carrierCode: "LX",
-              },
-              duration: "PT2H15M",
-              id: "9",
-              numberOfStops: 0,
-              blacklistedInEU: false,
-            },
-            {
-              departure: {
-                iataCode: "ZRH",
-                at: "2022-11-19T10:20:00",
-              },
-              arrival: {
-                iataCode: "LHR",
-                terminal: "2",
-                at: "2022-11-19T11:10:00",
-              },
-              carrierCode: "LX",
-              number: "318",
-              aircraft: {
-                code: "223",
-              },
-              operating: {
-                carrierCode: "LX",
-              },
-              duration: "PT1H50M",
-              id: "10",
-              numberOfStops: 0,
-              blacklistedInEU: false,
-            },
-          ],
-        },
-        {
-          duration: "PT24H10M",
-          segments: [
-            {
-              departure: {
-                iataCode: "LHR",
-                terminal: "2",
-                at: "2022-11-28T20:00:00",
-              },
-              arrival: {
-                iataCode: "ZRH",
-                at: "2022-11-28T22:35:00",
-              },
-              carrierCode: "LX",
-              number: "339",
-              aircraft: {
-                code: "223",
-              },
-              operating: {
-                carrierCode: "LX",
-              },
-              duration: "PT1H35M",
-              id: "13",
-              numberOfStops: 0,
-              blacklistedInEU: false,
-            },
-            {
-              departure: {
-                iataCode: "ZRH",
-                at: "2022-11-29T11:35:00",
-              },
-              arrival: {
-                iataCode: "IAD",
-                at: "2022-11-29T15:10:00",
-              },
-              carrierCode: "LX",
-              number: "3200",
-              aircraft: {
-                code: "763",
-              },
-              operating: {
-                carrierCode: "UA",
-              },
-              duration: "PT9H35M",
-              id: "14",
+              duration: "PT8H",
+              id: "16",
               numberOfStops: 0,
               blacklistedInEU: false,
             },
@@ -902,9 +784,9 @@ const flightOffers = {
         },
       ],
       price: {
-        currency: "NGN",
-        total: "6596839.00",
-        base: "5205655.00",
+        currency: "USD",
+        total: "7090.16",
+        base: "4744.00",
         fees: [
           {
             amount: "0.00",
@@ -915,76 +797,62 @@ const flightOffers = {
             type: "TICKETING",
           },
         ],
-        grandTotal: "6596839.00",
+        grandTotal: "7090.16",
       },
       pricingOptions: {
         fareType: ["PUBLISHED"],
         includedCheckedBagsOnly: false,
       },
-      validatingAirlineCodes: ["LX"],
+      validatingAirlineCodes: ["DL"],
       travelerPricings: [
         {
           travelerId: "1",
           fareOption: "STANDARD",
           travelerType: "ADULT",
           price: {
-            currency: "NGN",
-            total: "3308657.00",
-            base: "2613065.00",
+            currency: "USD",
+            total: "3545.08",
+            base: "2372.00",
           },
           fareDetailsBySegment: [
             {
-              segmentId: "5",
-              cabin: "BUSINESS",
-              fareBasis: "ZNX09ERC",
+              segmentId: "3",
+              cabin: "FIRST",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
               class: "Z",
               includedCheckedBags: {
                 quantity: 2,
               },
             },
             {
-              segmentId: "6",
+              segmentId: "4",
               cabin: "BUSINESS",
-              fareBasis: "ZNX09ERC",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
               class: "Z",
               includedCheckedBags: {
                 quantity: 2,
               },
             },
             {
-              segmentId: "9",
+              segmentId: "15",
               cabin: "ECONOMY",
-              fareBasis: "GR1",
-              class: "Y",
+              fareBasis: "VL4X46M3",
+              brandedFare: "DLONEBIZ",
+              class: "L",
               includedCheckedBags: {
-                quantity: 2,
+                quantity: 1,
               },
             },
             {
-              segmentId: "10",
+              segmentId: "16",
               cabin: "ECONOMY",
-              fareBasis: "KEUCLSP2",
-              class: "K",
-              includedCheckedBags: {
-                quantity: 2,
-              },
-            },
-            {
-              segmentId: "13",
-              cabin: "ECONOMY",
-              fareBasis: "VEUCLSP0",
+              fareBasis: "VL4X46M3",
+              brandedFare: "STANDARD6",
               class: "V",
               includedCheckedBags: {
-                quantity: 2,
-              },
-            },
-            {
-              segmentId: "14",
-              cabin: "PREMIUM_ECONOMY",
-              fareBasis: "GR1",
-              class: "G",
-              includedCheckedBags: {
-                quantity: 2,
+                quantity: 1,
               },
             },
           ],
@@ -994,46 +862,38 @@ const flightOffers = {
           fareOption: "STANDARD",
           travelerType: "CHILD",
           price: {
-            currency: "NGN",
-            total: "3288182.00",
-            base: "2592590.00",
+            currency: "USD",
+            total: "3545.08",
+            base: "2372.00",
           },
           fareDetailsBySegment: [
             {
-              segmentId: "5",
-              cabin: "BUSINESS",
-              fareBasis: "ZNX09ERC",
+              segmentId: "3",
+              cabin: "FIRST",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
               class: "Z",
             },
             {
-              segmentId: "6",
+              segmentId: "4",
               cabin: "BUSINESS",
-              fareBasis: "ZNX09ERC",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
               class: "Z",
             },
             {
-              segmentId: "9",
+              segmentId: "15",
               cabin: "ECONOMY",
-              fareBasis: "GR1",
-              class: "Y",
+              fareBasis: "VL4X46M3",
+              brandedFare: "DLONEBIZ",
+              class: "L",
             },
             {
-              segmentId: "10",
+              segmentId: "16",
               cabin: "ECONOMY",
-              fareBasis: "KEUCLSP2",
-              class: "K",
-            },
-            {
-              segmentId: "13",
-              cabin: "ECONOMY",
-              fareBasis: "VEUCLSP0",
+              fareBasis: "VL4X46M3",
+              brandedFare: "STANDARD6",
               class: "V",
-            },
-            {
-              segmentId: "14",
-              cabin: "PREMIUM_ECONOMY",
-              fareBasis: "GR1",
-              class: "G",
             },
           ],
         },
@@ -1046,155 +906,103 @@ const flightOffers = {
       instantTicketingRequired: false,
       nonHomogeneous: false,
       oneWay: false,
-      lastTicketingDate: "2022-10-10",
-      numberOfBookableSeats: 4,
+      lastTicketingDate: "2022-10-16",
+      numberOfBookableSeats: 9,
       itineraries: [
         {
-          duration: "PT14H10M",
+          duration: "PT29H16M",
           segments: [
             {
               departure: {
                 iataCode: "BOS",
-                terminal: "E",
-                at: "2022-11-01T22:55:00",
+                terminal: "A",
+                at: "2022-11-01T21:59:00",
               },
               arrival: {
-                iataCode: "ZRH",
-                at: "2022-11-02T11:10:00",
+                iataCode: "LGA",
+                terminal: "C",
+                at: "2022-11-01T23:18:00",
               },
-              carrierCode: "LX",
-              number: "53",
+              carrierCode: "VS",
+              number: "3013",
               aircraft: {
-                code: "333",
+                code: "E75",
               },
-              operating: {
-                carrierCode: "LX",
-              },
-              duration: "PT7H15M",
-              id: "1",
+              duration: "PT1H19M",
+              id: "5",
               numberOfStops: 0,
               blacklistedInEU: false,
             },
             {
               departure: {
-                iataCode: "ZRH",
-                at: "2022-11-02T15:45:00",
+                iataCode: "JFK",
+                terminal: "4",
+                at: "2022-11-02T19:30:00",
               },
               arrival: {
                 iataCode: "MAD",
-                terminal: "2",
-                at: "2022-11-02T18:05:00",
+                terminal: "1",
+                at: "2022-11-03T08:15:00",
               },
-              carrierCode: "LX",
-              number: "2032",
+              carrierCode: "VS",
+              number: "3889",
               aircraft: {
-                code: "221",
+                code: "76W",
               },
               operating: {
-                carrierCode: "LX",
+                carrierCode: "DL",
               },
-              duration: "PT2H20M",
-              id: "2",
+              duration: "PT7H45M",
+              id: "6",
               numberOfStops: 0,
               blacklistedInEU: false,
             },
           ],
         },
         {
-          duration: "PT15H20M",
+          duration: "PT22H25M",
           segments: [
             {
               departure: {
                 iataCode: "MAD",
                 terminal: "2",
-                at: "2022-11-18T18:45:00",
+                at: "2022-11-18T20:25:00",
               },
               arrival: {
-                iataCode: "ZRH",
-                at: "2022-11-18T21:00:00",
+                iataCode: "AMS",
+                at: "2022-11-18T23:00:00",
               },
-              carrierCode: "LX",
-              number: "2033",
+              carrierCode: "KL",
+              number: "1706",
               aircraft: {
-                code: "221",
+                code: "73J",
               },
               operating: {
-                carrierCode: "LX",
+                carrierCode: "KL",
               },
-              duration: "PT2H15M",
-              id: "7",
-              numberOfStops: 0,
-              blacklistedInEU: false,
-            },
-            {
-              departure: {
-                iataCode: "ZRH",
-                at: "2022-11-19T08:10:00",
-              },
-              arrival: {
-                iataCode: "LHR",
-                terminal: "2",
-                at: "2022-11-19T09:05:00",
-              },
-              carrierCode: "LX",
-              number: "316",
-              aircraft: {
-                code: "320",
-              },
-              operating: {
-                carrierCode: "LX",
-              },
-              duration: "PT1H55M",
-              id: "8",
-              numberOfStops: 0,
-              blacklistedInEU: false,
-            },
-          ],
-        },
-        {
-          duration: "PT24H10M",
-          segments: [
-            {
-              departure: {
-                iataCode: "LHR",
-                terminal: "2",
-                at: "2022-11-28T20:00:00",
-              },
-              arrival: {
-                iataCode: "ZRH",
-                at: "2022-11-28T22:35:00",
-              },
-              carrierCode: "LX",
-              number: "339",
-              aircraft: {
-                code: "223",
-              },
-              operating: {
-                carrierCode: "LX",
-              },
-              duration: "PT1H35M",
+              duration: "PT2H35M",
               id: "13",
               numberOfStops: 0,
               blacklistedInEU: false,
             },
             {
               departure: {
-                iataCode: "ZRH",
-                at: "2022-11-29T11:35:00",
+                iataCode: "AMS",
+                at: "2022-11-19T10:35:00",
               },
               arrival: {
-                iataCode: "IAD",
-                at: "2022-11-29T15:10:00",
+                iataCode: "BOS",
+                at: "2022-11-19T12:50:00",
               },
-              carrierCode: "LX",
-              number: "3200",
+              carrierCode: "KL",
+              number: "73",
               aircraft: {
-                code: "763",
+                code: "781",
               },
               operating: {
-                carrierCode: "UA",
+                carrierCode: "KL",
               },
-              duration: "PT9H35M",
+              duration: "PT8H15M",
               id: "14",
               numberOfStops: 0,
               blacklistedInEU: false,
@@ -1203,9 +1011,9 @@ const flightOffers = {
         },
       ],
       price: {
-        currency: "NGN",
-        total: "6596839.00",
-        base: "5205655.00",
+        currency: "USD",
+        total: "7090.16",
+        base: "4744.00",
         fees: [
           {
             amount: "0.00",
@@ -1216,56 +1024,40 @@ const flightOffers = {
             type: "TICKETING",
           },
         ],
-        grandTotal: "6596839.00",
+        grandTotal: "7090.16",
       },
       pricingOptions: {
         fareType: ["PUBLISHED"],
         includedCheckedBagsOnly: false,
       },
-      validatingAirlineCodes: ["LX"],
+      validatingAirlineCodes: ["VS"],
       travelerPricings: [
         {
           travelerId: "1",
           fareOption: "STANDARD",
           travelerType: "ADULT",
           price: {
-            currency: "NGN",
-            total: "3308657.00",
-            base: "2613065.00",
+            currency: "USD",
+            total: "3545.08",
+            base: "2372.00",
           },
           fareDetailsBySegment: [
             {
-              segmentId: "1",
+              segmentId: "5",
               cabin: "BUSINESS",
-              fareBasis: "ZNX09ERC",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "UPPER",
               class: "Z",
               includedCheckedBags: {
                 quantity: 2,
               },
             },
             {
-              segmentId: "2",
+              segmentId: "6",
               cabin: "BUSINESS",
-              fareBasis: "ZNX09ERC",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "UPPER",
               class: "Z",
-              includedCheckedBags: {
-                quantity: 2,
-              },
-            },
-            {
-              segmentId: "7",
-              cabin: "ECONOMY",
-              fareBasis: "GR1",
-              class: "Y",
-              includedCheckedBags: {
-                quantity: 2,
-              },
-            },
-            {
-              segmentId: "8",
-              cabin: "ECONOMY",
-              fareBasis: "KEUCLSP2",
-              class: "K",
               includedCheckedBags: {
                 quantity: 2,
               },
@@ -1273,19 +1065,21 @@ const flightOffers = {
             {
               segmentId: "13",
               cabin: "ECONOMY",
-              fareBasis: "VEUCLSP0",
-              class: "V",
+              fareBasis: "VL4X46M3",
+              brandedFare: "UPPER",
+              class: "L",
               includedCheckedBags: {
-                quantity: 2,
+                quantity: 1,
               },
             },
             {
               segmentId: "14",
-              cabin: "PREMIUM_ECONOMY",
-              fareBasis: "GR1",
-              class: "G",
+              cabin: "ECONOMY",
+              fareBasis: "VL4X46M3",
+              brandedFare: "STANDARD6",
+              class: "V",
               includedCheckedBags: {
-                quantity: 2,
+                quantity: 1,
               },
             },
           ],
@@ -1295,46 +1089,38 @@ const flightOffers = {
           fareOption: "STANDARD",
           travelerType: "CHILD",
           price: {
-            currency: "NGN",
-            total: "3288182.00",
-            base: "2592590.00",
+            currency: "USD",
+            total: "3545.08",
+            base: "2372.00",
           },
           fareDetailsBySegment: [
             {
-              segmentId: "1",
+              segmentId: "5",
               cabin: "BUSINESS",
-              fareBasis: "ZNX09ERC",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "UPPER",
               class: "Z",
             },
             {
-              segmentId: "2",
+              segmentId: "6",
               cabin: "BUSINESS",
-              fareBasis: "ZNX09ERC",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "UPPER",
               class: "Z",
-            },
-            {
-              segmentId: "7",
-              cabin: "ECONOMY",
-              fareBasis: "GR1",
-              class: "Y",
-            },
-            {
-              segmentId: "8",
-              cabin: "ECONOMY",
-              fareBasis: "KEUCLSP2",
-              class: "K",
             },
             {
               segmentId: "13",
               cabin: "ECONOMY",
-              fareBasis: "VEUCLSP0",
-              class: "V",
+              fareBasis: "VL4X46M3",
+              brandedFare: "UPPER",
+              class: "L",
             },
             {
               segmentId: "14",
-              cabin: "PREMIUM_ECONOMY",
-              fareBasis: "GR1",
-              class: "G",
+              cabin: "ECONOMY",
+              fareBasis: "VL4X46M3",
+              brandedFare: "STANDARD6",
+              class: "V",
             },
           ],
         },
@@ -1347,156 +1133,104 @@ const flightOffers = {
       instantTicketingRequired: false,
       nonHomogeneous: false,
       oneWay: false,
-      lastTicketingDate: "2022-10-10",
-      numberOfBookableSeats: 4,
+      lastTicketingDate: "2022-10-16",
+      numberOfBookableSeats: 9,
       itineraries: [
         {
-          duration: "PT14H10M",
+          duration: "PT29H16M",
           segments: [
             {
               departure: {
                 iataCode: "BOS",
-                terminal: "E",
-                at: "2022-11-01T22:55:00",
+                terminal: "A",
+                at: "2022-11-01T21:59:00",
               },
               arrival: {
-                iataCode: "ZRH",
-                at: "2022-11-02T11:10:00",
+                iataCode: "LGA",
+                terminal: "C",
+                at: "2022-11-01T23:18:00",
               },
-              carrierCode: "LX",
-              number: "53",
+              carrierCode: "VS",
+              number: "3013",
               aircraft: {
-                code: "333",
+                code: "E75",
               },
-              operating: {
-                carrierCode: "LX",
-              },
-              duration: "PT7H15M",
-              id: "1",
+              duration: "PT1H19M",
+              id: "5",
               numberOfStops: 0,
               blacklistedInEU: false,
             },
             {
               departure: {
-                iataCode: "ZRH",
-                at: "2022-11-02T15:45:00",
+                iataCode: "JFK",
+                terminal: "4",
+                at: "2022-11-02T19:30:00",
               },
               arrival: {
                 iataCode: "MAD",
-                terminal: "2",
-                at: "2022-11-02T18:05:00",
+                terminal: "1",
+                at: "2022-11-03T08:15:00",
               },
-              carrierCode: "LX",
-              number: "2032",
+              carrierCode: "VS",
+              number: "3889",
               aircraft: {
-                code: "221",
+                code: "76W",
               },
               operating: {
-                carrierCode: "LX",
+                carrierCode: "DL",
               },
-              duration: "PT2H20M",
-              id: "2",
+              duration: "PT7H45M",
+              id: "6",
               numberOfStops: 0,
               blacklistedInEU: false,
             },
           ],
         },
         {
-          duration: "PT17H25M",
+          duration: "PT28H5M",
           segments: [
             {
               departure: {
                 iataCode: "MAD",
                 terminal: "2",
-                at: "2022-11-18T18:45:00",
+                at: "2022-11-18T20:25:00",
               },
               arrival: {
-                iataCode: "ZRH",
-                at: "2022-11-18T21:00:00",
+                iataCode: "AMS",
+                at: "2022-11-18T23:00:00",
               },
-              carrierCode: "LX",
-              number: "2033",
+              carrierCode: "KL",
+              number: "1706",
               aircraft: {
-                code: "221",
+                code: "73J",
               },
               operating: {
-                carrierCode: "LX",
+                carrierCode: "KL",
               },
-              duration: "PT2H15M",
-              id: "9",
+              duration: "PT2H35M",
+              id: "11",
               numberOfStops: 0,
               blacklistedInEU: false,
             },
             {
               departure: {
-                iataCode: "ZRH",
-                at: "2022-11-19T10:20:00",
+                iataCode: "AMS",
+                at: "2022-11-19T16:55:00",
               },
               arrival: {
-                iataCode: "LHR",
-                terminal: "2",
-                at: "2022-11-19T11:10:00",
+                iataCode: "BOS",
+                at: "2022-11-19T18:30:00",
               },
-              carrierCode: "LX",
-              number: "318",
+              carrierCode: "KL",
+              number: "77",
               aircraft: {
-                code: "223",
+                code: "77W",
               },
               operating: {
-                carrierCode: "LX",
+                carrierCode: "KL",
               },
-              duration: "PT1H50M",
-              id: "10",
-              numberOfStops: 0,
-              blacklistedInEU: false,
-            },
-          ],
-        },
-        {
-          duration: "PT24H10M",
-          segments: [
-            {
-              departure: {
-                iataCode: "LHR",
-                terminal: "2",
-                at: "2022-11-28T20:00:00",
-              },
-              arrival: {
-                iataCode: "ZRH",
-                at: "2022-11-28T22:35:00",
-              },
-              carrierCode: "LX",
-              number: "339",
-              aircraft: {
-                code: "223",
-              },
-              operating: {
-                carrierCode: "LX",
-              },
-              duration: "PT1H35M",
-              id: "13",
-              numberOfStops: 0,
-              blacklistedInEU: false,
-            },
-            {
-              departure: {
-                iataCode: "ZRH",
-                at: "2022-11-29T11:35:00",
-              },
-              arrival: {
-                iataCode: "IAD",
-                at: "2022-11-29T15:10:00",
-              },
-              carrierCode: "LX",
-              number: "3200",
-              aircraft: {
-                code: "763",
-              },
-              operating: {
-                carrierCode: "UA",
-              },
-              duration: "PT9H35M",
-              id: "14",
+              duration: "PT7H35M",
+              id: "12",
               numberOfStops: 0,
               blacklistedInEU: false,
             },
@@ -1504,9 +1238,9 @@ const flightOffers = {
         },
       ],
       price: {
-        currency: "NGN",
-        total: "6596839.00",
-        base: "5205655.00",
+        currency: "USD",
+        total: "7090.16",
+        base: "4744.00",
         fees: [
           {
             amount: "0.00",
@@ -1517,76 +1251,62 @@ const flightOffers = {
             type: "TICKETING",
           },
         ],
-        grandTotal: "6596839.00",
+        grandTotal: "7090.16",
       },
       pricingOptions: {
         fareType: ["PUBLISHED"],
         includedCheckedBagsOnly: false,
       },
-      validatingAirlineCodes: ["LX"],
+      validatingAirlineCodes: ["VS"],
       travelerPricings: [
         {
           travelerId: "1",
           fareOption: "STANDARD",
           travelerType: "ADULT",
           price: {
-            currency: "NGN",
-            total: "3308657.00",
-            base: "2613065.00",
+            currency: "USD",
+            total: "3545.08",
+            base: "2372.00",
           },
           fareDetailsBySegment: [
             {
-              segmentId: "1",
+              segmentId: "5",
               cabin: "BUSINESS",
-              fareBasis: "ZNX09ERC",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "UPPER",
               class: "Z",
               includedCheckedBags: {
                 quantity: 2,
               },
             },
             {
-              segmentId: "2",
+              segmentId: "6",
               cabin: "BUSINESS",
-              fareBasis: "ZNX09ERC",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "UPPER",
               class: "Z",
               includedCheckedBags: {
                 quantity: 2,
               },
             },
             {
-              segmentId: "9",
+              segmentId: "11",
               cabin: "ECONOMY",
-              fareBasis: "GR1",
-              class: "Y",
+              fareBasis: "VL4X46M3",
+              brandedFare: "UPPER",
+              class: "L",
               includedCheckedBags: {
-                quantity: 2,
+                quantity: 1,
               },
             },
             {
-              segmentId: "10",
+              segmentId: "12",
               cabin: "ECONOMY",
-              fareBasis: "KEUCLSP2",
-              class: "K",
-              includedCheckedBags: {
-                quantity: 2,
-              },
-            },
-            {
-              segmentId: "13",
-              cabin: "ECONOMY",
-              fareBasis: "VEUCLSP0",
+              fareBasis: "VL4X46M3",
+              brandedFare: "STANDARD6",
               class: "V",
               includedCheckedBags: {
-                quantity: 2,
-              },
-            },
-            {
-              segmentId: "14",
-              cabin: "PREMIUM_ECONOMY",
-              fareBasis: "GR1",
-              class: "G",
-              includedCheckedBags: {
-                quantity: 2,
+                quantity: 1,
               },
             },
           ],
@@ -1596,46 +1316,1174 @@ const flightOffers = {
           fareOption: "STANDARD",
           travelerType: "CHILD",
           price: {
-            currency: "NGN",
-            total: "3288182.00",
-            base: "2592590.00",
+            currency: "USD",
+            total: "3545.08",
+            base: "2372.00",
           },
           fareDetailsBySegment: [
             {
-              segmentId: "1",
+              segmentId: "5",
               cabin: "BUSINESS",
-              fareBasis: "ZNX09ERC",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "UPPER",
               class: "Z",
             },
             {
-              segmentId: "2",
+              segmentId: "6",
               cabin: "BUSINESS",
-              fareBasis: "ZNX09ERC",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "UPPER",
               class: "Z",
             },
             {
-              segmentId: "9",
+              segmentId: "11",
               cabin: "ECONOMY",
-              fareBasis: "GR1",
-              class: "Y",
+              fareBasis: "VL4X46M3",
+              brandedFare: "UPPER",
+              class: "L",
             },
             {
-              segmentId: "10",
+              segmentId: "12",
               cabin: "ECONOMY",
-              fareBasis: "KEUCLSP2",
-              class: "K",
+              fareBasis: "VL4X46M3",
+              brandedFare: "STANDARD6",
+              class: "V",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      type: "flight-offer",
+      id: "6",
+      source: "GDS",
+      instantTicketingRequired: false,
+      nonHomogeneous: false,
+      oneWay: false,
+      lastTicketingDate: "2022-10-16",
+      numberOfBookableSeats: 9,
+      itineraries: [
+        {
+          duration: "PT29H16M",
+          segments: [
+            {
+              departure: {
+                iataCode: "BOS",
+                terminal: "A",
+                at: "2022-11-01T21:59:00",
+              },
+              arrival: {
+                iataCode: "LGA",
+                terminal: "C",
+                at: "2022-11-01T23:18:00",
+              },
+              carrierCode: "VS",
+              number: "3013",
+              aircraft: {
+                code: "E75",
+              },
+              duration: "PT1H19M",
+              id: "5",
+              numberOfStops: 0,
+              blacklistedInEU: false,
+            },
+            {
+              departure: {
+                iataCode: "JFK",
+                terminal: "4",
+                at: "2022-11-02T19:30:00",
+              },
+              arrival: {
+                iataCode: "MAD",
+                terminal: "1",
+                at: "2022-11-03T08:15:00",
+              },
+              carrierCode: "VS",
+              number: "3889",
+              aircraft: {
+                code: "76W",
+              },
+              operating: {
+                carrierCode: "DL",
+              },
+              duration: "PT7H45M",
+              id: "6",
+              numberOfStops: 0,
+              blacklistedInEU: false,
+            },
+          ],
+        },
+        {
+          duration: "PT28H40M",
+          segments: [
+            {
+              departure: {
+                iataCode: "MAD",
+                terminal: "2",
+                at: "2022-11-18T20:25:00",
+              },
+              arrival: {
+                iataCode: "AMS",
+                at: "2022-11-18T23:00:00",
+              },
+              carrierCode: "KL",
+              number: "1706",
+              aircraft: {
+                code: "73J",
+              },
+              operating: {
+                carrierCode: "KL",
+              },
+              duration: "PT2H35M",
+              id: "15",
+              numberOfStops: 0,
+              blacklistedInEU: false,
+            },
+            {
+              departure: {
+                iataCode: "AMS",
+                at: "2022-11-19T17:05:00",
+              },
+              arrival: {
+                iataCode: "BOS",
+                terminal: "E",
+                at: "2022-11-19T19:05:00",
+              },
+              carrierCode: "KL",
+              number: "617",
+              aircraft: {
+                code: "332",
+              },
+              operating: {
+                carrierCode: "KL",
+              },
+              duration: "PT8H",
+              id: "16",
+              numberOfStops: 0,
+              blacklistedInEU: false,
+            },
+          ],
+        },
+      ],
+      price: {
+        currency: "USD",
+        total: "7090.16",
+        base: "4744.00",
+        fees: [
+          {
+            amount: "0.00",
+            type: "SUPPLIER",
+          },
+          {
+            amount: "0.00",
+            type: "TICKETING",
+          },
+        ],
+        grandTotal: "7090.16",
+      },
+      pricingOptions: {
+        fareType: ["PUBLISHED"],
+        includedCheckedBagsOnly: false,
+      },
+      validatingAirlineCodes: ["VS"],
+      travelerPricings: [
+        {
+          travelerId: "1",
+          fareOption: "STANDARD",
+          travelerType: "ADULT",
+          price: {
+            currency: "USD",
+            total: "3545.08",
+            base: "2372.00",
+          },
+          fareDetailsBySegment: [
+            {
+              segmentId: "5",
+              cabin: "BUSINESS",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "UPPER",
+              class: "Z",
+              includedCheckedBags: {
+                quantity: 2,
+              },
+            },
+            {
+              segmentId: "6",
+              cabin: "BUSINESS",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "UPPER",
+              class: "Z",
+              includedCheckedBags: {
+                quantity: 2,
+              },
+            },
+            {
+              segmentId: "15",
+              cabin: "ECONOMY",
+              fareBasis: "VL4X46M3",
+              brandedFare: "UPPER",
+              class: "L",
+              includedCheckedBags: {
+                quantity: 1,
+              },
+            },
+            {
+              segmentId: "16",
+              cabin: "ECONOMY",
+              fareBasis: "VL4X46M3",
+              brandedFare: "STANDARD6",
+              class: "V",
+              includedCheckedBags: {
+                quantity: 1,
+              },
+            },
+          ],
+        },
+        {
+          travelerId: "2",
+          fareOption: "STANDARD",
+          travelerType: "CHILD",
+          price: {
+            currency: "USD",
+            total: "3545.08",
+            base: "2372.00",
+          },
+          fareDetailsBySegment: [
+            {
+              segmentId: "5",
+              cabin: "BUSINESS",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "UPPER",
+              class: "Z",
+            },
+            {
+              segmentId: "6",
+              cabin: "BUSINESS",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "UPPER",
+              class: "Z",
+            },
+            {
+              segmentId: "15",
+              cabin: "ECONOMY",
+              fareBasis: "VL4X46M3",
+              brandedFare: "UPPER",
+              class: "L",
+            },
+            {
+              segmentId: "16",
+              cabin: "ECONOMY",
+              fareBasis: "VL4X46M3",
+              brandedFare: "STANDARD6",
+              class: "V",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      type: "flight-offer",
+      id: "7",
+      source: "GDS",
+      instantTicketingRequired: false,
+      nonHomogeneous: false,
+      oneWay: false,
+      lastTicketingDate: "2022-10-16",
+      numberOfBookableSeats: 3,
+      itineraries: [
+        {
+          duration: "PT30H16M",
+          segments: [
+            {
+              departure: {
+                iataCode: "BOS",
+                terminal: "A",
+                at: "2022-11-01T20:59:00",
+              },
+              arrival: {
+                iataCode: "LGA",
+                terminal: "C",
+                at: "2022-11-01T22:24:00",
+              },
+              carrierCode: "DL",
+              number: "5693",
+              aircraft: {
+                code: "E75",
+              },
+              duration: "PT1H25M",
+              id: "7",
+              numberOfStops: 0,
+              blacklistedInEU: false,
+            },
+            {
+              departure: {
+                iataCode: "JFK",
+                terminal: "4",
+                at: "2022-11-02T19:30:00",
+              },
+              arrival: {
+                iataCode: "MAD",
+                terminal: "1",
+                at: "2022-11-03T08:15:00",
+              },
+              carrierCode: "DL",
+              number: "126",
+              aircraft: {
+                code: "76W",
+              },
+              operating: {
+                carrierCode: "DL",
+              },
+              duration: "PT7H45M",
+              id: "8",
+              numberOfStops: 0,
+              blacklistedInEU: false,
+            },
+          ],
+        },
+        {
+          duration: "PT22H25M",
+          segments: [
+            {
+              departure: {
+                iataCode: "MAD",
+                terminal: "2",
+                at: "2022-11-18T20:25:00",
+              },
+              arrival: {
+                iataCode: "AMS",
+                at: "2022-11-18T23:00:00",
+              },
+              carrierCode: "KL",
+              number: "1706",
+              aircraft: {
+                code: "73J",
+              },
+              operating: {
+                carrierCode: "KL",
+              },
+              duration: "PT2H35M",
+              id: "13",
+              numberOfStops: 0,
+              blacklistedInEU: false,
+            },
+            {
+              departure: {
+                iataCode: "AMS",
+                at: "2022-11-19T10:35:00",
+              },
+              arrival: {
+                iataCode: "BOS",
+                at: "2022-11-19T12:50:00",
+              },
+              carrierCode: "KL",
+              number: "73",
+              aircraft: {
+                code: "781",
+              },
+              operating: {
+                carrierCode: "KL",
+              },
+              duration: "PT8H15M",
+              id: "14",
+              numberOfStops: 0,
+              blacklistedInEU: false,
+            },
+          ],
+        },
+      ],
+      price: {
+        currency: "USD",
+        total: "7090.16",
+        base: "4744.00",
+        fees: [
+          {
+            amount: "0.00",
+            type: "SUPPLIER",
+          },
+          {
+            amount: "0.00",
+            type: "TICKETING",
+          },
+        ],
+        grandTotal: "7090.16",
+      },
+      pricingOptions: {
+        fareType: ["PUBLISHED"],
+        includedCheckedBagsOnly: false,
+      },
+      validatingAirlineCodes: ["DL"],
+      travelerPricings: [
+        {
+          travelerId: "1",
+          fareOption: "STANDARD",
+          travelerType: "ADULT",
+          price: {
+            currency: "USD",
+            total: "3545.08",
+            base: "2372.00",
+          },
+          fareDetailsBySegment: [
+            {
+              segmentId: "7",
+              cabin: "PREMIUM_ECONOMY",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
+              class: "W",
+              includedCheckedBags: {
+                quantity: 2,
+              },
+            },
+            {
+              segmentId: "8",
+              cabin: "BUSINESS",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
+              class: "Z",
+              includedCheckedBags: {
+                quantity: 2,
+              },
             },
             {
               segmentId: "13",
               cabin: "ECONOMY",
-              fareBasis: "VEUCLSP0",
-              class: "V",
+              fareBasis: "VL4X46M3",
+              brandedFare: "DLONEBIZ",
+              class: "L",
+              includedCheckedBags: {
+                quantity: 1,
+              },
             },
             {
               segmentId: "14",
+              cabin: "ECONOMY",
+              fareBasis: "VL4X46M3",
+              brandedFare: "STANDARD6",
+              class: "V",
+              includedCheckedBags: {
+                quantity: 1,
+              },
+            },
+          ],
+        },
+        {
+          travelerId: "2",
+          fareOption: "STANDARD",
+          travelerType: "CHILD",
+          price: {
+            currency: "USD",
+            total: "3545.08",
+            base: "2372.00",
+          },
+          fareDetailsBySegment: [
+            {
+              segmentId: "7",
               cabin: "PREMIUM_ECONOMY",
-              fareBasis: "GR1",
-              class: "G",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
+              class: "W",
+            },
+            {
+              segmentId: "8",
+              cabin: "BUSINESS",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
+              class: "Z",
+            },
+            {
+              segmentId: "13",
+              cabin: "ECONOMY",
+              fareBasis: "VL4X46M3",
+              brandedFare: "DLONEBIZ",
+              class: "L",
+            },
+            {
+              segmentId: "14",
+              cabin: "ECONOMY",
+              fareBasis: "VL4X46M3",
+              brandedFare: "STANDARD6",
+              class: "V",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      type: "flight-offer",
+      id: "8",
+      source: "GDS",
+      instantTicketingRequired: false,
+      nonHomogeneous: false,
+      oneWay: false,
+      lastTicketingDate: "2022-10-16",
+      numberOfBookableSeats: 3,
+      itineraries: [
+        {
+          duration: "PT32H15M",
+          segments: [
+            {
+              departure: {
+                iataCode: "BOS",
+                terminal: "A",
+                at: "2022-11-01T19:00:00",
+              },
+              arrival: {
+                iataCode: "LGA",
+                terminal: "C",
+                at: "2022-11-01T20:30:00",
+              },
+              carrierCode: "DL",
+              number: "5626",
+              aircraft: {
+                code: "E75",
+              },
+              duration: "PT1H30M",
+              id: "1",
+              numberOfStops: 0,
+              blacklistedInEU: false,
+            },
+            {
+              departure: {
+                iataCode: "JFK",
+                terminal: "4",
+                at: "2022-11-02T19:30:00",
+              },
+              arrival: {
+                iataCode: "MAD",
+                terminal: "1",
+                at: "2022-11-03T08:15:00",
+              },
+              carrierCode: "DL",
+              number: "126",
+              aircraft: {
+                code: "76W",
+              },
+              operating: {
+                carrierCode: "DL",
+              },
+              duration: "PT7H45M",
+              id: "2",
+              numberOfStops: 0,
+              blacklistedInEU: false,
+            },
+          ],
+        },
+        {
+          duration: "PT22H25M",
+          segments: [
+            {
+              departure: {
+                iataCode: "MAD",
+                terminal: "2",
+                at: "2022-11-18T20:25:00",
+              },
+              arrival: {
+                iataCode: "AMS",
+                at: "2022-11-18T23:00:00",
+              },
+              carrierCode: "KL",
+              number: "1706",
+              aircraft: {
+                code: "73J",
+              },
+              operating: {
+                carrierCode: "KL",
+              },
+              duration: "PT2H35M",
+              id: "13",
+              numberOfStops: 0,
+              blacklistedInEU: false,
+            },
+            {
+              departure: {
+                iataCode: "AMS",
+                at: "2022-11-19T10:35:00",
+              },
+              arrival: {
+                iataCode: "BOS",
+                at: "2022-11-19T12:50:00",
+              },
+              carrierCode: "KL",
+              number: "73",
+              aircraft: {
+                code: "781",
+              },
+              operating: {
+                carrierCode: "KL",
+              },
+              duration: "PT8H15M",
+              id: "14",
+              numberOfStops: 0,
+              blacklistedInEU: false,
+            },
+          ],
+        },
+      ],
+      price: {
+        currency: "USD",
+        total: "7090.16",
+        base: "4744.00",
+        fees: [
+          {
+            amount: "0.00",
+            type: "SUPPLIER",
+          },
+          {
+            amount: "0.00",
+            type: "TICKETING",
+          },
+        ],
+        grandTotal: "7090.16",
+      },
+      pricingOptions: {
+        fareType: ["PUBLISHED"],
+        includedCheckedBagsOnly: false,
+      },
+      validatingAirlineCodes: ["DL"],
+      travelerPricings: [
+        {
+          travelerId: "1",
+          fareOption: "STANDARD",
+          travelerType: "ADULT",
+          price: {
+            currency: "USD",
+            total: "3545.08",
+            base: "2372.00",
+          },
+          fareDetailsBySegment: [
+            {
+              segmentId: "1",
+              cabin: "PREMIUM_ECONOMY",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
+              class: "W",
+              includedCheckedBags: {
+                quantity: 2,
+              },
+            },
+            {
+              segmentId: "2",
+              cabin: "BUSINESS",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
+              class: "Z",
+              includedCheckedBags: {
+                quantity: 2,
+              },
+            },
+            {
+              segmentId: "13",
+              cabin: "ECONOMY",
+              fareBasis: "VL4X46M3",
+              brandedFare: "DLONEBIZ",
+              class: "L",
+              includedCheckedBags: {
+                quantity: 1,
+              },
+            },
+            {
+              segmentId: "14",
+              cabin: "ECONOMY",
+              fareBasis: "VL4X46M3",
+              brandedFare: "STANDARD6",
+              class: "V",
+              includedCheckedBags: {
+                quantity: 1,
+              },
+            },
+          ],
+        },
+        {
+          travelerId: "2",
+          fareOption: "STANDARD",
+          travelerType: "CHILD",
+          price: {
+            currency: "USD",
+            total: "3545.08",
+            base: "2372.00",
+          },
+          fareDetailsBySegment: [
+            {
+              segmentId: "1",
+              cabin: "PREMIUM_ECONOMY",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
+              class: "W",
+            },
+            {
+              segmentId: "2",
+              cabin: "BUSINESS",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
+              class: "Z",
+            },
+            {
+              segmentId: "13",
+              cabin: "ECONOMY",
+              fareBasis: "VL4X46M3",
+              brandedFare: "DLONEBIZ",
+              class: "L",
+            },
+            {
+              segmentId: "14",
+              cabin: "ECONOMY",
+              fareBasis: "VL4X46M3",
+              brandedFare: "STANDARD6",
+              class: "V",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      type: "flight-offer",
+      id: "9",
+      source: "GDS",
+      instantTicketingRequired: false,
+      nonHomogeneous: false,
+      oneWay: false,
+      lastTicketingDate: "2022-10-16",
+      numberOfBookableSeats: 3,
+      itineraries: [
+        {
+          duration: "PT32H40M",
+          segments: [
+            {
+              departure: {
+                iataCode: "BOS",
+                terminal: "A",
+                at: "2022-11-01T18:35:00",
+              },
+              arrival: {
+                iataCode: "JFK",
+                terminal: "4",
+                at: "2022-11-01T20:24:00",
+              },
+              carrierCode: "DL",
+              number: "5716",
+              aircraft: {
+                code: "E75",
+              },
+              duration: "PT1H49M",
+              id: "9",
+              numberOfStops: 0,
+              blacklistedInEU: false,
+            },
+            {
+              departure: {
+                iataCode: "JFK",
+                terminal: "4",
+                at: "2022-11-02T19:30:00",
+              },
+              arrival: {
+                iataCode: "MAD",
+                terminal: "1",
+                at: "2022-11-03T08:15:00",
+              },
+              carrierCode: "DL",
+              number: "126",
+              aircraft: {
+                code: "76W",
+              },
+              operating: {
+                carrierCode: "DL",
+              },
+              duration: "PT7H45M",
+              id: "10",
+              numberOfStops: 0,
+              blacklistedInEU: false,
+            },
+          ],
+        },
+        {
+          duration: "PT22H25M",
+          segments: [
+            {
+              departure: {
+                iataCode: "MAD",
+                terminal: "2",
+                at: "2022-11-18T20:25:00",
+              },
+              arrival: {
+                iataCode: "AMS",
+                at: "2022-11-18T23:00:00",
+              },
+              carrierCode: "KL",
+              number: "1706",
+              aircraft: {
+                code: "73J",
+              },
+              operating: {
+                carrierCode: "KL",
+              },
+              duration: "PT2H35M",
+              id: "13",
+              numberOfStops: 0,
+              blacklistedInEU: false,
+            },
+            {
+              departure: {
+                iataCode: "AMS",
+                at: "2022-11-19T10:35:00",
+              },
+              arrival: {
+                iataCode: "BOS",
+                at: "2022-11-19T12:50:00",
+              },
+              carrierCode: "KL",
+              number: "73",
+              aircraft: {
+                code: "781",
+              },
+              operating: {
+                carrierCode: "KL",
+              },
+              duration: "PT8H15M",
+              id: "14",
+              numberOfStops: 0,
+              blacklistedInEU: false,
+            },
+          ],
+        },
+      ],
+      price: {
+        currency: "USD",
+        total: "7090.16",
+        base: "4744.00",
+        fees: [
+          {
+            amount: "0.00",
+            type: "SUPPLIER",
+          },
+          {
+            amount: "0.00",
+            type: "TICKETING",
+          },
+        ],
+        grandTotal: "7090.16",
+      },
+      pricingOptions: {
+        fareType: ["PUBLISHED"],
+        includedCheckedBagsOnly: false,
+      },
+      validatingAirlineCodes: ["DL"],
+      travelerPricings: [
+        {
+          travelerId: "1",
+          fareOption: "STANDARD",
+          travelerType: "ADULT",
+          price: {
+            currency: "USD",
+            total: "3545.08",
+            base: "2372.00",
+          },
+          fareDetailsBySegment: [
+            {
+              segmentId: "9",
+              cabin: "PREMIUM_ECONOMY",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
+              class: "W",
+              includedCheckedBags: {
+                quantity: 2,
+              },
+            },
+            {
+              segmentId: "10",
+              cabin: "BUSINESS",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
+              class: "Z",
+              includedCheckedBags: {
+                quantity: 2,
+              },
+            },
+            {
+              segmentId: "13",
+              cabin: "ECONOMY",
+              fareBasis: "VL4X46M3",
+              brandedFare: "DLONEBIZ",
+              class: "L",
+              includedCheckedBags: {
+                quantity: 1,
+              },
+            },
+            {
+              segmentId: "14",
+              cabin: "ECONOMY",
+              fareBasis: "VL4X46M3",
+              brandedFare: "STANDARD6",
+              class: "V",
+              includedCheckedBags: {
+                quantity: 1,
+              },
+            },
+          ],
+        },
+        {
+          travelerId: "2",
+          fareOption: "STANDARD",
+          travelerType: "CHILD",
+          price: {
+            currency: "USD",
+            total: "3545.08",
+            base: "2372.00",
+          },
+          fareDetailsBySegment: [
+            {
+              segmentId: "9",
+              cabin: "PREMIUM_ECONOMY",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
+              class: "W",
+            },
+            {
+              segmentId: "10",
+              cabin: "BUSINESS",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
+              class: "Z",
+            },
+            {
+              segmentId: "13",
+              cabin: "ECONOMY",
+              fareBasis: "VL4X46M3",
+              brandedFare: "DLONEBIZ",
+              class: "L",
+            },
+            {
+              segmentId: "14",
+              cabin: "ECONOMY",
+              fareBasis: "VL4X46M3",
+              brandedFare: "STANDARD6",
+              class: "V",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      type: "flight-offer",
+      id: "10",
+      source: "GDS",
+      instantTicketingRequired: false,
+      nonHomogeneous: false,
+      oneWay: false,
+      lastTicketingDate: "2022-10-16",
+      numberOfBookableSeats: 3,
+      itineraries: [
+        {
+          duration: "PT30H16M",
+          segments: [
+            {
+              departure: {
+                iataCode: "BOS",
+                terminal: "A",
+                at: "2022-11-01T20:59:00",
+              },
+              arrival: {
+                iataCode: "LGA",
+                terminal: "C",
+                at: "2022-11-01T22:24:00",
+              },
+              carrierCode: "DL",
+              number: "5693",
+              aircraft: {
+                code: "E75",
+              },
+              duration: "PT1H25M",
+              id: "7",
+              numberOfStops: 0,
+              blacklistedInEU: false,
+            },
+            {
+              departure: {
+                iataCode: "JFK",
+                terminal: "4",
+                at: "2022-11-02T19:30:00",
+              },
+              arrival: {
+                iataCode: "MAD",
+                terminal: "1",
+                at: "2022-11-03T08:15:00",
+              },
+              carrierCode: "DL",
+              number: "126",
+              aircraft: {
+                code: "76W",
+              },
+              operating: {
+                carrierCode: "DL",
+              },
+              duration: "PT7H45M",
+              id: "8",
+              numberOfStops: 0,
+              blacklistedInEU: false,
+            },
+          ],
+        },
+        {
+          duration: "PT28H5M",
+          segments: [
+            {
+              departure: {
+                iataCode: "MAD",
+                terminal: "2",
+                at: "2022-11-18T20:25:00",
+              },
+              arrival: {
+                iataCode: "AMS",
+                at: "2022-11-18T23:00:00",
+              },
+              carrierCode: "KL",
+              number: "1706",
+              aircraft: {
+                code: "73J",
+              },
+              operating: {
+                carrierCode: "KL",
+              },
+              duration: "PT2H35M",
+              id: "11",
+              numberOfStops: 0,
+              blacklistedInEU: false,
+            },
+            {
+              departure: {
+                iataCode: "AMS",
+                at: "2022-11-19T16:55:00",
+              },
+              arrival: {
+                iataCode: "BOS",
+                at: "2022-11-19T18:30:00",
+              },
+              carrierCode: "KL",
+              number: "77",
+              aircraft: {
+                code: "77W",
+              },
+              operating: {
+                carrierCode: "KL",
+              },
+              duration: "PT7H35M",
+              id: "12",
+              numberOfStops: 0,
+              blacklistedInEU: false,
+            },
+          ],
+        },
+      ],
+      price: {
+        currency: "USD",
+        total: "7090.16",
+        base: "4744.00",
+        fees: [
+          {
+            amount: "0.00",
+            type: "SUPPLIER",
+          },
+          {
+            amount: "0.00",
+            type: "TICKETING",
+          },
+        ],
+        grandTotal: "7090.16",
+      },
+      pricingOptions: {
+        fareType: ["PUBLISHED"],
+        includedCheckedBagsOnly: false,
+      },
+      validatingAirlineCodes: ["DL"],
+      travelerPricings: [
+        {
+          travelerId: "1",
+          fareOption: "STANDARD",
+          travelerType: "ADULT",
+          price: {
+            currency: "USD",
+            total: "3545.08",
+            base: "2372.00",
+          },
+          fareDetailsBySegment: [
+            {
+              segmentId: "7",
+              cabin: "PREMIUM_ECONOMY",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
+              class: "W",
+              includedCheckedBags: {
+                quantity: 2,
+              },
+            },
+            {
+              segmentId: "8",
+              cabin: "BUSINESS",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
+              class: "Z",
+              includedCheckedBags: {
+                quantity: 2,
+              },
+            },
+            {
+              segmentId: "11",
+              cabin: "ECONOMY",
+              fareBasis: "VL4X46M3",
+              brandedFare: "DLONEBIZ",
+              class: "L",
+              includedCheckedBags: {
+                quantity: 1,
+              },
+            },
+            {
+              segmentId: "12",
+              cabin: "ECONOMY",
+              fareBasis: "VL4X46M3",
+              brandedFare: "STANDARD6",
+              class: "V",
+              includedCheckedBags: {
+                quantity: 1,
+              },
+            },
+          ],
+        },
+        {
+          travelerId: "2",
+          fareOption: "STANDARD",
+          travelerType: "CHILD",
+          price: {
+            currency: "USD",
+            total: "3545.08",
+            base: "2372.00",
+          },
+          fareDetailsBySegment: [
+            {
+              segmentId: "7",
+              cabin: "PREMIUM_ECONOMY",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
+              class: "W",
+            },
+            {
+              segmentId: "8",
+              cabin: "BUSINESS",
+              fareBasis: "ZN1J05D2",
+              brandedFare: "DLONEBIZ",
+              class: "Z",
+            },
+            {
+              segmentId: "11",
+              cabin: "ECONOMY",
+              fareBasis: "VL4X46M3",
+              brandedFare: "DLONEBIZ",
+              class: "L",
+            },
+            {
+              segmentId: "12",
+              cabin: "ECONOMY",
+              fareBasis: "VL4X46M3",
+              brandedFare: "STANDARD6",
+              class: "V",
             },
           ],
         },
@@ -1644,51 +2492,42 @@ const flightOffers = {
   ],
   dictionaries: {
     locations: {
-      EWR: {
-        cityCode: "NYC",
-        countryCode: "US",
-      },
       MAD: {
         cityCode: "MAD",
         countryCode: "ES",
       },
-      ZRH: {
-        cityCode: "ZRH",
-        countryCode: "CH",
-      },
-      BRU: {
-        cityCode: "BRU",
-        countryCode: "BE",
+      LGA: {
+        cityCode: "NYC",
+        countryCode: "US",
       },
       BOS: {
         cityCode: "BOS",
         countryCode: "US",
       },
-      LHR: {
-        cityCode: "LON",
-        countryCode: "GB",
+      AMS: {
+        cityCode: "AMS",
+        countryCode: "NL",
       },
-      IAD: {
-        cityCode: "WAS",
+      JFK: {
+        cityCode: "NYC",
         countryCode: "US",
       },
     },
     aircraft: {
-      320: "AIRBUS A320",
-      221: "AIRBUS  A220-100",
-      333: "AIRBUS A330-300",
-      223: "AIRBUS  A220-300",
-      763: "BOEING 767-300/300ER",
+      781: "BOEING 787-10",
+      E75: "EMBRAER 175",
+      332: "AIRBUS A330-200",
       "77W": "BOEING 777-300ER",
-      "73G": "BOEING 737-700",
+      "76W": "BOEING 767-300 (WINGLETS)",
+      "73J": "BOEING 737-900",
     },
     currencies: {
-      NGN: "NIGERIAN NAIRA",
+      USD: "US DOLLAR",
     },
     carriers: {
-      SN: "BRUSSELS AIRLINES",
-      UA: "UNITED AIRLINES",
-      LX: "SWISS INTERNATIONAL AIR LINES",
+      KL: "KLM ROYAL DUTCH AIRLINES",
+      DL: "DELTA AIR LINES",
+      VS: "VIRGIN ATLANTIC",
     },
   },
 };

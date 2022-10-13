@@ -31,8 +31,9 @@ import AddLocationOutlinedIcon from "@mui/icons-material/AddLocationOutlined";
 import useSWRImmutable from "swr/immutable";
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
+import { useRouter } from "next/router";
 
-export default function FlightSearchForm() {
+export default function FlightSearchForm({ mutate }) {
   const trip = useRecoilValue(trip_);
   const classOfBooking = useRecoilValue(class_);
   const passengers = useRecoilValue(passengers_);
@@ -42,8 +43,9 @@ export default function FlightSearchForm() {
   const [locations, setLocations] = useRecoilState(locations_);
   const [multiCity, setMultiCity] = useRecoilState(multiCity_);
   const [originDestinations, setOriginDestinations] = React.useState("[]");
-  const [travelers, setTravelers] = React.useState("[]");
+  const [travelers, setTravelers] = React.useState(null);
   const [queryParams, setQueryParams] = useRecoilState(queryParams_);
+  const router = useRouter();
 
   React.useEffect(() => {
     console.log("running effect");
@@ -68,7 +70,8 @@ export default function FlightSearchForm() {
           },
         },
       ];
-      setOriginDestinations(JSON.stringify(originDestinations));
+      // @ts-ignore
+      setOriginDestinations(originDestinations);
     } else if (trip === "one_way") {
       const originDestinations = [
         {
@@ -81,7 +84,8 @@ export default function FlightSearchForm() {
           },
         },
       ];
-      setOriginDestinations(JSON.stringify(originDestinations));
+      // @ts-ignore
+      setOriginDestinations(originDestinations);
     } else if (trip === "multi") {
       const modifyLocations = locations.map((location, index, arr) => {
         if (Boolean(index % 2)) return false;
@@ -97,7 +101,7 @@ export default function FlightSearchForm() {
       const originDestinations = modifyLocations
         .filter((location) => location)
         .map((location, index) => ({ ...location, id: `${index + 1}` }));
-      setOriginDestinations(JSON.stringify(originDestinations));
+      setOriginDestinations(originDestinations);
     }
   }, [
     JSON.stringify(locations),
@@ -153,7 +157,8 @@ export default function FlightSearchForm() {
         };
       }
     });
-    setTravelers(JSON.stringify(formattedTravelers));
+    // @ts-ignore
+    setTravelers(formattedTravelers);
   }, [JSON.stringify(passengers)]);
 
   const flightSearch = () => {
@@ -170,7 +175,7 @@ export default function FlightSearchForm() {
       travelers: travelers,
       sources: ["GDS"],
       searchCriteria: {
-        maxFlightOffers: 10,
+        maxFlightOffers: 50,
         flightFilters: {
           cabinRestrictions: [
             {
@@ -190,6 +195,14 @@ export default function FlightSearchForm() {
 
     // @ts-ignore
     setQueryParams({ ...queryParams });
+
+    setTimeout(() => {
+      if (router.pathname !== "/flights") {
+        router.push("/flights");
+      } else {
+        mutate();
+      }
+    }, 300);
   };
 
   console.log(
@@ -239,24 +252,6 @@ export default function FlightSearchForm() {
       setMultiCity((prev) => initial([...prev]));
     }
   };
-
-  const fetchOffers = (key) => {
-    console.log("key", key);
-
-    return "";
-  };
-
-  const {
-    data: flightOffers,
-    error,
-    isLoading,
-  } = useSWRImmutable(
-    queryParams ? JSON.stringify(queryParams) : undefined,
-    fetchOffers,
-    {
-      keepPreviousData: true,
-    }
-  );
 
   if (trip === "return" || trip === "one_way") {
     return (

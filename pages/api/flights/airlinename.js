@@ -1,6 +1,7 @@
 import { getCookie } from "cookies-next";
 import { setCookie } from "cookies-next";
 import axios from "axios";
+import { first } from "lodash";
 
 var qs = require("qs");
 var data = qs.stringify({
@@ -18,8 +19,8 @@ var tokenConfig = {
 };
 
 export default async function handler(req, res) {
-  const { keyword } = req.body;
-  console.log("keyword", keyword);
+  const { iataCode } = req.body;
+  console.log("iataCode", iataCode);
 
   try {
     if (!getCookie("accessToken", { req, res })) {
@@ -38,19 +39,21 @@ export default async function handler(req, res) {
 
     console.log("token", getCookie("accessToken", { req, res }));
 
-    //originLocationCode=SYD&destinationLocationCode=BKK&departureDate=2022-11-01&returnDate=2022-11-18&adults=1&children=0&infants=0&travelClass=ECONOMY
-
     const config = {
       method: "get",
-      url: `https://test.api.amadeus.com/v2/shopping/flight-offers?${keyword}`,
+      url: `https://test.api.amadeus.com/v1/reference-data/airlines?airlineCodes=${iataCode}`,
       headers: {
         Authorization: `Bearer ${getCookie("accessToken", { req, res })}`,
       },
     };
-
     // @ts-ignore
     const response = await axios(config);
-    res.status(200).json(response.data);
+
+    const { data } = response.data;
+
+    const businessName = first(data).businessName;
+
+    res.status(200).json(businessName);
   } catch (error) {
     res.status(400).json(error);
   }

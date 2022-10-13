@@ -1,4 +1,4 @@
-import { Box, Divider, Paper, Stack, Typography } from "@mui/material";
+import { Box, Divider, Drawer, Paper, Stack, Typography } from "@mui/material";
 import React from "react";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import AirplanemodeActiveIcon from "@mui/icons-material/AirplanemodeActive";
@@ -24,6 +24,7 @@ import { first, get, last } from "lodash";
 import ItineraryCard from "./itinerarycard";
 import dayjs from "dayjs";
 import LocationName from "./airportname";
+import SegmentCards from "./segmentcards";
 
 export default function FlightCard({ flightOffer }) {
   const trip = useRecoilValue(trip_);
@@ -35,15 +36,21 @@ export default function FlightCard({ flightOffer }) {
   const [locations, setLocations] = useRecoilState(locations_);
   const [multiCity, setMultiCity] = useRecoilState(multiCity_);
   const [queryParams, setQueryParams] = useRecoilState(queryParams_);
-  console.log("flightOffer", flightOffer);
+  const [openDrawer, setOpenDrawer] = React.useState(false);
+
+  const closeDrawer = () => setOpenDrawer(false);
 
   return (
-    <Paper sx={{ position: "relative" }} variant="outlined">
+    <Paper
+      sx={{ position: "relative", cursor: "pointer" }}
+      //   onClick={() => setOpenDrawer(true)}
+      variant="outlined"
+    >
       <Typography
         sx={{
           position: "absolute",
           right: 0,
-          backgroundColor: "secondary.main",
+          backgroundColor: "primary.main",
           borderTopRightRadius: 3,
           borderBottomLeftRadius: 3,
           p: 0.5,
@@ -56,7 +63,7 @@ export default function FlightCard({ flightOffer }) {
         sx={{
           position: "absolute",
           right: 0,
-          backgroundColor: "secondary.main",
+          backgroundColor: "primary.main",
           borderTopLeftRadius: 3,
           borderBottomRightRadius: 3,
           p: 0.5,
@@ -80,10 +87,10 @@ export default function FlightCard({ flightOffer }) {
           "departure.at",
           ""
         );
-        const date2 = dayjs(departureDateIt2);
-        const date1 = dayjs(arrivalDateIt1);
+        const date2 = dayjs(dayjs(departureDateIt2).format("YYYY-MM-DD"));
+        const date1 = dayjs(dayjs(arrivalDateIt1).format("YYYY-MM-DD"));
 
-        const diff = it2 ? date2.diff(date1.format("YYYY-MM-DD"), "day") : "";
+        const diff = it2 ? date2.diff(date1, "days") : "";
         console.log("it1", it1, it2, arrivalDateIt1, departureDateIt2, diff);
         return (
           <Stack key={index}>

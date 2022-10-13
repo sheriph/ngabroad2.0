@@ -18,7 +18,11 @@ const getLocationName = async (iataCode) => {
   }
 };
 
-export default function LocationName({ iataCode, isAirport }) {
+export default function LocationName({
+  iataCode,
+  isAirport,
+  showCountry = false,
+}) {
   const { data, isLoading } = useSWRImmutable(iataCode, getLocationName, {
     keepPreviousData: true,
   });
@@ -32,19 +36,18 @@ export default function LocationName({ iataCode, isAirport }) {
   return (
     <React.Fragment>
       {isAirport ? (
-        <Typography component="span" variant="caption">
+        <>
           {truncate(
             `${titleCase(get(data, "name", ""))}, ${titleCase(
               get(data, "address.cityName", "")
             )} (${get(data, "iataCode", "")})`,
             { length: mobile ? 45 : 500 }
           )}
-        </Typography>
+        </>
       ) : (
-        <Typography component="span" variant="caption">{`${titleCase(
-          get(data, "address.cityName", "")
-        )}`}</Typography>
+        <>{`${titleCase(get(data, "address.cityName", ""))}`}</>
       )}
+      {showCountry && `, ${titleCase(get(data, "address.countryName", ""))}`}
     </React.Fragment>
   );
 }
