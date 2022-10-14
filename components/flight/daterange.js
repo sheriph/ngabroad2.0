@@ -18,6 +18,8 @@ export default function DateRange() {
   const [startDate, setStartDate] = useRecoilState(startDate_);
   const [endDate, setEndDate] = useRecoilState(endDate_);
 
+  console.log("startDate", startDate);
+
   const mobile = useMediaQuery("(max-width:900px)", { noSsr: true });
   const onChange = (dates) => {
     const [start, end] = dates;

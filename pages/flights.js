@@ -11,6 +11,7 @@ import {
   flightOffer_,
   locations_,
   multiCity_,
+  openFlightSearchDrawer_,
   passengers_,
   queryParams_,
   startDate_,
@@ -49,7 +50,9 @@ const getFlightOffers = async (data) => {
 };
 
 export default function Flights() {
-  const [drawerState, setDrawerState] = React.useState(false);
+  const [flightFormDrawer, setFlightFormDrawer] = useRecoilState(
+    openFlightSearchDrawer_
+  );
   const trip = useRecoilValue(trip_);
   const classOfBooking = useRecoilValue(class_);
   const passengers = useRecoilValue(passengers_);
@@ -60,8 +63,8 @@ export default function Flights() {
   const [multiCity, setMultiCity] = useRecoilState(multiCity_);
   const [queryParams, setQueryParams] = useRecoilState(queryParams_);
   const setFlightOffer = useSetRecoilState(flightOffer_);
-  const [openDrawer, setOpenDrawer] = React.useState(false);
-  const closeDrawer = () => setOpenDrawer(false);
+  const [segmentsDrawer, setSegment] = React.useState(false);
+  const closeDrawer = () => setSegment(false);
   const router = useRouter();
   const [findFlight, setFindFlight] = React.useState(false);
   const [blockLoading, setBlockLoading] = useRecoilState(blockLoading_);
@@ -154,7 +157,7 @@ export default function Flights() {
             spacing={1}
             direction="row"
             alignItems="center"
-            onClick={() => setDrawerState(true)}
+            onClick={() => setFlightFormDrawer(true)}
           >
             <DriveFileRenameOutlineOutlinedIcon />
             <Typography>Modify</Typography>
@@ -162,20 +165,20 @@ export default function Flights() {
         </Stack>
         <Drawer
           anchor="bottom"
-          open={drawerState}
-          onClose={() => setDrawerState((prev) => !prev)}
+          open={flightFormDrawer}
+          onClose={() => setFlightFormDrawer((prev) => !prev)}
         >
           <Stack spacing={2} sx={{ p: 2 }}>
             {/* 
       // @ts-ignore */}
-            <FlightSearchForm />
-            <Button
-              onClick={() => setDrawerState(false)}
+            <FlightSearchForm mutate={mutate} />
+            {/* <Button
+              onClick={() => setFlightFormDrawer(false)}
               size="small"
               variant="outlined"
             >
               Close
-            </Button>
+            </Button> */}
           </Stack>
         </Drawer>
       </Stack>
@@ -186,7 +189,7 @@ export default function Flights() {
               console.log("index", index);
               // @ts-ignore
               setFlightOffer(flightOffer);
-              setOpenDrawer(true);
+              setSegment(true);
             }}
             key={flightOffer.id}
           >
@@ -203,7 +206,7 @@ export default function Flights() {
           "& .MuiDrawer-paper": { width: { xs: "100%", md: 450 } },
         }}
         anchor="right"
-        open={openDrawer}
+        open={segmentsDrawer}
         onClose={closeDrawer}
       >
         <SegmentCards closeDrawer={closeDrawer} />

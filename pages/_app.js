@@ -19,10 +19,17 @@ import config from "../src/aws-exports";
 import Layout from "../components/layout";
 import dynamic from "next/dynamic";
 import { SWRConfig } from "swr";
+import localforage from "localforage";
 
 /* const Layout = dynamic(() => import("../components/layout"), {
   ssr: false,
 }); */
+
+localforage.config({
+  driver: [localforage.INDEXEDDB /* localforage.LOCALSTORAGE */],
+  name: "ngabroad_store",
+  storeName: "ngabroad_indexdb",
+});
 
 Amplify.configure({
   ...config,
@@ -52,6 +59,25 @@ function localStorageProvider() {
   // We still use the map for write & read for performance.
   return map;
 }
+
+/* function localForageProvider() {
+  // When initializing, we restore the data from `localStorage` into a map.
+  const map = new Map([]);
+  localforage.getItem("swr-custom-cache").then((value) => {
+    console.log("value", value);
+    map.set("swr-custom-cache", value || []);
+  });
+
+  // Before unloading the app, we write back all the data into `localStorage`.
+  typeof window !== `undefined` &&
+    window.addEventListener("beforeunload", async () => {
+      const appCache = Array.from(map.entries());
+      await localforage.setItem("swr-custom-cache", appCache);
+    });
+
+  // We still use the map for write & read for performance.
+  return map;
+} */
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache();

@@ -12,13 +12,19 @@ import Dates from "./singledate";
 import TripSettings from "./tripsettings";
 import DateRange from "./daterange";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
-import { useRecoilState, useRecoilValue } from "recoil";
+import {
+  useRecoilState,
+  useRecoilValue,
+  useResetRecoilState,
+  useSetRecoilState,
+} from "recoil";
 import {
   class_,
   dates_,
   endDate_,
   locations_,
   multiCity_,
+  openFlightSearchDrawer_,
   passengers_,
   queryParams_,
   startDate_,
@@ -32,6 +38,7 @@ import useSWRImmutable from "swr/immutable";
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
 import { useRouter } from "next/router";
+import { useSWRConfig } from "swr";
 
 export default function FlightSearchForm({ mutate }) {
   const trip = useRecoilValue(trip_);
@@ -46,6 +53,7 @@ export default function FlightSearchForm({ mutate }) {
   const [travelers, setTravelers] = React.useState(null);
   const [queryParams, setQueryParams] = useRecoilState(queryParams_);
   const router = useRouter();
+  const setFlightFormDrawer = useSetRecoilState(openFlightSearchDrawer_);
 
   React.useEffect(() => {
     console.log("running effect");
@@ -101,6 +109,7 @@ export default function FlightSearchForm({ mutate }) {
       const originDestinations = modifyLocations
         .filter((location) => location)
         .map((location, index) => ({ ...location, id: `${index + 1}` }));
+      // @ts-ignore
       setOriginDestinations(originDestinations);
     }
   }, [
@@ -194,26 +203,31 @@ export default function FlightSearchForm({ mutate }) {
     console.log("queryParams", queryParams);
 
     // @ts-ignore
-    setQueryParams({ ...queryParams });
+    setQueryParams((prev) => {
+      if (JSON.stringify({ ...queryParams }) === JSON.stringify(prev)) {
+        mutate && mutate();
+      }
+      return { ...queryParams };
+    });
 
     setTimeout(() => {
       if (router.pathname !== "/flights") {
         router.push("/flights");
       } else {
-        mutate();
+        setFlightFormDrawer(false);
       }
     }, 300);
   };
 
   console.log(
-    "values",
+    "values"
     //  trip,
     //  classOfBooking,
     //  passengers,
     // startDate,
     //  endDate,
     //  dates,
-    locations
+    //  locations
     // JSON.parse(originDestinations)
     // JSON.parse(travelers)
     // queryParams
@@ -230,6 +244,7 @@ export default function FlightSearchForm({ mutate }) {
       },
     ];
 
+    // @ts-ignore
     setLocations((prev) => [...prev, ...newLocations]);
     const newDate = dayjs(last(dates)).add(1, "day").toDate();
     console.log("locations 2", locations);
