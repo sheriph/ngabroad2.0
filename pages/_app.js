@@ -95,7 +95,7 @@ export default function MyApp(props) {
         {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
         <ToastContainer />
         <CssBaseline />
-          <SWRConfig value={{ provider: localStorageProvider }}>
+        {/*  <SWRConfig value={{ provider: localStorageProvider }}> */}
         <RecoilRoot>
           <Authenticator.Provider>
             <Layout>
@@ -103,7 +103,7 @@ export default function MyApp(props) {
             </Layout>
           </Authenticator.Provider>
         </RecoilRoot>
-         </SWRConfig>
+        {/*  </SWRConfig> */}
       </ThemeProvider>
     </CacheProvider>
   );
