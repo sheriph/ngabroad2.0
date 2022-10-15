@@ -18,7 +18,7 @@ import {
   trip_,
 } from "../../lib/recoil";
 import HorizontalRuleOutlinedIcon from "@mui/icons-material/HorizontalRuleOutlined";
-import { first, get, last, truncate } from "lodash";
+import { first, get, isEmpty, last, truncate } from "lodash";
 import dayjs from "dayjs";
 import useSWRImmutable from "swr/immutable";
 import LazyLoad from "react-lazyload";
@@ -76,7 +76,9 @@ export default function Flights() {
     isLoading,
     isValidating,
   } = useSWRImmutable(
-    findFlight ? JSON.stringify(queryParams) : undefined,
+    findFlight && !isEmpty(queryParams)
+      ? JSON.stringify(queryParams)
+      : undefined,
     getFlightOffers,
     {
       keepPreviousData: true,
