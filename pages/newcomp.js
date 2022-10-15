@@ -9,7 +9,6 @@ import Trip from "../components/flight/trip";
 import TripSettings from "../components/flight/tripsettings";
 import { setCookie } from "cookies-next";
 import axios from "axios";
-import localforage from "localforage";
 import { deleteCookie, getCookie } from "cookies-next";
 //import FlightSearchForm from "../components/flight/flightsearchform";
 import dynamic from "next/dynamic";
@@ -25,18 +24,6 @@ export default function NewComp() {
   const [count, setCount] = React.useState("");
   const store = async () => {};
 
-  console.log("localforage is: ", localforage);
-
-  const counter = async () => {
-    try {
-      const count = await localforage.setItem("math", Math.random());
-
-      console.log("value", await localforage.getItem("math"));
-      // setCount(count);
-    } catch (error) {
-      console.log("error", error);
-    }
-  };
   return (
     <React.Fragment>
       <Box
@@ -61,8 +48,6 @@ export default function NewComp() {
       // @ts-ignore */}
         {/* <FlightSearchForm /> */}
         {/*    <SegmentCard segment /> */}
-        <Button onClick={counter}>STORAGE</Button>
-        <Typography>{""}</Typography>
       </Stack>
     </React.Fragment>
   );
