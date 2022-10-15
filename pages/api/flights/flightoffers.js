@@ -19,7 +19,7 @@ var tokenConfig = {
 
 export default async function handler(req, res) {
   const { data } = req.body;
-  // console.log("keyword", keyword);
+  console.log("FLIGHTOFFERSS SEARCH");
 
   try {
     if (!getCookie("accessToken", { req, res })) {

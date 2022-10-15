@@ -95,15 +95,15 @@ export default function MyApp(props) {
         {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
         <ToastContainer />
         <CssBaseline />
-        <SWRConfig value={{ provider: localStorageProvider }}>
-          <RecoilRoot>
-            <Authenticator.Provider>
-              <Layout>
-                <Component {...pageProps} />
-              </Layout>
-            </Authenticator.Provider>
-          </RecoilRoot>
-        </SWRConfig>
+          <SWRConfig value={{ provider: localStorageProvider }}>
+        <RecoilRoot>
+          <Authenticator.Provider>
+            <Layout>
+              <Component {...pageProps} />
+            </Layout>
+          </Authenticator.Provider>
+        </RecoilRoot>
+         </SWRConfig>
       </ThemeProvider>
     </CacheProvider>
   );

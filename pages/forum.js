@@ -11,17 +11,6 @@ const PostComponent = dynamic(() => import("../components/postcomponent"), {
   ssr: false,
 });
 
-const getSsRTags = async () => {
-  console.log("fetching this");
-  try {
-    const tags = await axios.get("/api/gettags");
-    console.log("tags", tags.data);
-    return tags.data;
-  } catch (err) {
-    console.log("getSsRTags error", err);
-    throw new Error("error");
-  }
-};
 
 export default function Forum({ posts: ssrPosts, sidebarFilter }) {
   //const { data: ssrTags } = useSWRImmutable("getSsRTags", getSsRTags);
