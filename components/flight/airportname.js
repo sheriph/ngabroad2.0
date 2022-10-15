@@ -13,8 +13,8 @@ const getLocationName = async (iataCode) => {
 
     return get(name, "data.data", null);
   } catch (error) {
-    console.log("error", error);
-    throw new Error(error);
+    console.log("error", error.response);
+    throw new Error(error.response);
   }
 };
 

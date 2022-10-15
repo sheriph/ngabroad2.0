@@ -37,7 +37,8 @@ const getLocations = async (key) => {
     console.log("locations.data", locations.data);
     return locations.data;
   } catch (error) {
-    console.log("ERROR", error?.response?.data, error);
+    console.log("error", error.response);
+    throw new Error(error.response);
   }
 };
 
