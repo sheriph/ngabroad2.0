@@ -33,7 +33,7 @@ export default async function handler(req, res) {
         res,
         maxAge: response.data.expires_in,
         httpOnly: true,
-        sameSite: false,
+        sameSite: "none",
       });
     }
 
@@ -43,7 +43,12 @@ export default async function handler(req, res) {
       method: "get",
       url: `https://test.api.amadeus.com/v1/reference-data/locations?subType=CITY,AIRPORT&keyword=${keyword}`,
       headers: {
-        Authorization: `Bearer ${getCookie("accessToken", { req, res })}`,
+        Authorization: `Bearer ${getCookie("accessToken", {
+          req,
+          res,
+          httpOnly: true,
+          sameSite: "none",
+        })}`,
       },
     };
     // @ts-ignore

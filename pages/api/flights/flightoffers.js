@@ -55,7 +55,12 @@ export default async function handler(req, res) {
       headers: {
         "Content-Type": "application/json",
         "X-HTTP-Method-Override": "GET",
-        Authorization: `Bearer ${getCookie("accessToken", { req, res })}`,
+        Authorization: `Bearer ${getCookie("accessToken", {
+          req,
+          res,
+          httpOnly: true,
+          sameSite: "none",
+        })}`,
       },
       data: data,
     };

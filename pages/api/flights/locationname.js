@@ -43,7 +43,12 @@ export default async function handler(req, res) {
       method: "get",
       url: `https://test.api.amadeus.com/v1/reference-data/locations/A${iataCode}`,
       headers: {
-        Authorization: `Bearer ${getCookie("accessToken", { req, res })}`,
+        Authorization: `Bearer ${getCookie("accessToken", {
+          req,
+          res,
+          httpOnly: true,
+          sameSite: "none",
+        })}`,
       },
     };
     // @ts-ignore
