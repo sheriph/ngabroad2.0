@@ -19,17 +19,10 @@ import config from "../src/aws-exports";
 import Layout from "../components/layout";
 import dynamic from "next/dynamic";
 import { SWRConfig } from "swr";
-import localforage from "localforage";
 
 /* const Layout = dynamic(() => import("../components/layout"), {
   ssr: false,
 }); */
-
-localforage.config({
-  driver: [localforage.INDEXEDDB /* localforage.LOCALSTORAGE */],
-  name: "ngabroad_store",
-  storeName: "ngabroad_indexdb",
-});
 
 Amplify.configure({
   ...config,
@@ -95,15 +88,15 @@ export default function MyApp(props) {
         {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
         <ToastContainer />
         <CssBaseline />
-        {/*  <SWRConfig value={{ provider: localStorageProvider }}> */}
-        <RecoilRoot>
-          <Authenticator.Provider>
-            <Layout>
-              <Component {...pageProps} />
-            </Layout>
-          </Authenticator.Provider>
-        </RecoilRoot>
-        {/*  </SWRConfig> */}
+        <SWRConfig value={{ provider: localStorageProvider }}>
+          <RecoilRoot>
+            <Authenticator.Provider>
+              <Layout>
+                <Component {...pageProps} />
+              </Layout>
+            </Authenticator.Provider>
+          </RecoilRoot>
+        </SWRConfig>
       </ThemeProvider>
     </CacheProvider>
   );
