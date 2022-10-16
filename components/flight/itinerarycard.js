@@ -96,6 +96,11 @@ export default function ItineraryCard({ itinerary }) {
               {getStops(get(itinerary, "segments", []).length - 1)}
             </Typography>
           </Stack>
+        {/*   <Stack direction="row" spacing={1}>
+              <Typography variant="caption">2h45m in LHR</Typography>
+              <Typography variant="caption">1h45m in DXB</Typography>
+              <Typography variant="caption">2h45m in JFK</Typography>
+            </Stack> */}
           <Typography
             variant="caption"
             sx={{ top: "6px", position: "relative" }}

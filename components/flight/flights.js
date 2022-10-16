@@ -120,11 +120,37 @@ export default function Flights() {
         <Stack
           direction="row"
           alignItems="center"
-          sx={{ display: { xs: "flex", md: "none" } }}
+          sx={{
+            display: {
+              xs: "flex",
+              md: "none",
+              position: "relative",
+              cursor: "pointer",
+            },
+          }}
+          onClick={() => setFlightFormDrawer(true)}
         >
           {!first(locations)?.prettyText ? (
-            <Stack spacing={1} sx={{ flexGrow: 1 }}>
+            <Stack
+              alignItems="center"
+              justifyContent="center"
+              spacing={1}
+              sx={{ flexGrow: 1, height: 50 }}
+            >
               <Typography variant="h1">No Search Record Found</Typography>
+              <Typography
+                variant="caption"
+                sx={{
+                  position: "absolute",
+                  top: -16,
+                  right: -8,
+                  p: 0.5,
+                  backgroundColor: "primary.main",
+                  color: "white",
+                }}
+              >
+                Edit
+              </Typography>
             </Stack>
           ) : (
             <Stack spacing={1} sx={{ flexGrow: 1 }}>
@@ -144,7 +170,7 @@ export default function Flights() {
                     : dayjs(first(dates)).format("ddd MMM DD")}
                 </Typography>
                 {trip !== "one_way" && <HorizontalRuleOutlinedIcon />}
-                <Typography>
+                <Typography sx={{ flexGrow: 1 }}>
                   {trip === "return" ? (
                     dayjs(endDate).format("ddd MMM DD")
                   ) : (
@@ -155,19 +181,32 @@ export default function Flights() {
                     </React.Fragment>
                   )}
                 </Typography>
+                {/* <Stack
+                  sx={{ color: "primary.main", cursor: "pointer" }}
+                  spacing={1}
+                  direction="row"
+                  alignItems="center"
+                  onClick={() => setFlightFormDrawer(true)}
+                >
+                  <DriveFileRenameOutlineOutlinedIcon />
+                  <Typography>Modify</Typography>
+                </Stack> */}
+                <Typography
+                  variant="caption"
+                  sx={{
+                    position: "absolute",
+                    top: -8,
+                    right: -8,
+                    p: 0.5,
+                    backgroundColor: "primary.main",
+                    color: "white",
+                  }}
+                >
+                  Edit
+                </Typography>
               </Stack>
             </Stack>
           )}
-          <Stack
-            sx={{ color: "primary.main", cursor: "pointer" }}
-            spacing={1}
-            direction="row"
-            alignItems="center"
-            onClick={() => setFlightFormDrawer(true)}
-          >
-            <DriveFileRenameOutlineOutlinedIcon />
-            <Typography>Modify</Typography>
-          </Stack>
         </Stack>
         <Drawer
           anchor="bottom"

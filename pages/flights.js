@@ -12,7 +12,7 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import { useSWRConfig } from "swr";
 import { queryParams_ } from "../lib/recoil";
 import { useRecoilState, useRecoilValue } from "recoil";
-
+import FlightFilter from "../components/flight/filter";
 
 //import Flights from "../components/flight/flights";
 
@@ -29,9 +29,7 @@ export default function FlightsPage() {
 
   const { cache } = useSWRConfig();
 
-  console.log('cache', cache.get(JSON.stringify(queryParams)))
-
-  
+  console.log("cache", cache.get(JSON.stringify(queryParams)));
 
   return (
     <Stack direction="row">
@@ -52,7 +50,9 @@ export default function FlightsPage() {
           }}
         >
           <Toolbar />
-          <Box sx={{ overflow: "auto" }}>FILTER BAR</Box>
+          <Box sx={{ overflow: "auto", ml: 2 }}>
+            <FlightFilter />
+          </Box>
         </Drawer>
       </Box>
       <Box component="main" sx={{ flexGrow: 1 }}>

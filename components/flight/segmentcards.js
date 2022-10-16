@@ -127,10 +127,12 @@ export default function SegmentCards({ closeDrawer }) {
   );
 
   const endIataCode2 = get(
-    last(get(last(get(flightOffer, "itineraries", [])), "segments", [])),
+    first(get(last(get(flightOffer, "itineraries", [])), "segments", [])),
     "departure.iataCode",
     ""
   );
+
+  console.log("endIataCode2", endIataCode2, endIataCode);
 
   return (
     <Stack sx={{ backgroundColor: (t) => t.palette.background.default }}>
