@@ -33,8 +33,8 @@ export default async function handler(req, res) {
         req,
         res,
         maxAge: response.data.expires_in,
-        //httpOnly: true,
-        sameSite: false,
+        sameSite: "none",
+        httpOnly: true,
       });
     }
 
@@ -47,8 +47,6 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${getCookie("accessToken", {
           req,
           res,
-          //httpOnly: true,
-          sameSite: "none",
         })}`,
       },
     };

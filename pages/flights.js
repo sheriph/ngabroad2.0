@@ -13,6 +13,7 @@ import { useSWRConfig } from "swr";
 import { queryParams_ } from "../lib/recoil";
 import { useRecoilState, useRecoilValue } from "recoil";
 
+
 //import Flights from "../components/flight/flights";
 
 const Flights = dynamic(() => import("../components/flight/flights"), {
