@@ -21,6 +21,8 @@ const getLocationName = async (iataCode) => {
 export default function AirlineName({ iataCode }) {
   const { data, isLoading } = useSWRImmutable(iataCode, getLocationName, {
     keepPreviousData: true,
+    shouldRetryOnError: true,
+    errorRetryCount: 1,
   });
 
   const mobile = useMediaQuery("(max-width:900px)", { noSsr: true });

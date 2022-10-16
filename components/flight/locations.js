@@ -60,6 +60,8 @@ export default function Locations({ index }) {
     isLoading,
   } = useSWRImmutable(text, getLocations, {
     keepPreviousData: true,
+    shouldRetryOnError: true,
+    errorRetryCount: 1,
   });
 
   console.log("searchResult", searchResult, error);
