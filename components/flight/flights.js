@@ -8,6 +8,7 @@ import {
   class_,
   dates_,
   endDate_,
+  flightOffers_,
   flightOffer_,
   locations_,
   multiCity_,
@@ -68,6 +69,7 @@ export default function Flights() {
   const router = useRouter();
   const [findFlight, setFindFlight] = React.useState(false);
   const [blockLoading, setBlockLoading] = useRecoilState(blockLoading_);
+  const [offers, setOffers] = useRecoilState(flightOffers_);
 
   const {
     data: flightOffers,
@@ -87,6 +89,10 @@ export default function Flights() {
   );
 
   React.useEffect(() => {
+    setOffers(get(flightOffers, "data", []));
+  }, [JSON.stringify(flightOffers)]);
+
+  React.useEffect(() => {
     if (router.pathname === "/flights") {
       setFindFlight(true);
     }
@@ -102,11 +108,12 @@ export default function Flights() {
 
   console.log(
     "flightOffers error",
-    error,
-    flightOffers,
-    isLoading,
-    isValidating,
-    queryParams
+    //  error,
+    //  flightOffers,
+    flightOffers
+    //  isLoading,
+    //  isValidating,
+    //   queryParams
   );
 
   return (
@@ -228,7 +235,7 @@ export default function Flights() {
         </Drawer>
       </Stack>
       <Stack spacing={3}>
-        {get(flightOffers, "data", []).map((flightOffer, index) => (
+        {offers.map((flightOffer, index) => (
           <Stack
             onClick={() => {
               console.log("index", index);
@@ -236,6 +243,7 @@ export default function Flights() {
               setFlightOffer(flightOffer);
               setSegment(true);
             }}
+            // @ts-ignore
             key={flightOffer.id}
           >
             <LazyLoad unmountIfInvisible={true} key={index}>
