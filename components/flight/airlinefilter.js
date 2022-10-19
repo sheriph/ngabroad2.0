@@ -8,7 +8,15 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { filter, forEach, forIn, get, orderBy, uniqBy } from "lodash";
+import {
+  filter,
+  forEach,
+  forIn,
+  get,
+  intersectionBy,
+  orderBy,
+  uniqBy,
+} from "lodash";
 import React from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { useSWRConfig } from "swr";
@@ -35,13 +43,10 @@ export default function AirlineFilter() {
     []
   );
 
-  console.log("airlineFilterOffers", airlineFilterOffers);
-
   const [airlines, setAirlines] = React.useState([
     { iataCode: "", status: true, name: "" },
   ]);
   const handleChange = (airline) => {
-    console.log("target", airline);
     const newAirlines = airlines.map((airlineInfo) => {
       if (airlineInfo.iataCode === airline.iataCode) {
         return { ...airlineInfo, status: !airlineInfo.status };
@@ -49,8 +54,12 @@ export default function AirlineFilter() {
         return { ...airlineInfo };
       }
     });
+    console.log("target", airline, newAirlines);
+
     setAirlines([...newAirlines]);
   };
+
+  console.log("airlines", airlines);
 
   React.useEffect(() => {
     const carriers = get(
@@ -78,7 +87,11 @@ export default function AirlineFilter() {
             airlines,
             (airline) => airline.status
           );
-          //  console.log("selectedAirlines", selectedAirlines);
+          console.log(
+            "selectedAirlines",
+            selectedAirlines,
+            get(segment, "operating.carrierCode", "") === "AA"
+          );
           included.push(
             selectedAirlines
               .map((airline) => airline.iataCode)
@@ -91,11 +104,11 @@ export default function AirlineFilter() {
           );
         });
       });
-      //   console.log("included", included);
+      console.log("included", included);
       return included.includes(true);
     });
     console.timeEnd("airlineT");
-    //  console.log("newOffers", newOffers, airlines);
+    console.log("newOffers", newOffers, airlines);
     // @ts-ignore
     setAirlineFilterOffers(newOffers);
   }, [JSON.stringify(airlines)]);
@@ -119,7 +132,10 @@ export default function AirlineFilter() {
   };
 
   React.useEffect(() => {
-    const allOffers = orderBy(
+    const allOffers =
+      intersectionBy(airlineFilterOffers, stopsOffers, "id") || [];
+
+    /* const allOffers = orderBy(
       uniqBy(
         [...airlineFilterOffers, ...stopsOffers].map((offer) => ({
           ...offer,
@@ -132,7 +148,7 @@ export default function AirlineFilter() {
     ).map((offer) => ({
       ...offer,
       id: `${offer.id}`,
-    }));
+    })); */
 
     // @ts-ignore
     setOffers(allOffers);

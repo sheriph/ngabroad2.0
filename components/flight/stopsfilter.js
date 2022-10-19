@@ -16,7 +16,15 @@ import {
 } from "../../lib/recoil";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { useSWRConfig } from "swr";
-import { filter, find, forEach, get, orderBy, uniqBy } from "lodash";
+import {
+  filter,
+  find,
+  forEach,
+  get,
+  intersectionBy,
+  orderBy,
+  uniqBy,
+} from "lodash";
 import { getStops } from "../../lib/utility";
 
 export default function StopsFilter() {
@@ -78,7 +86,9 @@ export default function StopsFilter() {
   }, [JSON.stringify(value)]);
 
   React.useEffect(() => {
-    const allOffers = orderBy(
+    const allOffers =
+      intersectionBy(airlineFilterOffers, stopsOffers, "id") || [];
+    /*  const allOffers = orderBy(
       uniqBy(
         [...airlineFilterOffers, ...stopsOffers].map((offer) => ({
           ...offer,
@@ -92,7 +102,7 @@ export default function StopsFilter() {
       ...offer,
       id: `${offer.id}`,
     }));
-
+ */
     // @ts-ignore
     setOffers(allOffers);
 
