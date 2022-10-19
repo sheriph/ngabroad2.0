@@ -116,6 +116,8 @@ export default function Flights() {
     //   queryParams
   );
 
+  console.log('offers', offers)
+
   return (
     <Stack>
       <Stack component={Paper} variant="outlined" sx={{ mb: 3, p: 1 }}>

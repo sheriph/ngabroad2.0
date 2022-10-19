@@ -8,17 +8,26 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { filter, forEach, forIn, get } from "lodash";
+import { filter, forEach, forIn, get, orderBy, uniqBy } from "lodash";
 import React from "react";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { useSWRConfig } from "swr";
-import { flightOffers_, queryParams_ } from "../../lib/recoil";
+import {
+  airlineFilterOffers_,
+  flightOffers_,
+  queryParams_,
+  stopsFilterOffers_,
+} from "../../lib/recoil";
 import { titleCase } from "../../lib/utility";
 
 export default function AirlineFilter() {
   const { cache } = useSWRConfig();
   const queryParams = useRecoilValue(queryParams_);
   const setOffers = useSetRecoilState(flightOffers_);
+  const [airlineFilterOffers, setAirlineFilterOffers] =
+    useRecoilState(airlineFilterOffers_);
+  const stopsOffers = useRecoilValue(stopsFilterOffers_);
+
   const [selectAll, setSelectAll] = React.useState(true);
   const flightOffers = get(
     cache.get(JSON.stringify(queryParams)),
@@ -26,7 +35,7 @@ export default function AirlineFilter() {
     []
   );
 
-  console.log("flightOffers", flightOffers);
+  console.log("airlineFilterOffers", airlineFilterOffers);
 
   const [airlines, setAirlines] = React.useState([
     { iataCode: "", status: true, name: "" },
@@ -57,10 +66,10 @@ export default function AirlineFilter() {
     }));
 
     setAirlines([...defaultAirlines]);
-  }, [null]);
+  }, [JSON.stringify(flightOffers)]);
 
   React.useEffect(() => {
-    console.time("airlineT")
+    console.time("airlineT");
     const newOffers = filter(flightOffers, (flightOffer) => {
       let included = [];
       forEach(get(flightOffer, "itineraries", []), (itinerary) => {
@@ -69,7 +78,7 @@ export default function AirlineFilter() {
             airlines,
             (airline) => airline.status
           );
-          console.log("selectedAirlines", selectedAirlines);
+          //  console.log("selectedAirlines", selectedAirlines);
           included.push(
             selectedAirlines
               .map((airline) => airline.iataCode)
@@ -82,11 +91,13 @@ export default function AirlineFilter() {
           );
         });
       });
-      console.log("included", included);
+      //   console.log("included", included);
       return included.includes(true);
     });
-    console.timeEnd("airlineT")
-    console.log("newOffers", newOffers, airlines);
+    console.timeEnd("airlineT");
+    //  console.log("newOffers", newOffers, airlines);
+    // @ts-ignore
+    setAirlineFilterOffers(newOffers);
   }, [JSON.stringify(airlines)]);
 
   const deselectAll = () => {
@@ -106,6 +117,28 @@ export default function AirlineFilter() {
     setAirlines([...newAirlines]);
     setSelectAll(true);
   };
+
+  React.useEffect(() => {
+    const allOffers = orderBy(
+      uniqBy(
+        [...airlineFilterOffers, ...stopsOffers].map((offer) => ({
+          ...offer,
+          id: Number(offer.id),
+        })),
+        "id"
+      ),
+      ["id"],
+      ["asc"]
+    ).map((offer) => ({
+      ...offer,
+      id: `${offer.id}`,
+    }));
+
+    // @ts-ignore
+    setOffers(allOffers);
+
+    //  console.log("allOffers", airlineFilterOffers, stopsOffers, allOffers);
+  }, [JSON.stringify(airlineFilterOffers), JSON.stringify(stopsOffers)]);
 
   return (
     <Stack sx={{ pr: 1 }}>
