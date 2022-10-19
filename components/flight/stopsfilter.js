@@ -8,7 +8,12 @@ import {
 } from "@mui/material";
 import React from "react";
 import Radio from "@mui/material/Radio";
-import { flightOffers_, queryParams_ } from "../../lib/recoil";
+import {
+  airlineFilterOffers_,
+  flightOffers_,
+  queryParams_,
+  stopsFilterOffers_,
+} from "../../lib/recoil";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { useSWRConfig } from "swr";
 import { filter, find, forEach, get, orderBy, uniqBy } from "lodash";
@@ -19,6 +24,9 @@ export default function StopsFilter() {
   const [stops, setStops] = React.useState([{ label: "Any", value: -1 }]);
   const queryParams = useRecoilValue(queryParams_);
   const setOffers = useSetRecoilState(flightOffers_);
+  const [stopsOffers, setStopsFilterOffers] =
+    useRecoilState(stopsFilterOffers_);
+  const airlineFilterOffers = useRecoilValue(airlineFilterOffers_);
   const { cache } = useSWRConfig();
 
   const flightOffers = get(
@@ -59,14 +67,39 @@ export default function StopsFilter() {
         };
         newStops.push(stop);
       });
-      console.log("newStops", newStops);
+      //  console.log("newStops", newStops);
       return Boolean(find(newStops, (stop) => stop.value === value.value));
     });
- //   console.timeEnd("stopsT");
-  //  console.log("newOffers", newOffers);
+    //   console.timeEnd("stopsT");
+    //  console.log("newOffers", newOffers);
     // @ts-ignore
-    setOffers(newOffers);
+    //setOffers(newOffers);
+    setStopsFilterOffers(newOffers);
   }, [JSON.stringify(value)]);
+
+  React.useEffect(() => {
+    const allOffers = orderBy(
+      uniqBy(
+        [...airlineFilterOffers, ...stopsOffers].map((offer) => ({
+          ...offer,
+          id: Number(offer.id),
+        })),
+        "id"
+      ),
+      ["id"],
+      ["asc"]
+    ).map((offer) => ({
+      ...offer,
+      id: `${offer.id}`,
+    }));
+
+    // @ts-ignore
+    setOffers(allOffers);
+
+    console.log("allOffers", airlineFilterOffers, stopsOffers, allOffers);
+  }, [JSON.stringify(airlineFilterOffers), JSON.stringify(stopsOffers)]);
+
+  console.log("stopsOffers", stopsOffers);
 
   return (
     <Stack>
