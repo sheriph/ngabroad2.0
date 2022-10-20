@@ -88,19 +88,6 @@ export default function Locations({ index }) {
 
   console.log("locations", locations);
 
-  const StyledPaper = styled(Paper)`
-    ${({ theme }) => `
-  cursor: pointer;
-  transition: ${theme.transitions.create(["background-color", "transform"], {
-    duration: theme.transitions.duration.standard,
-  })};
-  &:hover {
-    background-color: ${theme.palette.secondary.main};
-    transform: scale(1.3);
-  }
-  `}
-  `;
-
   return (
     <ClickAwayListener onClickAway={() => setInputOpen(false)}>
       <Box

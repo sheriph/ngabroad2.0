@@ -2,13 +2,12 @@ import { Box, Button, Drawer, Paper, Stack, Typography } from "@mui/material";
 import React from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import ArrowRightAltOutlinedIcon from "@mui/icons-material/ArrowRightAltOutlined";
-import DriveFileRenameOutlineOutlinedIcon from "@mui/icons-material/DriveFileRenameOutlineOutlined";
 import {
+  airlinesFilter_,
   blockLoading_,
   class_,
   dates_,
   endDate_,
-  flightOffers_,
   flightOffer_,
   locations_,
   multiCity_,
@@ -16,6 +15,7 @@ import {
   passengers_,
   queryParams_,
   startDate_,
+  stopFilterValue_,
   trip_,
 } from "../../lib/recoil";
 import HorizontalRuleOutlinedIcon from "@mui/icons-material/HorizontalRuleOutlined";
@@ -29,6 +29,8 @@ import FlightCard from "../../components/flight/flightcard";
 import SegmentCards from "../../components/flight/segmentcards";
 import { useRouter } from "next/router";
 import axios from "axios";
+import { useSWRConfig } from "swr";
+import { getFilterOffer } from "../../lib/utility";
 
 const FlightSearchForm = dynamic(
   () => import("../../components/flight/flightsearchform"),
@@ -54,6 +56,8 @@ export default function Flights() {
   const [flightFormDrawer, setFlightFormDrawer] = useRecoilState(
     openFlightSearchDrawer_
   );
+  const { cache } = useSWRConfig();
+
   const trip = useRecoilValue(trip_);
   const classOfBooking = useRecoilValue(class_);
   const passengers = useRecoilValue(passengers_);
@@ -69,7 +73,8 @@ export default function Flights() {
   const router = useRouter();
   const [findFlight, setFindFlight] = React.useState(false);
   const [blockLoading, setBlockLoading] = useRecoilState(blockLoading_);
-  const [offers, setOffers] = useRecoilState(flightOffers_);
+  const stopValue = useRecoilValue(stopFilterValue_);
+  // const [filterOffers, setFilterOffers] = React.useState([]);
 
   const {
     data: flightOffers,
@@ -88,9 +93,19 @@ export default function Flights() {
     }
   );
 
-  React.useEffect(() => {
-    setOffers(get(flightOffers, "data", []));
-  }, [JSON.stringify(flightOffers)]);
+  const airlines = useRecoilValue(airlinesFilter_);
+
+  const key = JSON.stringify({
+    airlines,
+    stopValue,
+    flightOffers: get(flightOffers, "data", []),
+  });
+
+  const { data: filteredOffers } = useSWRImmutable(key, getFilterOffer, {
+    keepPreviousData: true,
+  });
+
+  console.log("filteredOffers", filteredOffers);
 
   React.useEffect(() => {
     if (router.pathname === "/flights") {
@@ -116,7 +131,6 @@ export default function Flights() {
     //   queryParams
   );
 
-  console.log('offers', offers)
 
   return (
     <Stack>
@@ -237,7 +251,7 @@ export default function Flights() {
         </Drawer>
       </Stack>
       <Stack spacing={3}>
-        {offers.map((flightOffer, index) => (
+        {(filteredOffers || []).map((flightOffer, index) => (
           <Stack
             onClick={() => {
               console.log("index", index);

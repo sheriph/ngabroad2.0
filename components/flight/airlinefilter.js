@@ -3,39 +3,20 @@ import {
   FormControl,
   FormControlLabel,
   FormGroup,
-  FormLabel,
   Link,
   Stack,
   Typography,
 } from "@mui/material";
-import {
-  filter,
-  forEach,
-  forIn,
-  get,
-  intersectionBy,
-  orderBy,
-  uniqBy,
-} from "lodash";
+import { get } from "lodash";
 import React from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { useSWRConfig } from "swr";
-import {
-  airlineFilterOffers_,
-  flightOffers_,
-  queryParams_,
-  stopsFilterOffers_,
-} from "../../lib/recoil";
+import { airlinesFilter_, queryParams_ } from "../../lib/recoil";
 import { titleCase } from "../../lib/utility";
 
 export default function AirlineFilter() {
   const { cache } = useSWRConfig();
   const queryParams = useRecoilValue(queryParams_);
-  const setOffers = useSetRecoilState(flightOffers_);
-  const [airlineFilterOffers, setAirlineFilterOffers] =
-    useRecoilState(airlineFilterOffers_);
-  const stopsOffers = useRecoilValue(stopsFilterOffers_);
-
   const [selectAll, setSelectAll] = React.useState(true);
   const flightOffers = get(
     cache.get(JSON.stringify(queryParams)),
@@ -43,23 +24,24 @@ export default function AirlineFilter() {
     []
   );
 
-  const [airlines, setAirlines] = React.useState([
-    { iataCode: "", status: true, name: "" },
-  ]);
+  const [airlines, setAirlines] = useRecoilState(airlinesFilter_);
+
   const handleChange = (airline) => {
     const newAirlines = airlines.map((airlineInfo) => {
+      // @ts-ignore
       if (airlineInfo.iataCode === airline.iataCode) {
+        // @ts-ignore
         return { ...airlineInfo, status: !airlineInfo.status };
       } else {
+        // @ts-ignore
         return { ...airlineInfo };
       }
     });
-    console.log("target", airline, newAirlines);
+    //   console.log("target", airline, newAirlines);
 
+    // @ts-ignore
     setAirlines([...newAirlines]);
   };
-
-  console.log("airlines", airlines);
 
   React.useEffect(() => {
     const carriers = get(
@@ -74,87 +56,31 @@ export default function AirlineFilter() {
       status: true,
     }));
 
+    // @ts-ignore
     setAirlines([...defaultAirlines]);
   }, [JSON.stringify(flightOffers)]);
 
-  React.useEffect(() => {
-    console.time("airlineT");
-    const newOffers = filter(flightOffers, (flightOffer) => {
-      let included = [];
-      forEach(get(flightOffer, "itineraries", []), (itinerary) => {
-        forEach(get(itinerary, "segments", []), (segment) => {
-          const selectedAirlines = filter(
-            airlines,
-            (airline) => airline.status
-          );
-          console.log(
-            "selectedAirlines",
-            selectedAirlines,
-            get(segment, "operating.carrierCode", "") === "AA"
-          );
-          included.push(
-            selectedAirlines
-              .map((airline) => airline.iataCode)
-              .includes(get(segment, "carrierCode", ""))
-          );
-          included.push(
-            selectedAirlines
-              .map((airline) => airline.iataCode)
-              .includes(get(segment, "operating.carrierCode", ""))
-          );
-        });
-      });
-      console.log("included", included);
-      return included.includes(true);
-    });
-    console.timeEnd("airlineT");
-    console.log("newOffers", newOffers, airlines);
-    // @ts-ignore
-    setAirlineFilterOffers(newOffers);
-  }, [JSON.stringify(airlines)]);
-
   const deselectAll = () => {
     const newAirlines = airlines.map((airline) => ({
+      // @ts-ignore
       ...airline,
       status: false,
     }));
+    // @ts-ignore
     setAirlines([...newAirlines]);
     setSelectAll(false);
   };
 
   const runSelectAll = () => {
     const newAirlines = airlines.map((airline) => ({
+      // @ts-ignore
       ...airline,
       status: true,
     }));
+    // @ts-ignore
     setAirlines([...newAirlines]);
     setSelectAll(true);
   };
-
-  React.useEffect(() => {
-    const allOffers =
-      intersectionBy(airlineFilterOffers, stopsOffers, "id") || [];
-
-    /* const allOffers = orderBy(
-      uniqBy(
-        [...airlineFilterOffers, ...stopsOffers].map((offer) => ({
-          ...offer,
-          id: Number(offer.id),
-        })),
-        "id"
-      ),
-      ["id"],
-      ["asc"]
-    ).map((offer) => ({
-      ...offer,
-      id: `${offer.id}`,
-    })); */
-
-    // @ts-ignore
-    setOffers(allOffers);
-
-    //  console.log("allOffers", airlineFilterOffers, stopsOffers, allOffers);
-  }, [JSON.stringify(airlineFilterOffers), JSON.stringify(stopsOffers)]);
 
   return (
     <Stack sx={{ pr: 1 }}>
@@ -185,15 +111,21 @@ export default function AirlineFilter() {
               key={index}
               control={
                 <Checkbox
+                  // @ts-ignore
                   checked={airline.status}
+                  // @ts-ignore
                   onChange={(e) => handleChange(airline)}
+                  // @ts-ignore
                   name={airline.name}
                   size="small"
                 />
               }
               label={
                 <Typography variant="caption">
-                  {titleCase(airline.name)}
+                  {titleCase(
+                    // @ts-ignore
+                    airline.name
+                  )}
                 </Typography>
               }
             />
