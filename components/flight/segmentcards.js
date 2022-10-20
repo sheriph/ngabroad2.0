@@ -132,7 +132,7 @@ export default function SegmentCards({ closeDrawer }) {
     ""
   );
 
-  console.log("endIataCode2", endIataCode2, endIataCode);
+  console.log("endIataCode2", startIataCode, endIataCode, endIataCode2);
 
   return (
     <Stack sx={{ backgroundColor: (t) => t.palette.background.default }}>

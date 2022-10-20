@@ -11,18 +11,14 @@ import { get } from "lodash";
 import React from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { useSWRConfig } from "swr";
-import { airlinesFilter_, queryParams_ } from "../../lib/recoil";
+import { airlinesFilter_, flightOffers_, queryParams_ } from "../../lib/recoil";
 import { titleCase } from "../../lib/utility";
 
 export default function AirlineFilter() {
   const { cache } = useSWRConfig();
   const queryParams = useRecoilValue(queryParams_);
   const [selectAll, setSelectAll] = React.useState(true);
-  const flightOffers = get(
-    cache.get(JSON.stringify(queryParams)),
-    "data.data",
-    []
-  );
+  const flightOffers = useRecoilValue(flightOffers_);
 
   const [airlines, setAirlines] = useRecoilState(airlinesFilter_);
 
@@ -44,12 +40,7 @@ export default function AirlineFilter() {
   };
 
   React.useEffect(() => {
-    const carriers = get(
-      cache.get(JSON.stringify(queryParams)),
-      "data.dictionaries.carriers",
-      {}
-    );
-
+    const carriers = get(flightOffers, "dictionaries.carriers", {});
     const defaultAirlines = Object.entries(carriers).map((carrier) => ({
       name: carrier[1],
       iataCode: carrier[0],

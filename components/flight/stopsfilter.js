@@ -8,30 +8,23 @@ import {
 } from "@mui/material";
 import React from "react";
 import Radio from "@mui/material/Radio";
-import { queryParams_, stopFilterValue_ } from "../../lib/recoil";
+import { flightOffers_, stopFilterValue_ } from "../../lib/recoil";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
-import { useSWRConfig } from "swr";
 import { forEach, get, orderBy, uniqBy } from "lodash";
 import { getStops } from "../../lib/utility";
 
 export default function StopsFilter() {
   const [stopValue, setValue] = useRecoilState(stopFilterValue_);
   const [stops, setStops] = React.useState([{ label: "Any", value: -1 }]);
-  const queryParams = useRecoilValue(queryParams_);
-  const { cache } = useSWRConfig();
+  const flightOffers = useRecoilValue(flightOffers_);
 
-  const flightOffers = get(
-    cache.get(JSON.stringify(queryParams)),
-    "data.data",
-    []
-  );
   const handleChange = (event) => {
     setValue(JSON.parse(event.target.value));
   };
 
   React.useEffect(() => {
     const newStops = [{ label: "Any", value: -1 }];
-    forEach(flightOffers, (flightOffer, index, arr) => {
+    forEach(get(flightOffers, "data", []), (flightOffer, index, arr) => {
       forEach(get(flightOffer, "itineraries", []), (itinerary, index, arr2) => {
         const stop = {
           label: getStops(get(itinerary, "segments", []).length - 1),

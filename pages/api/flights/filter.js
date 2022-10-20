@@ -4,7 +4,7 @@ import { getStops } from "../../../lib/utility";
 export default async function handler(req, res) {
   const { airlines, stopValue, flightOffers } = req.body;
 
-  console.log({ airlines, stopValue, flightOffers });
+  // console.log({ airlines, stopValue, flightOffers });
 
   console.time("filterTime");
 

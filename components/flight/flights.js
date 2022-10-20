@@ -8,6 +8,7 @@ import {
   class_,
   dates_,
   endDate_,
+  flightOffers_,
   flightOffer_,
   locations_,
   multiCity_,
@@ -30,7 +31,6 @@ import SegmentCards from "../../components/flight/segmentcards";
 import { useRouter } from "next/router";
 import axios from "axios";
 import { useSWRConfig } from "swr";
-import { getFilterOffer } from "../../lib/utility";
 
 const FlightSearchForm = dynamic(
   () => import("../../components/flight/flightsearchform"),
@@ -52,29 +52,41 @@ const getFlightOffers = async (data) => {
   }
 };
 
+const getFilterOffer = async (key) => {
+  try {
+    const { airlines, stopValue, flightOffers } = JSON.parse(key);
+    console.log("key", airlines, stopValue, flightOffers);
+    const offers = await axios.post("/api/flights/filter", {
+      airlines,
+      stopValue,
+      flightOffers,
+    });
+    console.log("offers.data", offers.data);
+    return offers.data;
+  } catch (error) {
+    console.log("error", error);
+  }
+};
+
 export default function Flights() {
   const [flightFormDrawer, setFlightFormDrawer] = useRecoilState(
     openFlightSearchDrawer_
   );
-  const { cache } = useSWRConfig();
 
   const trip = useRecoilValue(trip_);
-  const classOfBooking = useRecoilValue(class_);
-  const passengers = useRecoilValue(passengers_);
+
   const startDate = useRecoilValue(startDate_);
   const endDate = useRecoilValue(endDate_);
-  const [dates, setDates] = useRecoilState(dates_);
-  const [locations, setLocations] = useRecoilState(locations_);
-  const [multiCity, setMultiCity] = useRecoilState(multiCity_);
-  const [queryParams, setQueryParams] = useRecoilState(queryParams_);
+  const dates = useRecoilValue(dates_);
+  const locations = useRecoilValue(locations_);
+  const queryParams = useRecoilValue(queryParams_);
   const setFlightOffer = useSetRecoilState(flightOffer_);
+  const setOffers = useSetRecoilState(flightOffers_);
   const [segmentsDrawer, setSegment] = React.useState(false);
   const closeDrawer = () => setSegment(false);
   const router = useRouter();
-  const [findFlight, setFindFlight] = React.useState(false);
-  const [blockLoading, setBlockLoading] = useRecoilState(blockLoading_);
+  const setBlockLoading = useSetRecoilState(blockLoading_);
   const stopValue = useRecoilValue(stopFilterValue_);
-  // const [filterOffers, setFilterOffers] = React.useState([]);
 
   const {
     data: flightOffers,
@@ -83,7 +95,7 @@ export default function Flights() {
     isLoading,
     isValidating,
   } = useSWRImmutable(
-    findFlight && !isEmpty(queryParams)
+    router.pathname === "/flights" && !isEmpty(queryParams)
       ? JSON.stringify(queryParams)
       : undefined,
     getFlightOffers,
@@ -95,31 +107,35 @@ export default function Flights() {
 
   const airlines = useRecoilValue(airlinesFilter_);
 
-  const key = JSON.stringify({
-    airlines,
-    stopValue,
-    flightOffers: get(flightOffers, "data", []),
-  });
+  const key = flightOffers
+    ? JSON.stringify({
+        airlines,
+        stopValue,
+        flightOffers: get(flightOffers, "data", []),
+      })
+    : undefined;
 
-  const { data: filteredOffers } = useSWRImmutable(key, getFilterOffer, {
+  const {
+    data: filteredOffers,
+    isLoading: isLoading2,
+    isValidating: isValidating2,
+  } = useSWRImmutable(key, getFilterOffer, {
     keepPreviousData: true,
   });
 
-  console.log("filteredOffers", filteredOffers);
+  console.log("filteredOffers", filteredOffers, flightOffers);
 
   React.useEffect(() => {
-    if (router.pathname === "/flights") {
-      setFindFlight(true);
-    }
-  }, [null]);
-
-  React.useEffect(() => {
-    if (isLoading || isValidating) {
+    if (isLoading || isValidating || isLoading2 || isValidating2) {
       setBlockLoading(true);
     } else {
       setBlockLoading(false);
     }
-  }, [isLoading, isValidating]);
+  }, [isLoading, isValidating, isLoading2, isValidating2]);
+
+  React.useEffect(() => {
+    setOffers(flightOffers);
+  }, [JSON.stringify(flightOffers)]);
 
   console.log(
     "flightOffers error",
@@ -130,7 +146,6 @@ export default function Flights() {
     //  isValidating,
     //   queryParams
   );
-
 
   return (
     <Stack>
@@ -251,7 +266,7 @@ export default function Flights() {
         </Drawer>
       </Stack>
       <Stack spacing={3}>
-        {(filteredOffers || []).map((flightOffer, index) => (
+        {filteredOffers?.map((flightOffer, index) => (
           <Stack
             onClick={() => {
               console.log("index", index);
