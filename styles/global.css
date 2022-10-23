@@ -11,3 +11,17 @@
 .react-datepicker {
   padding-bottom: 20px;
 }
+
+.react-tel-input .form-control {
+  height: 1.4875em;
+  width: 100%;
+  font: inherit;
+  color: currentColor;
+}
+
+.react-tel-input .special-label {
+  font-size: 0.67rem;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  color: rgba(0, 0, 0, 0.6);
+  font-weight: 400;
+}

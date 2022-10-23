@@ -20,8 +20,8 @@ var tokenConfig = {
 
 export default async function handler(req, res) {
   const { data } = req.body;
-  const trip = JSON.parse(data).trip;
-  console.log("FLIGHTOFFERSS SEARCH", trip);
+  const trip = data.trip;
+  console.log("OFFERPRICING SEARCH", trip);
 
   try {
     if (!getCookie("accessToken", { req, res })) {
@@ -53,7 +53,7 @@ export default async function handler(req, res) {
 
     const config = {
       method: "post",
-      url: "https://test.api.amadeus.com/v2/shopping/flight-offers",
+      url: "https://test.api.amadeus.com/v1/shopping/flight-offers/pricing",
       headers: {
         "Content-Type": "application/json",
         "X-HTTP-Method-Override": "GET",
@@ -62,18 +62,21 @@ export default async function handler(req, res) {
           res,
         })}`,
       },
-      data: data,
+      data: data.data,
     };
 
     // @ts-ignore
     const response = await axios(config);
-    const updatedOffers = {
+    const updatedOfferpricing = {
       ...response.data,
-      data: get(response.data, "data", []).map((offer) => ({ ...offer, trip })),
+      data: get(response.data, "data.flightOffers", []).map((offer) => ({
+        ...offer,
+        trip,
+      })),
     };
-    res.status(200).json(updatedOffers);
+    res.status(200).json(updatedOfferpricing);
   } catch (error) {
-    console.log("error", error);
-    res.status(400).json(error);
+    console.log("error", error.response.data);
+    res.status(400).json(error.response.data);
   }
 }

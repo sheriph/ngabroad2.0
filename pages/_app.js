@@ -12,6 +12,7 @@ import Amplify, { Auth } from "aws-amplify";
 import { ToastContainer } from "react-toastify";
 import { RecoilRoot } from "recoil";
 import { Authenticator } from "@aws-amplify/ui-react";
+import "react-phone-input-2/lib/material.css";
 import "@aws-amplify/ui-react/styles.css";
 import "react-datepicker/dist/react-datepicker.css";
 import "../styles/global.css";
@@ -19,7 +20,6 @@ import config from "../src/aws-exports";
 import Layout from "../components/layout";
 import dynamic from "next/dynamic";
 import { SWRConfig } from "swr";
-
 
 /* const Layout = dynamic(() => import("../components/layout"), {
   ssr: false,

@@ -10,13 +10,18 @@ import dynamic from "next/dynamic";
 import React from "react";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { useSWRConfig } from "swr";
-import { queryParams_ } from "../lib/recoil";
+import { queryParams_ } from "../../lib/recoil";
 import { useRecoilState, useRecoilValue } from "recoil";
-import FlightFilter from "../components/flight/filter";
+//import Flights from "../../components/flight/flights";
+//import FlightFilter from "../../components/flight/filter";
 
 //import Flights from "../components/flight/flights";
 
-const Flights = dynamic(() => import("../components/flight/flights"), {
+const Flights = dynamic(() => import("../../components/flight/flights"), {
+  ssr: false,
+});
+
+const FlightFilter = dynamic(() => import("../../components/flight/filter"), {
   ssr: false,
 });
 
@@ -51,6 +56,8 @@ export default function FlightsPage() {
         >
           <Toolbar />
           <Box sx={{ overflow: "auto", ml: 2 }}>
+            {/* 
+        // @ts-ignore */}
             <FlightFilter />
           </Box>
         </Drawer>

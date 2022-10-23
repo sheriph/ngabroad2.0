@@ -47,7 +47,7 @@ const getFlightOffers = async (data) => {
 
     return name.data;
   } catch (error) {
-    console.log("error", error.response);
+    console.log("getFlightOffers error", error.response);
     throw new Error(error.response);
   }
 };
@@ -139,7 +139,7 @@ export default function Flights() {
 
   console.log(
     "flightOffers error",
-    //  error,
+    error,
     //  flightOffers,
     flightOffers
     //  isLoading,
@@ -198,7 +198,9 @@ export default function Flights() {
                 </Typography>
                 <ArrowRightAltOutlinedIcon />
                 <Typography>
-                  {truncate(last(locations)?.prettyText, { length: 25 })}
+                  {trip === "multi"
+                    ? "Multiple Destinations"
+                    : truncate(last(locations)?.prettyText, { length: 25 })}
                 </Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">

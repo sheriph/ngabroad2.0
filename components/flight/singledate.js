@@ -17,6 +17,8 @@ import { dates_ } from "../../lib/recoil";
 export default function Dates({ item }) {
   const [storeDates, setStoreDates] = useRecoilState(dates_);
 
+  console.log('storeDates', storeDates)
+
   const mobile = useMediaQuery("(max-width:900px)", { noSsr: true });
 
   console.log("storeDates", storeDates[item]);

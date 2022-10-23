@@ -106,11 +106,24 @@ export default function FlightSearchForm({ mutate }) {
           },
         };
       });
+      const modifyDates = dates.map((date, index) => {
+        const l1 = index === 0 ? 0 : index * 2;
+        const l2 = index === 0 ? 1 : index * 2 + 1;
+        return {
+          id: `${index + 1}`,
+          originLocationCode: get(locations[l1], "data.iataCode", ""),
+          destinationLocationCode: get(locations[l2], "data.iataCode", ""),
+          departureDateTimeRange: {
+            date: dayjs(date).format("YYYY-MM-DD"),
+            time: "00:00:00",
+          },
+        };
+      });
       const originDestinations = modifyLocations
         .filter((location) => location)
         .map((location, index) => ({ ...location, id: `${index + 1}` }));
       // @ts-ignore
-      setOriginDestinations(originDestinations);
+      setOriginDestinations(modifyDates);
     }
   }, [
     JSON.stringify(locations),
@@ -179,6 +192,7 @@ export default function FlightSearchForm({ mutate }) {
       return;
     }
     const queryParams = {
+      trip: trip,
       currencyCode: "NGN",
       originDestinations: originDestinations,
       travelers: travelers,
@@ -220,14 +234,14 @@ export default function FlightSearchForm({ mutate }) {
   };
 
   console.log(
-    "values"
+    "values",
     //  trip,
     //  classOfBooking,
     //  passengers,
     // startDate,
     //  endDate,
-    //  dates,
-    //  locations
+    dates,
+    locations
     // JSON.parse(originDestinations)
     // JSON.parse(travelers)
     // queryParams
@@ -358,6 +372,7 @@ export default function FlightSearchForm({ mutate }) {
               sx={{ ml: 2 }}
               size="small"
               startIcon={<SearchOutlinedIcon />}
+              onClick={flightSearch}
             >
               Search
             </Button>
