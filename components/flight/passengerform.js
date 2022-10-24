@@ -2,9 +2,11 @@ import {
   Autocomplete,
   Box,
   Button,
+  Chip,
   Divider,
   Drawer,
   Grid,
+  InputAdornment,
   Link,
   MenuItem,
   Paper,
@@ -18,10 +20,19 @@ import PhoneInput from "react-phone-input-2";
 import { countries, money, titleCase } from "../../lib/utility";
 import DatePicker from "react-datepicker";
 import DateOfBirth from "./dateofbirth";
-import { flightOffer_, OfferPricing_ } from "../../lib/recoil";
-import { useRecoilValue } from "recoil";
+import { blockLoading_, flightOffer_, OfferPricing_ } from "../../lib/recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import SegmentCards from "./segmentcards";
-import { find, first, get, lowerCase, trim, truncate, uniqBy } from "lodash";
+import {
+  filter,
+  find,
+  first,
+  get,
+  lowerCase,
+  trim,
+  truncate,
+  uniqBy,
+} from "lodash";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -30,17 +41,25 @@ import { isPossiblePhoneNumber } from "react-phone-number-input";
 import dayjs from "dayjs";
 import ArticleRender from "../others/articlerender";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
+import PassportExpiryDate from "./passportexpirydate";
+import axios from "axios";
 
 export default function PassengerForm() {
   const offerPricing = useRecoilValue(OfferPricing_);
+  const offerFromPricing = first(get(offerPricing, "data", []));
   const mobile = useMediaQuery("(max-width:900px)", { noSsr: true });
+  const [dialCode, setDialCode] = React.useState("");
+  const setBlockLoading = useSetRecoilState(blockLoading_);
 
   const schema = Yup.object({
     travelersData: Yup.array().of(
       Yup.object().shape({
         nationality: Yup.string()
           .required("Nationality is required")
-          .transform((value, originalValue) => originalValue.name),
+          .transform((value, originalValue) => originalValue.code),
+        issuingauthority: Yup.string()
+          .required("Nationality is required")
+          .transform((value, originalValue) => originalValue.code),
         firstname: Yup.string()
           .required("First Name is required")
           .transform((value, originalValue) =>
@@ -51,6 +70,17 @@ export default function PassengerForm() {
           .transform((value, originalValue) =>
             trim(originalValue.toLowerCase())
           ),
+        title: Yup.string()
+          .required("Title is required")
+          .test("check-title", "Title is required", (title) => {
+            console.log("title", title);
+            // @ts-ignore
+            return ["MALE", "FEMALE"].includes(title);
+          })
+          .transform((value, originalValue) => {
+            if (originalValue === "Title") return "Title";
+            return originalValue === "Mr" ? "MALE" : "FEMALE";
+          }),
         dateofbirth: Yup.string()
           .required("Date of birth is required")
           .when("travelerType", {
@@ -100,6 +130,21 @@ export default function PassengerForm() {
           .transform((value, originalValue) =>
             dayjs(originalValue).format("YYYY-MM-DD")
           ),
+        passportexpiry: Yup.string()
+          .required("Passport Expiry date is required")
+          .test(
+            "check-passportexpiry",
+            "Invalid Passport expiry date",
+            (passportexpiry) => {
+              const validpassportexpiry =
+                dayjs(passportexpiry).diff(dayjs(), "day", true) > 5;
+              //  console.log("dob", dob, invalidDateOfBirth);
+              return validpassportexpiry;
+            }
+          )
+          .transform((value, originalValue) =>
+            dayjs(originalValue).format("YYYY-MM-DD")
+          ),
       })
     ),
   }).shape({
@@ -107,7 +152,8 @@ export default function PassengerForm() {
       .required("Email is required")
       .test("check-email", "Email is not valid", (email) =>
         isEmail(`${email}`, {})
-      ),
+      )
+      .transform((value, originalValue) => trim(originalValue.toLowerCase())),
     phone: Yup.string()
       .required("Phone is required")
       .test("check-phone", "Phone number is not valid", (phone) => {
@@ -133,11 +179,7 @@ export default function PassengerForm() {
       email: "",
       phone: "",
       payment: "",
-      travelersData: get(
-        first(get(offerPricing, "data", [])),
-        "travelerPricings",
-        []
-      ),
+      travelersData: get(offerFromPricing, "travelerPricings", []),
     },
   });
 
@@ -147,7 +189,6 @@ export default function PassengerForm() {
     name: "travelersData",
   });
 
-  const [gender, setGender] = React.useState("Male");
   const flightOffer = useRecoilValue(flightOffer_);
 
   const [segmentsDrawer, setSegment] = React.useState(false);
@@ -157,12 +198,128 @@ export default function PassengerForm() {
   const closeRule = () => setRulesDrawer(false);
 
   console.log("flightOffer", flightOffer, offerPricing);
-  const handleChange = (event) => {
-    setGender(event.target.value);
-  };
 
   const onSubmit = async (data) => {
-    console.log("data", data);
+    setBlockLoading(true);
+    console.log("data", data, dialCode);
+    const travelersData = get(data, "travelersData", []);
+    const adultPassenger = first(
+      filter(travelersData, (traveler) => traveler.travelerType === "ADULT")
+    );
+    const flightOrderQuery = {
+      data: {
+        queuingOfficeId: "LOSN824NN",
+        ownerOfficeId: "LOSN824NN",
+        type: "flight-order",
+        flightOffers: [offerFromPricing],
+        travelers: travelersData.map((traveler) => ({
+          id: traveler.travelerId,
+          dateOfBirth: traveler.dateofbirth,
+          name: {
+            firstName: traveler.firstname,
+            lastName: traveler.lastname,
+          },
+          gender: traveler.title,
+          contact: {
+            emailAddress: data.email,
+            phones: [
+              {
+                deviceType: "MOBILE",
+                countryCallingCode: dialCode,
+                number: data.phone.replace(dialCode, ""),
+              },
+            ],
+          },
+          documents: [
+            {
+              documentType: "PASSPORT",
+              // birthPlace: "Madrid",
+              //  issuanceLocation: "Madrid",
+              //  issuanceDate: "2015-04-14",
+              number: traveler.passportid,
+              expiryDate: traveler.passportexpiry,
+              issuanceCountry: traveler.issuingauthority,
+              validityCountry: traveler.issuingauthority,
+              nationality: traveler.nationality,
+              holder: true,
+            },
+          ],
+        })),
+        remarks: {
+          general: [
+            {
+              subType: "GENERAL_MISCELLANEOUS",
+              text: "ONLINE BOOKING FROM NGABROAD",
+            },
+          ],
+        },
+        ticketingAgreement: {
+          option: "DELAY_TO_CANCEL",
+          delay: "6D",
+        },
+        contacts: [
+          {
+            addresseeName: {
+              firstName: "ADENIYI",
+              lastName: "SHERIFF",
+            },
+            companyName: "NAIJAGOINGABROAD LTD",
+            purpose: "STANDARD",
+            phones: [
+              {
+                deviceType: "MOBILE",
+                countryCallingCode: "234",
+                number: "9065369929",
+              },
+            ],
+            emailAddress: "info@naijagoingabroad.com",
+            address: {
+              lines: ["G206 Ogba Multipupose Shopping Mall"],
+              postalCode: "23401",
+              cityName: "Lagos",
+              countryCode: "NG",
+            },
+          },
+          {
+            addresseeName: {
+              firstName: adultPassenger.firstname,
+              lastName: adultPassenger.lastname,
+            },
+            companyName: "NAIJAGOINGABROAD LTD",
+            purpose: "STANDARD",
+            phones: [
+              {
+                deviceType: "MOBILE",
+                countryCallingCode: dialCode,
+                number: data.phone.replace(dialCode, ""),
+              },
+            ],
+            emailAddress: data.email,
+            address: {
+              lines: ["G206 Ogba Multipupose Shopping Mall"],
+              postalCode: "23401",
+              cityName: "Lagos",
+              countryCode: "NG",
+            },
+          },
+        ],
+      },
+    };
+
+    console.log("flightOrderQuery", flightOrderQuery);
+
+    try {
+      const flightOrder = await axios.post("/api/flights/createorder", {
+        data: JSON.stringify(flightOrderQuery),
+        offerPricing,
+        payment: data.payment,
+      });
+      console.log("flightOrder.data", flightOrder.data);
+    } catch (error) {
+      console.log("flightOrder.data", error.response, flightOrderQuery);
+    } finally {
+      setBlockLoading(false);
+    }
   };
 
   console.log("form", watch("phone"), errors);
@@ -178,12 +335,11 @@ export default function PassengerForm() {
         spacing={2}
         direction="row"
         justifyContent="space-between"
+        alignItems="flex-start"
         sx={{ p: 1 }}
       >
         <Typography sx={{ whiteSpace: "nowrap" }}>
-          {money(
-            get(first(get(offerPricing, "data", [])), "price.grandTotal", 0)
-          )}
+          {money(get(offerFromPricing, "price.grandTotal", 0))}
         </Typography>
         <Link
           onClick={() => setRulesDrawer(true)}
@@ -242,10 +398,12 @@ export default function PassengerForm() {
                     <PhoneInput
                       country={"ng"}
                       value={value}
-                      // defaultErrorMessage={get(errors, "phone.message", "Phone")}
+                      // @ts-ignore
                       onChange={(phone, countryData) => {
-                        console.log({ countryData });
+                        // @ts-ignore
+                        setDialCode(countryData.dialCode);
                         onChange(phone);
+                        // @ts-ignore
                       }}
                       inputProps={{
                         name: "phone",
@@ -263,7 +421,16 @@ export default function PassengerForm() {
         </Paper>
         <Stack spacing={2}>
           {fields.map((passenger, index) => {
-            console.log({ passenger });
+            console.log(
+              { passenger },
+              `${watch(
+                // @ts-ignore
+                `travelersData.${index}.firstname`
+              )} ${watch(
+                // @ts-ignore
+                `travelersData.${index}.lastname`
+              )}`
+            );
             return (
               <Paper key={passenger.id} sx={{ p: 2 }} variant="outlined">
                 <Stack
@@ -277,23 +444,26 @@ export default function PassengerForm() {
                       passenger.travelerId
                     }
                     :{" "}
-                    {`${watch(
+                    {!`${watch(
                       // @ts-ignore
                       `travelersData.${index}.firstname`
                     )} ${watch(
                       // @ts-ignore
                       `travelersData.${index}.lastname`
-                    )}`.length >= 2 &&
-                      truncate(
-                        titleCase(
-                          // @ts-ignore
-                          `${watch(`travelersData.${index}.firstname`)} ${watch(
-                            // @ts-ignore
-                            `travelersData.${index}.lastname`
-                          )}`
-                        ),
-                        { length: mobile ? 20 : 50 }
-                      )}
+                    )}`.includes("undefined")
+                      ? truncate(
+                          titleCase(
+                            `${watch(
+                              // @ts-ignore
+                              `travelersData.${index}.firstname`
+                            )} ${watch(
+                              // @ts-ignore
+                              `travelersData.${index}.lastname`
+                            )}`
+                          ),
+                          { length: mobile ? 20 : 50 }
+                        )
+                      : ""}
                   </Typography>
                   <Typography>
                     {
@@ -326,12 +496,75 @@ export default function PassengerForm() {
                             size="small"
                             fullWidth
                             required
-                            helperText={get(
-                              get(errors, "travelersData", [])[index],
-                              "firstname.message",
-                              ""
-                            )}
+                            helperText={
+                              <React.Fragment>
+                                {get(
+                                  get(errors, "travelersData", [])[index],
+                                  "firstname.message",
+                                  ""
+                                )}{" "}
+                                {get(
+                                  get(errors, "travelersData", [])[index],
+                                  "title.message",
+                                  ""
+                                )}
+                              </React.Fragment>
+                            }
                             FormHelperTextProps={{ sx: { color: "red" } }}
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment
+                                  sx={{
+                                    mt: 0.5,
+                                    "& .MuiSelect-icon": {
+                                      top: "calc(50% - .6em)",
+                                    },
+                                  }}
+                                  position="start"
+                                >
+                                  <Controller
+                                    // @ts-ignore
+                                    name={`travelersData.${index}.title`}
+                                    defaultValue="Title"
+                                    rules={{ required: true }}
+                                    control={control}
+                                    render={({ field }) => {
+                                      const { onChange, value, ...rest } =
+                                        field;
+                                      return (
+                                        <TextField
+                                          id="title"
+                                          select
+                                          fullWidth
+                                          size="small"
+                                          //  label="Title"
+                                          value={value}
+                                          onChange={(e) =>
+                                            onChange(e.target.value)
+                                          }
+                                          variant="standard"
+                                          InputProps={{
+                                            disableUnderline: true,
+                                          }}
+                                          required
+                                        >
+                                          {["Title", "Mr", "Mrs", "Ms"].map(
+                                            (option) => (
+                                              <MenuItem
+                                                key={option}
+                                                value={option}
+                                              >
+                                                {option}
+                                              </MenuItem>
+                                            )
+                                          )}
+                                        </TextField>
+                                      );
+                                    }}
+                                  />
+                                </InputAdornment>
+                              ),
+                            }}
                           />
                         );
                       }}
@@ -411,71 +644,6 @@ export default function PassengerForm() {
                   <Grid item xs={6} md={3}>
                     <Controller
                       // @ts-ignore
-                      name={`travelersData.${index}.title`}
-                      defaultValue=""
-                      rules={{ required: true }}
-                      control={control}
-                      render={({ field }) => {
-                        const { onChange, value, ...rest } = field;
-                        return (
-                          <TextField
-                            id="title"
-                            select
-                            fullWidth
-                            size="small"
-                            label="Title"
-                            value={value}
-                            onChange={(e) => onChange(e.target.value)}
-                            required
-                            helperText={get(
-                              get(errors, "travelersData", [])[index],
-                              "title.message",
-                              ""
-                            )}
-                            FormHelperTextProps={{ sx: { color: "red" } }}
-                          >
-                            {["Mr", "Mrs", "Ms"].map((option) => (
-                              <MenuItem key={option} value={option}>
-                                {option}
-                              </MenuItem>
-                            ))}
-                          </TextField>
-                        );
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={6} md={3}>
-                    <Controller
-                      // @ts-ignore
-                      name={`travelersData.${index}.passportid`}
-                      defaultValue=""
-                      rules={{ required: true }}
-                      control={control}
-                      render={({ field }) => {
-                        const { onChange, value, ...rest } = field;
-                        return (
-                          <TextField
-                            {...field}
-                            required
-                            id="passportid"
-                            label="Passport Number"
-                            variant="outlined"
-                            size="small"
-                            fullWidth
-                            helperText={get(
-                              get(errors, "travelersData", [])[index],
-                              "passportid.message",
-                              ""
-                            )}
-                            FormHelperTextProps={{ sx: { color: "red" } }}
-                          />
-                        );
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={6} md={3}>
-                    <Controller
-                      // @ts-ignore
                       name={`travelersData.${index}.dateofbirth`}
                       // @ts-ignore
                       defaultValue={new Date()}
@@ -509,17 +677,141 @@ export default function PassengerForm() {
                         );
                       }}
                     />
-                    <Typography
-                      sx={{ pl: 1, pt: 1 }}
-                      color="red"
-                      variant="caption"
-                    >
-                      {get(
-                        get(errors, "travelersData", [])[index],
-                        "dateofbirth.message",
-                        ""
+                    {get(
+                      get(errors, "travelersData", [])[index],
+                      "dateofbirth.message",
+                      ""
+                    ) && (
+                      <Typography
+                        sx={{ pl: 1, pt: 1 }}
+                        color="red"
+                        variant="caption"
+                      >
+                        {get(
+                          get(errors, "travelersData", [])[index],
+                          "dateofbirth.message",
+                          ""
+                        )}
+                      </Typography>
+                    )}
+                  </Grid>
+                  <Grid sx={{ py: 1 }} xs={12}>
+                    <Divider sx={{ mr: -2 }}>
+                      <Chip
+                        color="primary"
+                        size="small"
+                        label="Passport Information"
+                      />
+                    </Divider>
+                  </Grid>
+                  <Grid item xs={6} md={3}>
+                    <Controller
+                      // @ts-ignore
+                      name={`travelersData.${index}.passportid`}
+                      defaultValue=""
+                      rules={{ required: true }}
+                      control={control}
+                      render={({ field }) => {
+                        const { onChange, value, ...rest } = field;
+                        return (
+                          <TextField
+                            {...field}
+                            required
+                            id="passportid"
+                            label="Passport Number"
+                            variant="outlined"
+                            size="small"
+                            fullWidth
+                            helperText={get(
+                              get(errors, "travelersData", [])[index],
+                              "passportid.message",
+                              ""
+                            )}
+                            FormHelperTextProps={{ sx: { color: "red" } }}
+                          />
+                        );
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={6} md={3}>
+                    <Controller
+                      // @ts-ignore
+                      name={`travelersData.${index}.issuingauthority`}
+                      // @ts-ignore
+                      defaultValue={find(
+                        countries,
+                        (country) => country.name === "Nigeria"
                       )}
-                    </Typography>
+                      // rules={{ required: true }}
+                      control={control}
+                      render={({ field }) => {
+                        const { onChange, value, ...rest } = field;
+                        return (
+                          <Autocomplete
+                            // @ts-ignore
+                            value={value}
+                            disablePortal
+                            id="issuingauthority"
+                            options={countries}
+                            onChange={(event, newValue) => {
+                              onChange(newValue);
+                            }}
+                            getOptionLabel={(option) => option.name}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                size="small"
+                                fullWidth
+                                label="Issuing Authority"
+                                helperText={get(
+                                  get(errors, "travelersData", [])[index],
+                                  "issuingauthority.message",
+                                  ""
+                                )}
+                                FormHelperTextProps={{ sx: { color: "red" } }}
+                              />
+                            )}
+                          />
+                        );
+                      }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={6} md={3}>
+                    <Controller
+                      // @ts-ignore
+                      name={`travelersData.${index}.passportexpiry`}
+                      // @ts-ignore
+                      defaultValue={new Date()}
+                      rules={{ required: true }}
+                      control={control}
+                      render={({ field }) => {
+                        const { onChange, value, ...rest } = field;
+                        return (
+                          <PassportExpiryDate
+                            value={value}
+                            onChange={onChange}
+                          />
+                        );
+                      }}
+                    />
+                    {get(
+                      get(errors, "travelersData", [])[index],
+                      "passportexpiry.message",
+                      ""
+                    ) && (
+                      <Typography
+                        sx={{ pl: 1, pt: 1 }}
+                        color="red"
+                        variant="caption"
+                      >
+                        {get(
+                          get(errors, "travelersData", [])[index],
+                          "passportexpiry.message",
+                          ""
+                        )}
+                      </Typography>
+                    )}
                   </Grid>
                 </Grid>
               </Paper>
@@ -578,7 +870,7 @@ export default function PassengerForm() {
         onClose={closeDrawer}
       >
         <SegmentCards
-          updatedOffer={first(get(offerPricing, "data", []))}
+          updatedOffer={offerFromPricing}
           closeDrawer={closeDrawer}
         />
       </Drawer>
@@ -603,6 +895,7 @@ export default function PassengerForm() {
             <Typography>TICKET RULES</Typography>
             <CloseOutlinedIcon onClick={closeRule} sx={{ cursor: "pointer" }} />
           </Paper>
+
           <Stack
             divider={<Divider orientation="horizontal" flexItem />}
             sx={{ p: 1 }}

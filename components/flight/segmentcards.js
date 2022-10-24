@@ -700,7 +700,10 @@ export default function SegmentCards({ closeDrawer, updatedOffer = null }) {
                     sx={{ mr: 2 }}
                     variant="caption"
                   >
-                    {startCase(lowerCase(price.travelerType))}
+                    {startCase(lowerCase(price.travelerType)).replace(
+                      "Held",
+                      ""
+                    )}
                   </Typography>
                 </Stack>
               ))}

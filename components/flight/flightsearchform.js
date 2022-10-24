@@ -191,6 +191,12 @@ export default function FlightSearchForm({ mutate }) {
       toast.error("Arrival Location is required");
       return;
     }
+
+    if (dayjs(endDate).diff(dayjs(startDate), "day") <= 1) {
+      toast.error("minimum of two days stay required");
+      return;
+    }
+
     const queryParams = {
       trip: trip,
       currencyCode: "NGN",
