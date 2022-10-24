@@ -20,8 +20,8 @@
 }
 
 .react-tel-input .special-label {
-  font-size: 0.67rem;
+  font-size: 0.75em;
   font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-  color: rgba(0, 0, 0, 0.6);
+  color: rgba(105, 105, 105, 0.6);
   font-weight: 400;
 }

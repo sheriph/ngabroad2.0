@@ -53,7 +53,7 @@ export default async function handler(req, res) {
 
     const config = {
       method: "post",
-      url: "https://test.api.amadeus.com/v1/shopping/flight-offers/pricing",
+      url: "https://test.api.amadeus.com/v1/shopping/flight-offers/pricing?include=detailed-fare-rules&forceClass=false",
       headers: {
         "Content-Type": "application/json",
         "X-HTTP-Method-Override": "GET",

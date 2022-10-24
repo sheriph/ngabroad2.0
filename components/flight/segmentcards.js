@@ -84,9 +84,10 @@ const getFlightOfferPricing = async (offer) => {
   }
 };
 
-export default function SegmentCards({ closeDrawer }) {
+export default function SegmentCards({ closeDrawer, updatedOffer = null }) {
+  console.log("updatedOffer", updatedOffer);
   const setBlockLoading = useSetRecoilState(blockLoading_);
-  const flightOffer = useRecoilValue(flightOffer_);
+  const flightOffer = updatedOffer || useRecoilValue(flightOffer_);
   const [book, setBook] = React.useState(false);
   const [open, setOpen] = React.useState(1000);
   const [showPrice, setShowPrice] = React.useState(false);
@@ -699,7 +700,7 @@ export default function SegmentCards({ closeDrawer }) {
                     sx={{ mr: 2 }}
                     variant="caption"
                   >
-                    {titleCase(price.travelerType)}
+                    {startCase(lowerCase(price.travelerType))}
                   </Typography>
                 </Stack>
               ))}
