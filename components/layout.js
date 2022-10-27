@@ -16,7 +16,6 @@ export default function Layout({ children }) {
   const post = useRecoilValue(post_);
   const [loading, setLoading] = useRecoilState(isLoading_);
   const [blockLoading, setBlockLoading] = useRecoilState(blockLoading_);
-  const { isValidating, loading: loadingUser } = useAuthUser();
 
   React.useEffect(() => {
     Router.events.on("routeChangeStart", (url) => {
@@ -35,7 +34,7 @@ export default function Layout({ children }) {
   }, [Router]);
 
   return (
-    <Container>
+    <Container maxWidth="lg">
       <Stack>
         <Loading isAnimating={loading} />
         <BlockingLoading isAnimating={blockLoading} />

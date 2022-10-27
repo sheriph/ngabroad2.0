@@ -20,7 +20,12 @@ import PhoneInput from "react-phone-input-2";
 import { countries, money, titleCase } from "../../lib/utility";
 import DatePicker from "react-datepicker";
 import DateOfBirth from "./dateofbirth";
-import { blockLoading_, flightOffer_, OfferPricing_ } from "../../lib/recoil";
+import {
+  blockLoading_,
+  flightOffer_,
+  OfferPricing_,
+  retrieveFlightKey_,
+} from "../../lib/recoil";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import SegmentCards from "./segmentcards";
 import {
@@ -43,6 +48,8 @@ import ArticleRender from "../others/articlerender";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import PassportExpiryDate from "./passportexpirydate";
 import axios from "axios";
+import { setCookie } from "cookies-next";
+import { useRouter } from "next/router";
 
 export default function PassengerForm() {
   const offerPricing = useRecoilValue(OfferPricing_);
@@ -50,6 +57,8 @@ export default function PassengerForm() {
   const mobile = useMediaQuery("(max-width:900px)", { noSsr: true });
   const [dialCode, setDialCode] = React.useState("");
   const setBlockLoading = useSetRecoilState(blockLoading_);
+  const setRetrieveFlightKey = useSetRecoilState(retrieveFlightKey_);
+  const router = useRouter();
 
   const schema = Yup.object({
     travelersData: Yup.array().of(
@@ -206,6 +215,7 @@ export default function PassengerForm() {
     const adultPassenger = first(
       filter(travelersData, (traveler) => traveler.travelerType === "ADULT")
     );
+
     const flightOrderQuery = {
       data: {
         queuingOfficeId: "LOSN824NN",
@@ -314,7 +324,25 @@ export default function PassengerForm() {
         offerPricing,
         payment: data.payment,
       });
+
+      const reference = get(
+        find(get(flightOrder.data, "flightOrder.data.associatedRecords", []), {
+          originSystemCode: "GDS",
+        }),
+        "reference",
+        ""
+      );
+      const lastname = get(
+        first(get(flightOrder.data, "flightOrder.data.travelers", [])),
+        "name.lastName",
+        ""
+      );
+
       console.log("flightOrder.data", flightOrder.data);
+      // @ts-ignore
+      setRetrieveFlightKey({ reference, lastname });
+      //  setCookie("findbooking", JSON.stringify({ reference, lastname }), {});
+      router.push("/flights/confirm-booking");
     } catch (error) {
       console.log("flightOrder.data", error.response, flightOrderQuery);
     } finally {

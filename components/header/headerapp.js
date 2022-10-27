@@ -88,7 +88,7 @@ export default function HeaderApp(props) {
       <AppBar sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <Box>
           <SearchMobile />
-          <Toolbar variant="dense">
+          <Toolbar component={Container} maxWidth="lg" variant="dense">
             <Stack sx={{ mr: 1 }}>LOGO</Stack>
             <Typography component="div">
               <OtherMenu />

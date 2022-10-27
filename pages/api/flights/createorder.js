@@ -68,18 +68,15 @@ export default async function handler(req, res) {
     // @ts-ignore
     const response = await axios(config);
 
-    await client
-      .db("nga")
-      .collection("flightorder")
-      .insertOne({
-        payment,
-        trip: first(offerPricing.data).trip,
-        reference: response.data.data.id,
-        associatedRecords: response.data.data.associatedRecords,
-        penalties: offerPricing.included,
-      });
+    const createdOrder = {
+      payment,
+      offerPricing: offerPricing,
+      flightOrder: response.data,
+    };
 
-    res.status(200).json(response.data);
+    await client.db("nga").collection("flightorder").insertOne(createdOrder);
+
+    res.status(200).json(createdOrder);
   } catch (error) {
     console.log("error", error.response.data);
     res.status(400).json(error.response.data);

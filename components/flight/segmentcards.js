@@ -6,8 +6,11 @@ import {
   Button,
   Chip,
   Collapse,
+  Divider,
+  Drawer,
   Grid,
   IconButton,
+  Link,
   Paper,
   Stack,
   Typography,
@@ -63,6 +66,12 @@ import AirlineName from "./airlinename";
 import useSWRImmutable from "swr/immutable";
 import axios from "axios";
 import { useRouter } from "next/router";
+import CheckOutlinedIcon from "@mui/icons-material/CheckOutlined";
+import ArticleRender from "../others/articlerender";
+import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
+
+const advancedFormat = require("dayjs/plugin/advancedFormat");
+dayjs.extend(advancedFormat);
 
 const getFlightOfferPricing = async (offer) => {
   try {
@@ -84,7 +93,12 @@ const getFlightOfferPricing = async (offer) => {
   }
 };
 
-export default function SegmentCards({ closeDrawer, updatedOffer = null }) {
+export default function SegmentCards({
+  closeDrawer,
+  updatedOffer = null,
+  flightOrder = null,
+  offerPricing2 = null,
+}) {
   console.log("updatedOffer", updatedOffer);
   const setBlockLoading = useSetRecoilState(blockLoading_);
   const flightOffer = updatedOffer || useRecoilValue(flightOffer_);
@@ -92,6 +106,9 @@ export default function SegmentCards({ closeDrawer, updatedOffer = null }) {
   const [open, setOpen] = React.useState(1000);
   const [showPrice, setShowPrice] = React.useState(false);
   const setOfferPricing = useSetRecoilState(OfferPricing_);
+  const [rulesDrawer, setRulesDrawer] = React.useState(false);
+  const closeRule = () => setRulesDrawer(false);
+
   const router = useRouter();
 
   const {
@@ -127,22 +144,25 @@ export default function SegmentCards({ closeDrawer, updatedOffer = null }) {
     }
   }, [isLoading, isValidating]);
 
-  const VerticalLine = ({ height = 30 }) => (
-    <Box
-      sx={{
-        //  borderLeft: "0.5px",
-        background: (t) => t.palette.grey[500],
-        //  borderStyle: "solid",
-        height: height,
-        width: "1px",
-        //  ml: 0.6,
-        // mr: 1.6,
-        position: "absolute",
-        left: 91,
-        zIndex: 1,
-      }}
-    />
-  );
+  const VerticalLine = ({ height = 30 }) => {
+    if (flightOrder) return <></>;
+    return (
+      <Box
+        sx={{
+          //  borderLeft: "0.5px",
+          background: (t) => t.palette.grey[500],
+          //  borderStyle: "solid",
+          height: height,
+          width: "1px",
+          //  ml: 0.6,
+          // mr: 1.6,
+          position: "absolute",
+          left: 91,
+          zIndex: 1,
+        }}
+      />
+    );
+  };
 
   const sx = {
     width: 15,
@@ -192,21 +212,34 @@ export default function SegmentCards({ closeDrawer, updatedOffer = null }) {
 
   console.log("endIataCode2", startIataCode, endIataCode, endIataCode2, trip);
 
+  const reference = get(
+    find(get(flightOrder, "data.associatedRecords", []), {
+      originSystemCode: "GDS",
+    }),
+    "reference",
+    ""
+  );
+
+  const bookingDate = get(
+    find(get(flightOrder, "data.associatedRecords", []), {
+      originSystemCode: "GDS",
+    }),
+    "creationDate",
+    null
+  );
+
   return (
     <Stack sx={{ backgroundColor: (t) => t.palette.background.default }}>
-      <Stack
-        justifyContent="space-between"
-        alignItems="center"
-        direction="row"
-        component={Paper}
-        square
-        sx={{ p: 1 }}
-      >
-        <Stack>
-          <Typography gutterBottom variant="h1">
-            Full Itinerary Details
-          </Typography>
-          <Typography variant="h2">
+      {flightOrder ? (
+        <Stack
+          //  alignItems="center"
+          // direction="row"
+          component={Paper}
+          //  square
+          sx={{ p: 1 }}
+          spacing={1}
+        >
+          <Typography textAlign="center">
             <LocationName
               iataCode={startIataCode}
               isAirport={false}
@@ -223,11 +256,99 @@ export default function SegmentCards({ closeDrawer, updatedOffer = null }) {
               />
             )}
           </Typography>
+
+          <Stack direction="row" justifyContent="space-between">
+            <Typography>Booking Reference:</Typography>
+            <Stack spacing={0.5} direction="row">
+              {/*  <Typography>{reference}</Typography> */}
+              <Chip size="small" label={reference} color="primary" />
+              <Chip
+                size="small"
+                icon={<CheckOutlinedIcon />}
+                label="Active"
+                color="success"
+              />
+            </Stack>
+          </Stack>
+          <Stack direction="row" justifyContent="space-between">
+            <Typography>Booking Date:</Typography>
+            <Typography>
+              {dayjs(bookingDate).format("Do MMM YYYY [at] hh:mm a")}
+            </Typography>
+          </Stack>
+          {/* <Stack direction="row" justifyContent="space-between">
+            <Typography>Booking Status:</Typography>
+            <Typography>
+              <Chip
+                size="small"
+                icon={<CheckOutlinedIcon />}
+                label="Active"
+                color="success"
+              />
+            </Typography>
+          </Stack> */}
+          <Stack direction="row" justifyContent="space-between">
+            <Typography>Passenger(s):</Typography>
+            <Box>
+              {get(flightOrder, "data.travelers", []).map((traveler, index) => (
+                <Stack spacing={1} key={index} direction="row">
+                  <Typography sx={{ fontWeight: "bold" }}>
+                    {titleCase(get(traveler, "name.lastName", ""))}
+                  </Typography>
+                  <Typography key={index}>
+                    {titleCase(get(traveler, "name.firstName", ""))}
+                  </Typography>
+                </Stack>
+              ))}
+            </Box>
+          </Stack>
+          <Stack sx={{ mt: 1 }} direction="row" justifyContent="space-between">
+            <Typography></Typography>
+            <Link
+              onClick={() => setRulesDrawer(true)}
+              underline="always"
+              sx={{ cursor: "pointer" }}
+            >
+              See Booking Conditions
+            </Link>
+          </Stack>
         </Stack>
-        <IconButton onClick={closeDrawer}>
-          <ClearIcon />
-        </IconButton>
-      </Stack>
+      ) : (
+        <Stack
+          justifyContent="space-between"
+          alignItems="center"
+          direction="row"
+          component={Paper}
+          square
+          sx={{ p: 1 }}
+        >
+          <Stack>
+            <Typography gutterBottom variant="h1">
+              Full Itinerary Details
+            </Typography>
+            <Typography variant="h2">
+              <LocationName
+                iataCode={startIataCode}
+                isAirport={false}
+                showCountry={false}
+              />{" "}
+              -{" "}
+              {trip === "multi" ? (
+                "Multiple Destinations"
+              ) : (
+                <LocationName
+                  iataCode={trip === "return" ? endIataCode2 : endIataCode}
+                  isAirport={false}
+                  showCountry={false}
+                />
+              )}
+            </Typography>
+          </Stack>
+          <IconButton onClick={closeDrawer}>
+            <ClearIcon />
+          </IconButton>
+        </Stack>
+      )}
       {get(flightOffer, "itineraries", []).map(
         (itinerary, itineraryIndex, itineraries) => {
           return (
@@ -710,22 +831,81 @@ export default function SegmentCards({ closeDrawer, updatedOffer = null }) {
             </Stack>
           </Collapse>
         </Stack>
-        <Button
-          onClick={() => {
-            if (!book) {
-              setBook(true);
-            } else {
-              mutate();
-            }
-          }}
-          disabled={router.pathname === "/flights/complete-booking"}
-          size="small"
-          variant="contained"
-          sx={{ ml: 2 }}
-        >
-          Book Now
-        </Button>
+        {!flightOrder && (
+          <Button
+            onClick={() => {
+              if (!book) {
+                setBook(true);
+              } else {
+                mutate();
+              }
+            }}
+            disabled={router.pathname === "/flights/complete-booking"}
+            size="small"
+            variant="contained"
+            sx={{ ml: 2 }}
+          >
+            Book Now
+          </Button>
+        )}
       </Stack>
+      <Drawer
+        sx={{
+          // width: { sm: "100%", md: "700px" },
+          zIndex: (t) => t.zIndex.appBar + 105,
+          "& .MuiDrawer-paper": { width: { xs: "100%", md: 450 } },
+        }}
+        anchor="left"
+        open={rulesDrawer}
+        onClose={closeRule}
+      >
+        <Stack>
+          <Paper
+            justifyContent="space-between"
+            component={Stack}
+            variant="outlined"
+            direction="row"
+            sx={{ p: 1 }}
+          >
+            <Typography>TICKET RULES</Typography>
+            <CloseOutlinedIcon onClick={closeRule} sx={{ cursor: "pointer" }} />
+          </Paper>
+
+          <Stack
+            divider={<Divider orientation="horizontal" flexItem />}
+            sx={{ p: 1 }}
+            spacing={2}
+          >
+            {uniqBy(
+              Array.from(
+                Object.values(
+                  get(offerPricing2, `included["detailed-fare-rules"]`, {})
+                )
+              ),
+              "fareBasis"
+            ).map((rule, index) => (
+              <Stack>
+                <Typography sx={{ py: 2 }} variant="h1" textAlign="center">
+                  {titleCase(rule.name)} - {rule.fareBasis}{" "}
+                </Typography>
+                <ArticleRender
+                  content={titleCase(
+                    get(
+                      find(
+                        get(rule, "fareNotes.descriptions", []),
+                        (description) =>
+                          description.descriptionType === "PENALTIES"
+                      ),
+                      "text",
+                      ""
+                    )
+                  )}
+                />
+              </Stack>
+            ))}
+          </Stack>
+        </Stack>
+      </Drawer>
     </Stack>
   );
 }
