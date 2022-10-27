@@ -41,6 +41,7 @@ import {
 import {
   find,
   first,
+  forEach,
   get,
   last,
   lowerCase,
@@ -69,6 +70,7 @@ import { useRouter } from "next/router";
 import CheckOutlinedIcon from "@mui/icons-material/CheckOutlined";
 import ArticleRender from "../others/articlerender";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
+import { toast } from "react-toastify";
 
 const advancedFormat = require("dayjs/plugin/advancedFormat");
 dayjs.extend(advancedFormat);
@@ -89,6 +91,14 @@ const getFlightOfferPricing = async (offer) => {
     return offerPricing.data;
   } catch (error) {
     console.log("error", error.response);
+    forEach(get(error.response, "data.errors", []), (error, index) => {
+      toast.error(
+        <React.Fragment>
+          <Typography>{titleCase(error.title)}</Typography>
+          <Typography variant="caption">{titleCase(error.detail)}</Typography>
+        </React.Fragment>
+      );
+    });
     throw new Error(error);
   }
 };

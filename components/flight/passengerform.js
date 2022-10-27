@@ -1,4 +1,6 @@
 import {
+  Alert,
+  AlertTitle,
   Autocomplete,
   Box,
   Button,
@@ -32,6 +34,7 @@ import {
   filter,
   find,
   first,
+  forEach,
   get,
   lowerCase,
   trim,
@@ -50,6 +53,7 @@ import PassportExpiryDate from "./passportexpirydate";
 import axios from "axios";
 import { setCookie } from "cookies-next";
 import { useRouter } from "next/router";
+import { useToast, toast } from "react-toastify";
 
 export default function PassengerForm() {
   const offerPricing = useRecoilValue(OfferPricing_);
@@ -345,6 +349,14 @@ export default function PassengerForm() {
       router.push("/flights/confirm-booking");
     } catch (error) {
       console.log("flightOrder.data", error.response, flightOrderQuery);
+      forEach(get(error.response, "data.errors", []), (error, index) => {
+        toast.error(
+          <React.Fragment>
+            <Typography>{titleCase(error.title)}</Typography>
+            <Typography variant="caption">{titleCase(error.detail)}</Typography>
+          </React.Fragment>
+        );
+      });
     } finally {
       setBlockLoading(false);
     }
