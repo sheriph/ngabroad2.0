@@ -18,6 +18,7 @@ import {
   MjmlWrapper,
   MjmlSpacer,
   MjmlRaw,
+  MjmlHead,
 } from "mjml-react";
 import FlightEmailSegment from "../../../components/flight/email/flightsegment";
 import {
@@ -35,8 +36,6 @@ import LocationName from "../../../components/flight/airportname";
 import { getCookie } from "cookies-next";
 import axios from "axios";
 import { titleCase } from "../../../lib/utility";
-
-const myCache = require("memory-cache");
 
 const advancedFormat = require("dayjs/plugin/advancedFormat");
 dayjs.extend(advancedFormat);
@@ -59,7 +58,6 @@ export default async function generateEmail(req, res) {
   console.time("start");
 
   const { flightOffer, flightOrder, offerPricing2 } = req.body;
-  myCache.put("samplecache", { name: "sjeriff" });
   // console.log("flightOffer", flightOffer);
 
   //console.log("offer", offer);
@@ -120,6 +118,9 @@ export default async function generateEmail(req, res) {
 
   const { html, errors } = render(
     <Mjml>
+      <MjmlHead>
+        <MjmlTitle>{`Your Flight Booking : ${reference}`}</MjmlTitle>
+      </MjmlHead>
       <MjmlBody>
         <MjmlSection backgroundColor={"#5348dc"}>
           <MjmlColumn>
@@ -161,7 +162,7 @@ export default async function generateEmail(req, res) {
         <MjmlSection padding="0px">
           <MjmlColumn>
             <MjmlText
-              fontSize={16}
+              fontSize="11px"
               fontWeight={500}
               color="#5348dc"
               align="left"
@@ -283,21 +284,21 @@ export default async function generateEmail(req, res) {
                             paddingRight="0px"
                             width="35%"
                           >
-                            <MjmlText paddingBottom="0px">
+                            <MjmlText fontSize="11px" paddingBottom="0px">
                               {getLocationName(
                                 get(segment, "departure.iataCode", {}),
                                 false,
                                 false
                               )}
                             </MjmlText>
-                            <MjmlText paddingBottom="0px">
+                            <MjmlText  fontSize="11px" paddingBottom="0px">
                               {getLocationName(
                                 get(segment, "departure.iataCode", {}),
                                 true,
                                 false
                               )}
                             </MjmlText>
-                            <MjmlText paddingBottom="0px">
+                            <MjmlText  fontSize="11px" paddingBottom="0px">
                               {dayjs(
                                 get(segment, "departure.at", new Date())
                               ).format("ddd MMM DD h:mma")}
@@ -308,15 +309,15 @@ export default async function generateEmail(req, res) {
                             paddingRight="0px"
                             width="25%"
                           >
-                            <MjmlText paddingBottom="0px" align="center">
+                            <MjmlText  fontSize="11px" paddingBottom="0px" align="center">
                               {titleCase(get(segment, "carrierCode", ""))}
                             </MjmlText>
                             <MjmlDivider
                               borderWidth="1px"
                               padding="10px 0px 0px 0px"
                             />
-                            <MjmlText paddingBottom="0px" align="center">
-                              Economy
+                            <MjmlText  fontSize="11px" paddingBottom="0px" align="center">
+                              {titleCase(cabin)}
                             </MjmlText>
                           </MjmlColumn>
                           <MjmlColumn
@@ -324,21 +325,21 @@ export default async function generateEmail(req, res) {
                             paddingRight="0px"
                             width="35%"
                           >
-                            <MjmlText paddingBottom="0px">
+                            <MjmlText  fontSize="11px" paddingBottom="0px">
                               {getLocationName(
                                 get(segment, "arrival.iataCode", {}),
                                 false,
                                 false
                               )}
                             </MjmlText>
-                            <MjmlText paddingBottom="0px">
+                            <MjmlText  fontSize="11px" paddingBottom="0px">
                               {getLocationName(
                                 get(segment, "arrival.iataCode", {}),
                                 true,
                                 false
                               )}
                             </MjmlText>
-                            <MjmlText paddingBottom="0px">
+                            <MjmlText  fontSize="11px" paddingBottom="0px">
                               {dayjs(
                                 get(segment, "arrival.at", new Date())
                               ).format("ddd MMM DD h:mma")}
@@ -501,7 +502,7 @@ export default async function generateEmail(req, res) {
     },
   });
 
-  transporter.sendMail(
+    transporter.sendMail(
     {
       from: "info@naijagoingabroad.com",
       to: [
@@ -529,5 +530,5 @@ export default async function generateEmail(req, res) {
 
   console.timeEnd("start");
 
-  return res.send(true);
+  return res.send(html);
 }
