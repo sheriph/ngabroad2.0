@@ -19,7 +19,13 @@ import {
 } from "@mui/material";
 import React from "react";
 import PhoneInput from "react-phone-input-2";
-import { countries, money, titleCase } from "../../lib/utility";
+import {
+  countries,
+  money,
+  revalidateToken,
+  titleCase,
+  viewErrors,
+} from "../../lib/utility";
 import DatePicker from "react-datepicker";
 import DateOfBirth from "./dateofbirth";
 import {
@@ -54,6 +60,7 @@ import axios from "axios";
 import { setCookie } from "cookies-next";
 import { useRouter } from "next/router";
 import { useToast, toast } from "react-toastify";
+import { useSWRConfig } from "swr";
 
 export default function PassengerForm() {
   const offerPricing = useRecoilValue(OfferPricing_);
@@ -63,6 +70,9 @@ export default function PassengerForm() {
   const setBlockLoading = useSetRecoilState(blockLoading_);
   const setRetrieveFlightKey = useSetRecoilState(retrieveFlightKey_);
   const router = useRouter();
+  const { cache } = useSWRConfig();
+
+  console.log("offerPricing", offerPricing);
 
   const schema = Yup.object({
     travelersData: Yup.array().of(
@@ -212,6 +222,49 @@ export default function PassengerForm() {
 
   console.log("flightOffer", flightOffer, offerPricing);
 
+  const getModifyOffer = () => {
+    const offer = first(get(offerPricing, "data", []));
+    const newOffer = {
+      // @ts-ignore
+      ...offer,
+      // @ts-ignore
+      itineraries: offer.itineraries.map((itinerary) => ({
+        ...itinerary,
+        segments: itinerary.segments.map((segment) => ({
+          ...segment,
+          carrierCode: get(cache.get(segment.carrierCode), "data", ""),
+          departure: {
+            ...segment.departure,
+            iataCode: get(cache.get(segment.departure.iataCode), "data", {}),
+          },
+          arrival: {
+            ...segment.departure,
+            iataCode: get(cache.get(segment.arrival.iataCode), "data", {}),
+          },
+        })),
+      })),
+    };
+
+    // @ts-ignore
+    // setFlightOffer(newOffer);
+    console.log("modifyOffer", newOffer, offer);
+    return newOffer;
+  };
+
+  const sendEmail = async (flightOrder) => {
+    try {
+      //  await revalidateToken();
+      const email = await axios.post("/api/flights/orderemail", {
+        flightOffer: getModifyOffer(),
+        flightOrder,
+        offerPricing2: offerPricing,
+      });
+      console.log("email", email);
+    } catch (error) {
+      console.log("email.data error.response", error.response);
+    }
+  };
+
   const onSubmit = async (data) => {
     setBlockLoading(true);
     console.log("data", data, dialCode);
@@ -323,6 +376,7 @@ export default function PassengerForm() {
     console.log("flightOrderQuery", flightOrderQuery);
 
     try {
+      await revalidateToken();
       const flightOrder = await axios.post("/api/flights/createorder", {
         data: JSON.stringify(flightOrderQuery),
         offerPricing,
@@ -346,17 +400,12 @@ export default function PassengerForm() {
       // @ts-ignore
       setRetrieveFlightKey({ reference, lastname });
       //  setCookie("findbooking", JSON.stringify({ reference, lastname }), {});
-      router.push("/flights/confirm-booking");
+      await sendEmail(flightOrder.data).finally(() =>
+        router.push("/flights/confirm-booking")
+      );
     } catch (error) {
       console.log("flightOrder.data", error.response, flightOrderQuery);
-      forEach(get(error.response, "data.errors", []), (error, index) => {
-        toast.error(
-          <React.Fragment>
-            <Typography>{titleCase(error.title)}</Typography>
-            <Typography variant="caption">{titleCase(error.detail)}</Typography>
-          </React.Fragment>
-        );
-      });
+      viewErrors(get(error.response, "data.errors", []));
     } finally {
       setBlockLoading(false);
     }

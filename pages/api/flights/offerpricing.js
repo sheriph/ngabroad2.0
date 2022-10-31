@@ -3,7 +3,7 @@ import { setCookie } from "cookies-next";
 import axios from "axios";
 import { get } from "lodash";
 
-var qs = require("qs");
+/* var qs = require("qs");
 var data = qs.stringify({
   client_id: process.env.CLIENT_ID,
   client_secret: process.env.CLIENT_SECRET,
@@ -16,7 +16,7 @@ var tokenConfig = {
     "Content-Type": "application/x-www-form-urlencoded",
   },
   data: data,
-};
+}; */
 
 export default async function handler(req, res) {
   const { data } = req.body;
@@ -24,7 +24,7 @@ export default async function handler(req, res) {
   console.log("OFFERPRICING SEARCH", trip);
 
   try {
-    if (!getCookie("accessToken", { req, res })) {
+   /*  if (!getCookie("accessToken", { req, res })) {
       // @ts-ignore
       const response = await axios(tokenConfig);
 
@@ -37,7 +37,7 @@ export default async function handler(req, res) {
         sameSite: "none",
         httpOnly: true,
       });
-    }
+    } */
 
     console.log("token", getCookie("accessToken", { req, res }));
 

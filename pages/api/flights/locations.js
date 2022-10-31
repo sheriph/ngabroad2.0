@@ -2,7 +2,7 @@ import { getCookie } from "cookies-next";
 import { setCookie } from "cookies-next";
 import axios from "axios";
 
-var qs = require("qs");
+/* var qs = require("qs");
 var data = qs.stringify({
   client_id: process.env.CLIENT_ID,
   client_secret: process.env.CLIENT_SECRET,
@@ -15,14 +15,14 @@ var tokenConfig = {
     "Content-Type": "application/x-www-form-urlencoded",
   },
   data: data,
-};
+}; */
 
 export default async function handler(req, res) {
   const { keyword } = req.body;
   console.log("keyword", keyword);
 
   try {
-    if (!getCookie("accessToken", { req, res })) {
+    /* if (!getCookie("accessToken", { req, res })) {
       // @ts-ignore
       const response = await axios(tokenConfig);
 
@@ -35,7 +35,7 @@ export default async function handler(req, res) {
         sameSite: "none",
         httpOnly: true,
       });
-    }
+    } */
 
     console.log("token", getCookie("accessToken", { req, res }));
 

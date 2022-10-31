@@ -51,7 +51,13 @@ import {
   uniq,
   uniqBy,
 } from "lodash";
-import { getStops, money, titleCase } from "../../lib/utility";
+import {
+  getStops,
+  money,
+  revalidateToken,
+  titleCase,
+  viewErrors,
+} from "../../lib/utility";
 import dayjs from "dayjs";
 import LocationName from "./airportname";
 import UnfoldLessIcon from "@mui/icons-material/UnfoldLess";
@@ -77,6 +83,7 @@ dayjs.extend(advancedFormat);
 
 const getFlightOfferPricing = async (offer) => {
   try {
+    await revalidateToken();
     const trip = JSON.parse(offer).trip;
     const data = {
       data: {
@@ -91,14 +98,7 @@ const getFlightOfferPricing = async (offer) => {
     return offerPricing.data;
   } catch (error) {
     console.log("error", error.response);
-    forEach(get(error.response, "data.errors", []), (error, index) => {
-      toast.error(
-        <React.Fragment>
-          <Typography>{titleCase(error.title)}</Typography>
-          <Typography variant="caption">{titleCase(error.detail)}</Typography>
-        </React.Fragment>
-      );
-    });
+    viewErrors(get(error.response, "data.errors", []));
     throw new Error(error);
   }
 };
@@ -118,6 +118,8 @@ export default function SegmentCards({
   const setOfferPricing = useSetRecoilState(OfferPricing_);
   const [rulesDrawer, setRulesDrawer] = React.useState(false);
   const closeRule = () => setRulesDrawer(false);
+
+  console.log('offerPricing2', offerPricing2)
 
   const router = useRouter();
 

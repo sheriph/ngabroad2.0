@@ -19,7 +19,7 @@ import {
 import LocationCityOutlinedIcon from "@mui/icons-material/LocationCityOutlined";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
 import { debounce, fill, get } from "lodash";
-import { titleCase } from "../../lib/utility";
+import { revalidateToken, titleCase } from "../../lib/utility";
 import LocalAirportOutlinedIcon from "@mui/icons-material/LocalAirportOutlined";
 import { alpha } from "@mui/material/styles";
 import { useRecoilState } from "recoil";
@@ -30,6 +30,7 @@ import FlightTakeoffOutlinedIcon from "@mui/icons-material/FlightTakeoffOutlined
 import FlightLandOutlinedIcon from "@mui/icons-material/FlightLandOutlined";
 
 const getLocations = async (key) => {
+  await revalidateToken();
   try {
     const locations = await axios.post("/api/flights/locations", {
       keyword: key,

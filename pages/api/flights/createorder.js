@@ -14,7 +14,7 @@ const clientOptions = {
 const client = new MongoClient(uri, clientOptions);
 import { get } from "lodash";
 
-var qs = require("qs");
+/* var qs = require("qs");
 var data = qs.stringify({
   client_id: process.env.CLIENT_ID,
   client_secret: process.env.CLIENT_SECRET,
@@ -28,14 +28,14 @@ var tokenConfig = {
   },
   data: data,
 };
-
+ */
 export default async function handler(req, res) {
   const { data, offerPricing, payment } = req.body;
   console.log("FLIGHT CREATE ORDER");
 
   try {
     await client.connect();
-    if (!getCookie("accessToken", { req, res })) {
+    /* if (!getCookie("accessToken", { req, res })) {
       // @ts-ignore
       const response = await axios(tokenConfig);
 
@@ -48,7 +48,7 @@ export default async function handler(req, res) {
         sameSite: "none",
         httpOnly: true,
       });
-    }
+    } */
 
     console.log("token", getCookie("accessToken", { req, res }));
 

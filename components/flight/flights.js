@@ -20,7 +20,7 @@ import {
   trip_,
 } from "../../lib/recoil";
 import HorizontalRuleOutlinedIcon from "@mui/icons-material/HorizontalRuleOutlined";
-import { first, get, isEmpty, last, truncate } from "lodash";
+import { first, forEach, get, isEmpty, last, truncate } from "lodash";
 import dayjs from "dayjs";
 import useSWRImmutable from "swr/immutable";
 import LazyLoad from "react-lazyload";
@@ -31,6 +31,8 @@ import SegmentCards from "../../components/flight/segmentcards";
 import { useRouter } from "next/router";
 import axios from "axios";
 import { useSWRConfig } from "swr";
+import { revalidateToken, titleCase, viewErrors } from "../../lib/utility";
+import { toast } from "react-toastify";
 
 const FlightSearchForm = dynamic(
   () => import("../../components/flight/flightsearchform"),
@@ -40,7 +42,9 @@ const FlightSearchForm = dynamic(
 );
 
 const getFlightOffers = async (data) => {
+  //console.log("offer query data", JSON.parse(data));
   try {
+    await revalidateToken();
     const name = await axios.post("/api/flights/flightoffers", {
       data: data,
     });
@@ -48,7 +52,8 @@ const getFlightOffers = async (data) => {
     return name.data;
   } catch (error) {
     console.log("getFlightOffers error", error.response);
-    throw new Error(error.response);
+    viewErrors(get(error.response, "data.errors", []));
+    // throw new Error(error.response);
   }
 };
 
