@@ -30,6 +30,8 @@ const nextConfig = {
     MONGODB_URI: process.env.MONGODB_URI,
     CLIENT_ID: process.env.CLIENT_ID,
     CLIENT_SECRET: process.env.CLIENT_SECRET,
+    USER_EMAIL: process.env.USER_EMAIL,
+    USER_PASSWORD: process.env.USER_PASSWORD,
   },
 };
 

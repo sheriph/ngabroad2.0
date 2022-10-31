@@ -496,8 +496,8 @@ export default async function generateEmail(req, res) {
     secure: true,
     port: 465,
     auth: {
-      user: "info@naijagoingabroad.com",
-      pass: "MRRr2ZLTD6vN",
+      user: process.env.USER_EMAIL,
+      pass: process.env.USER_PASSWORD,
     },
   });
 

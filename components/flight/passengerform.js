@@ -61,6 +61,7 @@ import { setCookie } from "cookies-next";
 import { useRouter } from "next/router";
 import { useToast, toast } from "react-toastify";
 import { useSWRConfig } from "swr";
+import createdOrder from "./fxn/createorder";
 
 export default function PassengerForm() {
   const offerPricing = useRecoilValue(OfferPricing_);
@@ -377,16 +378,11 @@ export default function PassengerForm() {
 
     try {
       await revalidateToken();
-      const flightOrder = await toast.promise(
-        axios.post("/api/flights/createorder", {
-          data: JSON.stringify(flightOrderQuery),
-        }),
-        {
-          error: "Sorry, we could not book your flight",
-          pending: "Please relax while we book your flight",
-          success: "Congratulations!!! Your flight has been booked.",
-        }
-      );
+      const flightOrder = await toast.promise(createdOrder(flightOrderQuery), {
+        error: "Sorry, we could not book your flight",
+        pending: "Please relax while we book your flight",
+        success: "Congratulations!!! Your flight has been booked.",
+      });
       console.log("flightOrder.data", flightOrder.data);
 
       await toast.promise(
