@@ -529,5 +529,5 @@ export default async function generateEmail(req, res) {
 
   console.timeEnd("start");
 
-  return res.send(html);
+  return res.send(true);
 }

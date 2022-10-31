@@ -24,6 +24,7 @@ import { useRecoilState, useSetRecoilState } from "recoil";
 import { blockLoading_, retrieveFlightKey_ } from "../../lib/recoil";
 import { toast } from "react-toastify";
 import { titleCase } from "../../lib/utility";
+import { useSWRConfig } from "swr";
 
 const getOrder = async (key) => {
   try {
@@ -70,6 +71,7 @@ export default function FindBooking() {
   const [retrieveFlightKey, setRetrieveFlightKey] =
     useRecoilState(retrieveFlightKey_);
   const setBlockLoading = useSetRecoilState(blockLoading_);
+  const { cache } = useSWRConfig();
 
   // const key = getCookie("findbooking");
 
@@ -96,6 +98,50 @@ export default function FindBooking() {
   console.log("retrival", { order, error, isLoading, isValidating });
 
   console.log("errors", errors);
+
+  const getModifyOffer = () => {
+    //  const offer = first(get(offerPricing, "data", []));
+    const newOffer = {
+      // @ts-ignore
+      ...offerFromPricing,
+      // @ts-ignore
+      itineraries: offerFromPricing.itineraries.map((itinerary) => ({
+        ...itinerary,
+        segments: itinerary.segments.map((segment) => ({
+          ...segment,
+          carrierCode: get(cache.get(segment.carrierCode), "data", ""),
+          departure: {
+            ...segment.departure,
+            iataCode: get(cache.get(segment.departure.iataCode), "data", {}),
+          },
+          arrival: {
+            ...segment.departure,
+            iataCode: get(cache.get(segment.arrival.iataCode), "data", {}),
+          },
+        })),
+      })),
+    };
+
+    // @ts-ignore
+    // setFlightOffer(newOffer);
+    console.log("modifyOffer", newOffer);
+    return newOffer;
+  };
+
+  const sendEmail = async () => {
+    try {
+      //  await revalidateToken();
+      const email = await axios.post("/api/flights/orderemail", {
+        flightOffer: getModifyOffer(),
+        flightOrder,
+        offerPricing2: offerPricing,
+      });
+      toast.success("Done. Please check your email");
+      console.log("email", email);
+    } catch (error) {
+      console.log("email.data error.response", error);
+    }
+  };
 
   const onSubmit = async (data) => {
     console.log("data", data);
@@ -220,6 +266,13 @@ export default function FindBooking() {
               </Typography>
               <Link sx={{ cursor: "pointer" }} underline="always">
                 Click Here To Pay online
+              </Link>
+              <Link
+                onClick={() => sendEmail()}
+                sx={{ cursor: "pointer" }}
+                underline="always"
+              >
+                Email Booking
               </Link>
             </Stack>
           </AccordionDetails>

@@ -247,7 +247,7 @@ export default function PassengerForm() {
 
     // @ts-ignore
     // setFlightOffer(newOffer);
-    console.log("modifyOffer", newOffer, offer);
+    console.log("modifyOffer", newOffer);
     return newOffer;
   };
 
@@ -377,26 +377,43 @@ export default function PassengerForm() {
 
     try {
       await revalidateToken();
-      const flightOrder = await axios.post("/api/flights/createorder", {
-        data: JSON.stringify(flightOrderQuery),
-        offerPricing,
-        payment: data.payment,
-      });
+      const flightOrder = await toast.promise(
+        axios.post("/api/flights/createorder", {
+          data: JSON.stringify(flightOrderQuery),
+        }),
+        {
+          error: "Sorry, we could not book your flight",
+          pending: "Please relax while we book your flight",
+          success: "Congratulations!!! Your flight has been booked.",
+        }
+      );
+      console.log("flightOrder.data", flightOrder.data);
+
+      await toast.promise(
+        axios.post("/api/flights/saveorder", {
+          flightOrder: flightOrder.data,
+          offerPricing,
+        }),
+        {
+          pending: "Saving a copy of your booking",
+          error:
+            "We encountered an error. Do not make a duplicate booking. Kindly contact support if you would like a copy of your booking emailed to you",
+          success: "Booking succesfully saved to record",
+        }
+      );
 
       const reference = get(
-        find(get(flightOrder.data, "flightOrder.data.associatedRecords", []), {
+        find(get(flightOrder.data, "data.associatedRecords", []), {
           originSystemCode: "GDS",
         }),
         "reference",
         ""
       );
       const lastname = get(
-        first(get(flightOrder.data, "flightOrder.data.travelers", [])),
+        first(get(flightOrder.data, "data.travelers", [])),
         "name.lastName",
         ""
       );
-
-      console.log("flightOrder.data", flightOrder.data);
       // @ts-ignore
       setRetrieveFlightKey({ reference, lastname });
       //  setCookie("findbooking", JSON.stringify({ reference, lastname }), {});

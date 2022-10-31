@@ -119,8 +119,6 @@ export default function SegmentCards({
   const [rulesDrawer, setRulesDrawer] = React.useState(false);
   const closeRule = () => setRulesDrawer(false);
 
-  console.log('offerPricing2', offerPricing2)
-
   const router = useRouter();
 
   const {
