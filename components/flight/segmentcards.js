@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   Chip,
+  CircularProgress,
   Collapse,
   Divider,
   Drawer,
@@ -64,7 +65,6 @@ import UnfoldLessIcon from "@mui/icons-material/UnfoldLess";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import FlightLandIcon from "@mui/icons-material/FlightLand";
 import LocalHotelIcon from "@mui/icons-material/LocalHotel";
-import ClearIcon from "@mui/icons-material/Clear";
 import StopOutlinedIcon from "@mui/icons-material/StopOutlined";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import WhereToVoteOutlinedIcon from "@mui/icons-material/WhereToVoteOutlined";
@@ -79,6 +79,7 @@ import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import { toast } from "react-toastify";
 import { API } from "aws-amplify";
 import { getCookie } from "cookies-next";
+import ClearIcon from "@mui/icons-material/Clear";
 
 const advancedFormat = require("dayjs/plugin/advancedFormat");
 dayjs.extend(advancedFormat);
@@ -120,6 +121,19 @@ const getFlightOfferPricing = async (offer) => {
   }
 };
 
+const getVerifiedOffer = async (key) => {
+  try {
+    await revalidateToken();
+    const verifiedOrder = await axios.post("/api/flights/verifiedorder", {
+      key,
+    });
+    console.log("getVerifiedOffer", verifiedOrder.data);
+    return verifiedOrder.data;
+  } catch (error) {
+    console.log("getVerifiedOffer error", error.response);
+  }
+};
+
 export default function SegmentCards({
   closeDrawer,
   updatedOffer = null,
@@ -135,6 +149,29 @@ export default function SegmentCards({
   const setOfferPricing = useSetRecoilState(OfferPricing_);
   const [rulesDrawer, setRulesDrawer] = React.useState(false);
   const closeRule = () => setRulesDrawer(false);
+
+  const reference = get(
+    find(get(flightOrder, "data.associatedRecords", []), {
+      originSystemCode: "GDS",
+    }),
+    "reference",
+    ""
+  );
+
+  const bookingId = get(flightOrder, "data.id", "");
+
+  console.log("flightOrder", flightOrder);
+
+  const {
+    data: verifiedOffer,
+    error: vError,
+    isLoading: vLoading,
+    // @ts-ignore
+  } = useSWRImmutable(bookingId, getVerifiedOffer, {
+    keepPreviousData: true,
+    shouldRetryOnError: true,
+    errorRetryCount: 1,
+  });
 
   const router = useRouter();
 
@@ -239,14 +276,6 @@ export default function SegmentCards({
 
   console.log("endIataCode2", startIataCode, endIataCode, endIataCode2, trip);
 
-  const reference = get(
-    find(get(flightOrder, "data.associatedRecords", []), {
-      originSystemCode: "GDS",
-    }),
-    "reference",
-    ""
-  );
-
   const bookingDate = get(
     find(get(flightOrder, "data.associatedRecords", []), {
       originSystemCode: "GDS",
@@ -291,9 +320,33 @@ export default function SegmentCards({
               <Chip size="small" label={reference} color="primary" />
               <Chip
                 size="small"
-                icon={<CheckOutlinedIcon />}
-                label="Active"
-                color="success"
+                icon={
+                  vLoading ? (
+                    <CircularProgress size={15} color="inherit" />
+                  ) : (
+                    <>
+                      {Boolean(verifiedOffer) ? (
+                        <CheckOutlinedIcon fontSize="small" />
+                      ) : (
+                        <ClearIcon fontSize="small" />
+                      )}
+                    </>
+                  )
+                }
+                label={
+                  vLoading
+                    ? "Checking .."
+                    : Boolean(verifiedOffer)
+                    ? "Active"
+                    : "Inactive"
+                }
+                color={
+                  vLoading
+                    ? "secondary"
+                    : Boolean(verifiedOffer)
+                    ? "success"
+                    : "error"
+                }
               />
             </Stack>
           </Stack>
@@ -910,26 +963,35 @@ export default function SegmentCards({
                 )
               ),
               "fareBasis"
-            ).map((rule, index) => (
-              <Stack>
-                <Typography sx={{ py: 2 }} variant="h1" textAlign="center">
-                  {titleCase(rule.name)} - {rule.fareBasis}{" "}
-                </Typography>
-                <ArticleRender
-                  content={titleCase(
-                    get(
-                      find(
-                        get(rule, "fareNotes.descriptions", []),
-                        (description) =>
-                          description.descriptionType === "PENALTIES"
-                      ),
-                      "text",
-                      ""
+            ).length
+              ? uniqBy(
+                  Array.from(
+                    Object.values(
+                      get(offerPricing2, `included["detailed-fare-rules"]`, {})
                     )
-                  )}
-                />
-              </Stack>
-            ))}
+                  ),
+                  "fareBasis"
+                ).map((rule, index) => (
+                  <Stack>
+                    <Typography sx={{ py: 2 }} variant="h1" textAlign="center">
+                      {titleCase(rule.name)} - {rule.fareBasis}{" "}
+                    </Typography>
+                    <ArticleRender
+                      content={titleCase(
+                        get(
+                          find(
+                            get(rule, "fareNotes.descriptions", []),
+                            (description) =>
+                              description.descriptionType === "PENALTIES"
+                          ),
+                          "text",
+                          ""
+                        )
+                      )}
+                    />
+                  </Stack>
+                ))
+              : "NOT AVAILABLE"}
           </Stack>
         </Stack>
       </Drawer>

@@ -61,8 +61,8 @@ import { getCookie, setCookie } from "cookies-next";
 import { useRouter } from "next/router";
 import { useToast, toast } from "react-toastify";
 import { useSWRConfig } from "swr";
-import createdOrder from "./fxn/createorder";
 import { API } from "aws-amplify";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 
 export default function PassengerForm() {
   const offerPricing = useRecoilValue(OfferPricing_);
@@ -442,35 +442,45 @@ export default function PassengerForm() {
   return (
     <Stack
       direction={{ xs: "column", md: "row" }}
-      justifyContent="space-between"
+      //justifyContent="space-between"
       sx={{ p: 1 }}
       component="form"
+      spacing={{ xs: 1, md: 2 }}
       onSubmit={handleSubmit(onSubmit)}
     >
       <Stack
         spacing={2}
-        direction="row"
-        justifyContent="space-between"
-        alignItems="flex-start"
-        sx={{ p: 1 }}
+        //  justifyContent="space-between"
+        //  alignItems="flex-start"
+        sx={{ p: 1, height: "max-content" }}
+        component={Paper}
+        variant="outlined"
       >
-        <Typography sx={{ whiteSpace: "nowrap" }}>
+        <Typography
+          sx={{
+            whiteSpace: "nowrap",
+            fontSize: { xs: "18px", md: "30px" },
+            fontWeight: "bold",
+          }}
+        >
           {money(get(offerFromPricing, "price.grandTotal", 0))}
         </Typography>
-        <Link
-          onClick={() => setRulesDrawer(true)}
-          sx={{ whiteSpace: "nowrap", cursor: "pointer" }}
-          underline="always"
-        >
-          Ticket Rules
-        </Link>
-        <Link
-          onClick={() => setSegment(true)}
-          sx={{ whiteSpace: "nowrap", cursor: "pointer" }}
-          underline="always"
-        >
-          Flight Info
-        </Link>
+        <Stack spacing={2} direction="row">
+          <Link
+            onClick={() => setRulesDrawer(true)}
+            sx={{ whiteSpace: "nowrap", cursor: "pointer" }}
+            underline="always"
+          >
+            Ticket Rules <OpenInNewIcon fontSize="small" />
+          </Link>
+          <Link
+            onClick={() => setSegment(true)}
+            sx={{ whiteSpace: "nowrap", cursor: "pointer" }}
+            underline="always"
+          >
+            Flight Info <OpenInNewIcon fontSize="small" />
+          </Link>
+        </Stack>
       </Stack>
       <Box width="100%">
         <Paper sx={{ p: 2, mb: 2 }} variant="outlined">
@@ -1024,26 +1034,35 @@ export default function PassengerForm() {
                 )
               ),
               "fareBasis"
-            ).map((rule, index) => (
-              <Stack>
-                <Typography sx={{ py: 2 }} variant="h1" textAlign="center">
-                  {titleCase(rule.name)} - {rule.fareBasis}{" "}
-                </Typography>
-                <ArticleRender
-                  content={titleCase(
-                    get(
-                      find(
-                        get(rule, "fareNotes.descriptions", []),
-                        (description) =>
-                          description.descriptionType === "PENALTIES"
-                      ),
-                      "text",
-                      ""
+            ).length
+              ? uniqBy(
+                  Array.from(
+                    Object.values(
+                      get(offerPricing, `included["detailed-fare-rules"]`, {})
                     )
-                  )}
-                />
-              </Stack>
-            ))}
+                  ),
+                  "fareBasis"
+                ).map((rule, index) => (
+                  <Stack>
+                    <Typography sx={{ py: 2 }} variant="h1" textAlign="center">
+                      {titleCase(rule.name)} - {rule.fareBasis}{" "}
+                    </Typography>
+                    <ArticleRender
+                      content={titleCase(
+                        get(
+                          find(
+                            get(rule, "fareNotes.descriptions", []),
+                            (description) =>
+                              description.descriptionType === "PENALTIES"
+                          ),
+                          "text",
+                          ""
+                        )
+                      )}
+                    />
+                  </Stack>
+                ))
+              : "NOT AVAILABLE"}
           </Stack>
         </Stack>
       </Drawer>

@@ -33,7 +33,6 @@ import axios from "axios";
 import { useSWRConfig } from "swr";
 import { revalidateToken, titleCase, viewErrors } from "../../lib/utility";
 import { toast } from "react-toastify";
-import createFlightOffers from "./fxn/createflightoffers";
 import { API } from "aws-amplify";
 import { getCookie } from "cookies-next";
 
