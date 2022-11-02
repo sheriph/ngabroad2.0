@@ -33,6 +33,9 @@ import axios from "axios";
 import { useSWRConfig } from "swr";
 import { revalidateToken, titleCase, viewErrors } from "../../lib/utility";
 import { toast } from "react-toastify";
+import createFlightOffers from "./fxn/createflightoffers";
+import { API } from "aws-amplify";
+import { getCookie } from "cookies-next";
 
 const FlightSearchForm = dynamic(
   () => import("../../components/flight/flightsearchform"),
@@ -43,15 +46,29 @@ const FlightSearchForm = dynamic(
 
 const getFlightOffers = async (data) => {
   //console.log("offer query data", JSON.parse(data));
+  const trip = JSON.parse(data).trip;
   try {
     await revalidateToken();
-    const name = await axios.post("/api/flights/flightoffers", {
-      data: data,
+    const response = await API.post("lamdaapi", "/flightoffers", {
+      body: {
+        data: data,
+        token: getCookie("accessToken"),
+      },
     });
 
-    return name.data;
+    const updatedOffers = {
+      ...response,
+      data: get(response, "data", []).map((offer) => ({
+        ...offer,
+        trip,
+      })),
+    };
+
+    console.log("getFlightOffers error", updatedOffers);
+
+    return updatedOffers;
   } catch (error) {
-    console.log("getFlightOffers error", error.response);
+    console.log("getFlightOffers error", error);
     viewErrors(get(error.response, "data.errors", []));
     // throw new Error(error.response);
   }

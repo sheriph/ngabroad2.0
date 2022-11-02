@@ -1,43 +1,4 @@
 {
-  "dev": {
-    "awscloudformation": {
-      "AuthRoleName": "amplify-ngav21-dev-170205-authRole",
-      "UnauthRoleArn": "arn:aws:iam::791852261793:role/amplify-ngav21-dev-170205-unauthRole",
-      "AuthRoleArn": "arn:aws:iam::791852261793:role/amplify-ngav21-dev-170205-authRole",
-      "Region": "eu-west-2",
-      "DeploymentBucketName": "amplify-ngav21-dev-170205-deployment",
-      "UnauthRoleName": "amplify-ngav21-dev-170205-unauthRole",
-      "StackName": "amplify-ngav21-dev-170205",
-      "StackId": "arn:aws:cloudformation:eu-west-2:791852261793:stack/amplify-ngav21-dev-170205/e0f16640-d20c-11ec-8202-0214c74c1d2e",
-      "AmplifyAppId": "d1obs3nsroh368"
-    },
-    "categories": {
-      "auth": {
-        "true": {},
-        "ngav21b5ad509b": {},
-        "ngav21697c5360": {},
-        "ngav21542fc89f": {}
-      }
-    }
-  },
-  "devenv": {
-    "awscloudformation": {
-      "AuthRoleName": "amplify-ngav21-devenv-185908-authRole",
-      "UnauthRoleArn": "arn:aws:iam::854626271714:role/amplify-ngav21-devenv-185908-unauthRole",
-      "AuthRoleArn": "arn:aws:iam::854626271714:role/amplify-ngav21-devenv-185908-authRole",
-      "Region": "eu-central-1",
-      "DeploymentBucketName": "amplify-ngav21-devenv-185908-deployment",
-      "UnauthRoleName": "amplify-ngav21-devenv-185908-unauthRole",
-      "StackName": "amplify-ngav21-devenv-185908",
-      "StackId": "arn:aws:cloudformation:eu-central-1:854626271714:stack/amplify-ngav21-devenv-185908/4ddc0900-1e56-11ed-ac18-0a9003a8acd0",
-      "AmplifyAppId": "d1jefkr6r9aq3f"
-    },
-    "categories": {
-      "auth": {
-        "ngav215a1d5dff": {}
-      }
-    }
-  },
   "ngaenv": {
     "awscloudformation": {
       "AuthRoleName": "amplify-ngav21-ngaenv-194956-authRole",
@@ -54,6 +15,12 @@
       "auth": {
         "ngav21dda11bda": {},
         "true": {}
+      },
+      "function": {
+        "mainlambda": {
+          "deploymentBucketName": "amplify-ngav21-ngaenv-194956-deployment",
+          "s3Key": "amplify-builds/mainlambda-6c79554e744850715043-build.zip"
+        }
       }
     }
   }

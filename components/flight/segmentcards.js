@@ -77,13 +77,15 @@ import CheckOutlinedIcon from "@mui/icons-material/CheckOutlined";
 import ArticleRender from "../others/articlerender";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import { toast } from "react-toastify";
+import { API } from "aws-amplify";
+import { getCookie } from "cookies-next";
 
 const advancedFormat = require("dayjs/plugin/advancedFormat");
 dayjs.extend(advancedFormat);
 
 const getFlightOfferPricing = async (offer) => {
   try {
-    await revalidateToken();
+    //  await revalidateToken();
     const trip = JSON.parse(offer).trip;
     const data = {
       data: {
@@ -91,13 +93,28 @@ const getFlightOfferPricing = async (offer) => {
         flightOffers: [JSON.parse(offer)],
       },
     };
-    console.log("getFlightOfferPricing", offer, trip);
-    const offerPricing = await axios.post("/api/flights/offerpricing", {
-      data: { data: JSON.stringify(data), trip },
+
+    await revalidateToken();
+    const response = await API.post("lamdaapi", "/flightofferpricing", {
+      body: {
+        data: JSON.stringify(data),
+        token: getCookie("accessToken"),
+      },
     });
-    return offerPricing.data;
+
+    const updatedOfferpricing = {
+      ...response.data,
+      data: get(response, "data.flightOffers", []).map((offer) => ({
+        ...offer,
+        trip,
+      })),
+    };
+
+    console.log("getFlightOfferPricing", updatedOfferpricing);
+
+    return updatedOfferpricing;
   } catch (error) {
-    console.log("error", error.response);
+    console.log("getFlightOfferPricing error", error);
     viewErrors(get(error.response, "data.errors", []));
     throw new Error(error);
   }

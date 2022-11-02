@@ -6,6 +6,7 @@ import React from "react";
 import { revalidateToken } from "../lib/utility";
 import useSWRImmutable from "swr/immutable";
 import { useSWRConfig } from "swr";
+import Amplify, { API, Auth } from "aws-amplify";
 
 const getLocationName = async (iataCode) => {
   try {
@@ -114,12 +115,24 @@ export default function Test() {
     }
   };
 
+  const runLambda = async () => {
+    try {
+      const data = await API.post("apiforhello", "/datasource", {
+        name: "babatunde",
+      });
+      console.log("data lambda", data);
+    } catch (error) {
+      console.log("data lambda error", error.response);
+    }
+  };
+
   return (
     <Stack
       divider={<Divider sx={{ mb: 2 }} orientation="horizontal" flexItem />}
     >
       <Button onClick={testemail}>TEST</Button>
       <Button onClick={getModifyOffer}>RUN</Button>
+      <Button onClick={runLambda}>TEST LAMBDA</Button>
       <Box dangerouslySetInnerHTML={{ __html: myHtml }} />
     </Stack>
   );

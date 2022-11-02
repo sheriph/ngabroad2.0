@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "paths": {
+    "/flightoffers": {
+      "name": "/flightoffers",
+      "lambdaFunction": "mainlambda",
+      "permissions": {
+        "setting": "open"
+      }
+    },
+    "/flightofferpricing": {
+      "name": "/flightofferpricing",
+      "lambdaFunction": "mainlambda",
+      "permissions": {
+        "setting": "open"
+      }
+    },
+    "/createorder": {
+      "name": "/createorder",
+      "lambdaFunction": "mainlambda",
+      "permissions": {
+        "setting": "open"
+      }
+    }
+  }
+}

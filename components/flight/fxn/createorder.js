@@ -2,7 +2,6 @@ import { getCookie } from "cookies-next";
 import axios from "axios";
 
 export default async function createdOrder(data) {
-  // const { data } = req.body;
   console.log("FLIGHT CREATE ORDER");
 
   try {

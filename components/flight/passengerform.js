@@ -57,11 +57,12 @@ import ArticleRender from "../others/articlerender";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import PassportExpiryDate from "./passportexpirydate";
 import axios from "axios";
-import { setCookie } from "cookies-next";
+import { getCookie, setCookie } from "cookies-next";
 import { useRouter } from "next/router";
 import { useToast, toast } from "react-toastify";
 import { useSWRConfig } from "swr";
 import createdOrder from "./fxn/createorder";
+import { API } from "aws-amplify";
 
 export default function PassengerForm() {
   const offerPricing = useRecoilValue(OfferPricing_);
@@ -378,16 +379,29 @@ export default function PassengerForm() {
 
     try {
       await revalidateToken();
-      const flightOrder = await toast.promise(createdOrder(flightOrderQuery), {
+      const flightOrder = await toast.promise(
+        API.post("lamdaapi", "/createorder", {
+          body: {
+            data: flightOrderQuery,
+            token: getCookie("accessToken"),
+          },
+        }),
+        {
+          error: "Sorry, we could not book your flight",
+          pending: "Please relax while we book your flight",
+          success: "Congratulations!!! Your flight has been booked.",
+        }
+      );
+      /*   const flightOrder = await toast.promise(createdOrder(flightOrderQuery), {
         error: "Sorry, we could not book your flight",
         pending: "Please relax while we book your flight",
         success: "Congratulations!!! Your flight has been booked.",
-      });
-      console.log("flightOrder.data", flightOrder.data);
+      }); */
+      console.log("flightOrder", flightOrder);
 
       await toast.promise(
         axios.post("/api/flights/saveorder", {
-          flightOrder: flightOrder.data,
+          flightOrder: flightOrder,
           offerPricing,
         }),
         {
@@ -399,25 +413,25 @@ export default function PassengerForm() {
       );
 
       const reference = get(
-        find(get(flightOrder.data, "data.associatedRecords", []), {
+        find(get(flightOrder, "data.associatedRecords", []), {
           originSystemCode: "GDS",
         }),
         "reference",
         ""
       );
       const lastname = get(
-        first(get(flightOrder.data, "data.travelers", [])),
+        first(get(flightOrder, "data.travelers", [])),
         "name.lastName",
         ""
       );
       // @ts-ignore
       setRetrieveFlightKey({ reference, lastname });
       //  setCookie("findbooking", JSON.stringify({ reference, lastname }), {});
-      await sendEmail(flightOrder.data).finally(() =>
+      await sendEmail(flightOrder).finally(() =>
         router.push("/flights/confirm-booking")
       );
     } catch (error) {
-      console.log("flightOrder.data", error.response, flightOrderQuery);
+      console.log("flightOrder error", error, flightOrderQuery);
       viewErrors(get(error.response, "data.errors", []));
     } finally {
       setBlockLoading(false);
