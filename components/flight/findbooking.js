@@ -15,7 +15,7 @@ import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, useForm } from "react-hook-form";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { first, get, isEqual, trim } from "lodash";
+import { find, first, get, isEqual, trim } from "lodash";
 import { getCookie } from "cookies-next";
 import useSWRImmutable from "swr/immutable";
 import axios from "axios";
@@ -23,7 +23,7 @@ import SegmentCards from "./segmentcards";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { blockLoading_, retrieveFlightKey_ } from "../../lib/recoil";
 import { toast } from "react-toastify";
-import { titleCase } from "../../lib/utility";
+import { revalidateToken, titleCase } from "../../lib/utility";
 import { useSWRConfig } from "swr";
 
 const getOrder = async (key) => {
@@ -43,6 +43,7 @@ const getOrder = async (key) => {
   }
 };
 
+
 export default function FindBooking() {
   const schema = Yup.object().shape({
     lastname: Yup.string()
@@ -55,13 +56,6 @@ export default function FindBooking() {
   const {
     handleSubmit,
     control,
-    setValue,
-    getValues,
-    setError,
-    clearErrors,
-    reset,
-    watch,
-    unregister,
     formState: { errors, isSubmitted },
   } = useForm({
     resolver: yupResolver(schema),
@@ -95,7 +89,12 @@ export default function FindBooking() {
   const { flightOrder, offerPricing, payment } = order || {};
   const offerFromPricing = first(get(offerPricing, "data", []));
 
-  console.log("retrival", { order, error, isLoading, isValidating });
+  console.log("retrival", {
+    order,
+    error,
+    isLoading,
+    isValidating,
+  });
 
   console.log("errors", errors);
 

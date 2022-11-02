@@ -20,7 +20,6 @@ import {
   MjmlRaw,
   MjmlHead,
 } from "mjml-react";
-import FlightEmailSegment from "../../../components/flight/email/flightsegment";
 import {
   find,
   first,
@@ -32,10 +31,8 @@ import {
   uniqBy,
 } from "lodash";
 import dayjs from "dayjs";
-import LocationName from "../../../components/flight/airportname";
-import { getCookie } from "cookies-next";
-import axios from "axios";
 import { titleCase } from "../../../lib/utility";
+
 
 const advancedFormat = require("dayjs/plugin/advancedFormat");
 dayjs.extend(advancedFormat);
