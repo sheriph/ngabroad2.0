@@ -26,11 +26,55 @@ import PostList from "./postlist";
 import { styled } from "@mui/styles";
 import DesktopSideBar from "./others/desktopsidebar";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import { blockLoading_, postType_ } from "../lib/recoil";
+import useSWRInfinite from "swr/infinite";
+import axios from "axios";
 
-export default function PostComponent({ ssrTags, ssrPosts }) {
+const getPosts = async (key) => {
+  console.log("posts key", key);
+  try {
+    const posts = await axios.post("/api/getposts", { key });
+    console.log("posts in fetch", posts.data);
+
+    return posts.data;
+  } catch (error) {
+    console.log("posts error", error.response);
+    throw new Error(error);
+  }
+};
+
+export default function PostComponent() {
   const mobile = useMediaQuery("(max-width:900px)", { noSsr: true });
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const handleDrawer = () => setDrawerOpen(!drawerOpen);
+
+  const postType = useRecoilValue(postType_);
+  const setBlockLoading = useSetRecoilState(blockLoading_);
+
+  const {
+    data: posts,
+    error,
+    isLoading,
+    size,
+    setSize,
+    isValidating,
+  } = useSWRInfinite(
+    (pageIndex) => `${postType}-${pageIndex++}-${4}`,
+    getPosts
+  );
+
+  React.useEffect(() => {
+    if (isLoading || isValidating) {
+      setBlockLoading(true);
+    } else {
+      setBlockLoading(false);
+    }
+  }, [isLoading, isValidating]);
+
+  const loading = isLoading || isValidating;
+
+  console.log("posts ", posts, error, size);
 
   return (
     <Stack direction="row">
@@ -52,7 +96,7 @@ export default function PostComponent({ ssrTags, ssrPosts }) {
         >
           <Toolbar />
           <Box sx={{ overflow: "auto" }}>
-            <DesktopSideBar ssrPosts={ssrPosts} ssrTags={ssrTags} />
+            <DesktopSideBar setSize={setSize} />
           </Box>
         </Drawer>
       </Box>
@@ -66,7 +110,12 @@ export default function PostComponent({ ssrTags, ssrPosts }) {
             Filter
           </Button>
         </Stack>
-        <PostList />
+        <PostList
+          loading={loading}
+          // @ts-ignore
+          posts={posts}
+          setSize={setSize}
+        />
       </Box>
     </Stack>
   );

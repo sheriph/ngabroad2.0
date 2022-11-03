@@ -12,30 +12,17 @@ export default async function handler(req, res) {
   try {
     // console.log(`req.body`, req.body);
 
-    const { post_type, countries, otherTags, index } = req.body;
-    console.log(
-      "post_type, countries, otherTags",
-      post_type,
-      countries,
-      otherTags,
-      index
-    );
+    console.time("getPostTimer");
+
+    const { key } = req.body;
+
+    const [postType, page, limit] = key.split("-");
+    console.log("postType", postType, page, limit);
+
     await client.connect();
-    const query = {};
-    console.log("query", query);
-    post_type.length > 0 ? (query["post_type"] = { $in: [...post_type] }) : "";
-    post_type.otherTags > 0
-      ? (query["tags.otherTags"] = { $in: [...otherTags] })
-      : "";
-    post_type.countries > 0
-      ? (query["tags.countries"] = { $in: [...countries] })
-      : "";
-    /* const query = {
-      post_type: { $in: [...post_type] },
-      "tags.otherTags": { $in: [...otherTags] },
-      "tags.countries": { $in: [...countries] },
-    }; */
-    console.log("query 2", query);
+    const query =
+      Boolean(postType) && postType !== "all" ? { post_type: postType } : {};
+
     const options = {
       // sorting
       sort: {},
@@ -46,14 +33,17 @@ export default async function handler(req, res) {
       .db("nga")
       .collection("posts")
       .find(query, options)
-      .limit(index ? index * 5 : 5)
+      .limit(Number(limit))
+      .skip(Number(page) * Number(limit))
+      // .limit(index ? index * 5 : 5)
       .toArray();
     // console.log("posts", posts);
-    await client.close();
+    console.timeEnd("getPostTimer");
     res.status(200).json(posts);
   } catch (err) {
     console.log(`err`, err);
-    await client.close();
     res.status(400).json(err);
+  } finally {
+    await client.close();
   }
 }

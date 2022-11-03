@@ -271,7 +271,7 @@ export default function FindBooking() {
                 sx={{ cursor: "pointer" }}
                 underline="always"
               >
-                Email Booking
+                Email This Booking
               </Link>
             </Stack>
           </AccordionDetails>

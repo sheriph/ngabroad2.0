@@ -53,7 +53,7 @@ export default function Footer() {
       >
         <Login />
       </Dialog>
-      <Dialog
+      {/* <Dialog
         sx={{
           "&.MuiModal-root.MuiDialog-root": { zIndex: 1402 },
         }}
@@ -67,7 +67,7 @@ export default function Footer() {
           </Alert>
           <EditProfile alert={true} />
         </Stack>
-      </Dialog>
+      </Dialog> */}
       <Dialog
         sx={{
           "&.MuiModal-root.MuiDialog-root": { zIndex: 1402 },
