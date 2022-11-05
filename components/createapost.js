@@ -52,10 +52,14 @@ import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import { toast } from "react-toastify";
 import useSWR from "swr";
 import { useRouter } from "next/router";
+import { useAuthenticator } from "@aws-amplify/ui-react";
 
 export default function CreatePost() {
   const [verifyingTitle, setVerifyTitle] = React.useState(false);
-  const { user, loading, error: userError, mutate } = useAuthUser();
+  const { user: userExist } = useAuthenticator((context) => [
+    context.authStatus,
+  ]);
+  const { user, isLoading: loading } = useAuthUser(userExist);
   const schema = Yup.object().shape({
     title: Yup.string()
       .required("Please enter the title")
@@ -70,12 +74,12 @@ export default function CreatePost() {
         then: Yup.string().required("Content is required"),
       }),
     post_type: Yup.string().required("Post type is required"),
-    countries: Yup.array().transform((value, originalValue) => {
+    /*   countries: Yup.array().transform((value, originalValue) => {
       return originalValue.map((item) => item.name);
     }),
     otherTags: Yup.array().transform((value, originalValue) =>
       keysIn(pickBy(originalValue, (val, key) => val === true))
-    ),
+    ), */
   });
 
   const [updatePost, setUpdatePost] = useRecoilState(updatePost_);
@@ -102,8 +106,8 @@ export default function CreatePost() {
       title: get(postReplyData.post, "title", ""),
       content: get(postReplyData.post, "content", ""),
       accept: false,
-      countries: [],
-      otherTags: tags,
+      /*  countries: [],
+      otherTags: tags, */
       post_type: "question",
     },
   });
@@ -128,16 +132,16 @@ export default function CreatePost() {
 
   const onSubmit = async (data) => {
     console.log("data", data);
-    const { title, countries, otherTags, content } = data;
+    const { title, /* countries, otherTags, */ content } = data;
     try {
       setLoading(true);
       if (updatePost) {
         const slug = await toast.promise(
-          axios.post("/api/updatepost", {
+          axios.post("/api/others/updatepost", {
             // @ts-ignore
             post_id: postReplyData.post._id,
-            countries,
-            otherTags,
+            /* countries,
+            otherTags, */
             content,
             isComment: postReplyData.isComment,
           }),
@@ -149,11 +153,11 @@ export default function CreatePost() {
         );
       } else {
         const slug = await toast.promise(
-          axios.post("/api/createpost", {
+          axios.post("/api/others/createpost", {
             user_id: user._id,
             title,
-            countries,
-            otherTags,
+            /*  countries,
+            otherTags, */
             content: watch("post_type") === "post" ? content : title,
             post_type: watch("post_type"),
           }),
@@ -181,7 +185,7 @@ export default function CreatePost() {
     if (!watch("title") || watch("title").length < 20) return;
     try {
       setVerifyTitle(true);
-      const title = await axios.post("/api/gettitles", {
+      const title = await axios.post("/api/others/gettitles", {
         title: trim(watch("title")).toLowerCase(),
       });
       console.log("title", title);
@@ -381,7 +385,7 @@ export default function CreatePost() {
               Select related tags
             </Typography>
 
-            <Controller
+            {/*  <Controller
               name="countries"
               defaultValue={[]}
               control={control}
@@ -409,8 +413,8 @@ export default function CreatePost() {
                   />
                 );
               }}
-            />
-
+            /> */}
+            {/* 
             <Controller
               name="otherTags"
               // defaultValue={undefined}
@@ -446,7 +450,7 @@ export default function CreatePost() {
                   </FormControl>
                 );
               }}
-            />
+            /> */}
           </Stack>
         )}
 

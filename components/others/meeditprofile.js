@@ -23,16 +23,26 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import UploadIcon from "@mui/icons-material/Upload";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, useForm } from "react-hook-form";
-import * as yup from "yup";
+import * as Yup from "yup";
 import axios from "axios";
 import { forIn, get, trim } from "lodash";
-import { getAwsUrl, removeAwsUrl, useAuthUser } from "../../lib/utility";
+import {
+  getAwsUrl,
+  removeAwsUrl,
+  titleCase,
+  useAuthUser,
+  viewMongoError,
+} from "../../lib/utility";
 import PropTypes from "prop-types";
 import { IMaskInput } from "react-imask";
 import SaveIcon from "@mui/icons-material/Save";
 import { useRecoilState, useSetRecoilState } from "recoil";
-import { isLoading_ } from "../../lib/recoil";
+import { blockLoading_, isLoading_ } from "../../lib/recoil";
 import { useRouter } from "next/router";
+import { useAuthenticator } from "@aws-amplify/ui-react";
+import PhoneInput from "react-phone-input-2";
+import { isPossiblePhoneNumber } from "react-phone-number-input";
+import isAlphanumeric from "validator/lib/isAlphanumeric";
 
 const fetcher = async (key) => {
   try {
@@ -44,65 +54,44 @@ const fetcher = async (key) => {
   }
 };
 
-const TextMaskCustom = React.forwardRef(function TextMaskCustom(props, ref) {
-  // @ts-ignore
-  const { onChange, ...other } = props;
-  return (
-    <IMaskInput
-      {...other}
-      mask="(+#00) 0000000000"
-      definitions={{
-        "#": /[1-9]/,
-      }}
-      // @ts-ignore
-      inputRef={ref}
-      // @ts-ignore
-      onAccept={(value) => onChange({ target: { name: props.name, value } })}
-      overwrite
-    />
-  );
-});
-
-TextMaskCustom.propTypes = {
-  // @ts-ignore
-  name: PropTypes.string.isRequired,
-  onChange: PropTypes.func.isRequired,
-};
-
-export default function EditProfile({ alert }) {
-  const [loadingState, setLoading] = useRecoilState(isLoading_);
-  const { user, loading, error, mutate } = useAuthUser();
+export default function EditProfile() {
+  const { user: userExist } = useAuthenticator((context) => [
+    context.authStatus,
+  ]);
+  const { user, isLoading, mutate } = useAuthUser(userExist);
   const router = useRouter();
+  const setBlockLoading = useSetRecoilState(blockLoading_);
 
-  const { data: usernames, error: usernamesError } = useSWR(
-    user?.username ? undefined : "/api/getusernames/",
-    fetcher
-  );
-
-  console.log("usernames", usernames, usernamesError, user);
-
-  const schema = yup.object().shape({
-    username: yup
-      .string()
+  const schema = Yup.object().shape({
+    username: Yup.string()
       .trim("")
       .lowercase("")
-      .required("")
-      .nope((usernames || []).map((username) => trim(username.toLowerCase()))),
+      .required("username is required")
+      .test(
+        "check-username-string",
+        "Must be an alphanumeric character only",
+        (username) => {
+          // console.log("phone", phone);
+          // @ts-ignore
+          return isAlphanumeric(username);
+        }
+      ),
+    // .transform((value, originalValue) => trim(originalValue.toLowerCase())),
+    // .nope((usernames || []).map((username) => trim(username.toLowerCase()))),
+    phone: Yup.string().test(
+      "check-phone",
+      "Phone number is not valid",
+      (phone) => {
+        if (!phone) return true;
+        return isPossiblePhoneNumber(`+${phone}`, {});
+      }
+    ),
   });
 
   const imageTemplate = {
     blob: "",
     file: null,
     image: "",
-  };
-
-  const defaultValues = {
-    firstName: get(user, "firstName", ""),
-    image: { ...imageTemplate, image: get(user, "image", "") },
-    lastName: get(user, "lastName", ""),
-    username: get(user, "username", ""),
-    gender: get(user, "gender", ""),
-    phone: get(user, "phone", ""),
   };
 
   const {
@@ -116,10 +105,17 @@ export default function EditProfile({ alert }) {
     clearErrors,
     trigger,
     reset,
-    formState: { errors, isDirty },
+    formState: { errors, isDirty, isSubmitting },
   } = useForm({
     resolver: yupResolver(schema),
-    defaultValues: defaultValues,
+    defaultValues: {
+      firstName: get(user, "firstName", ""),
+      image: { ...imageTemplate, image: get(user, "image", "") },
+      lastName: get(user, "lastName", ""),
+      username: get(user, "username", ""),
+      gender: get(user, "gender", ""),
+      phone: get(user, "phone", ""),
+    },
   });
   // const { mutate } = useSWRConfig
 
@@ -146,29 +142,32 @@ export default function EditProfile({ alert }) {
   };
 
   const saveProfile = async (data) => {
-    setLoading(true);
     console.log("data", data);
+    setBlockLoading(true);
     try {
-      forIn(data, async (value, key) => {
-        if (key === "image") return;
-        data[key] = trim(value);
-      });
-
       data.image = data.image.file
         ? await getAwsUrl(data.image.file)
         : data.image.image;
 
       console.log("data", data);
 
-      await axios.post("/api/updateuserprofile", { data: data, _id: user._id });
+      await axios.post("/api/others/updateuserprofile", {
+        data: data,
+        _id: user._id,
+      });
 
       await mutate();
-
-      setLoading(false);
-      // if (alert) router.reload();
+      setBlockLoading(false);
+      router.reload();
     } catch (error) {
-      setLoading(false);
-      console.log(error.response.data);
+      setBlockLoading(false);
+      console.log("error", get(error, "response.data", ""));
+      const str = get(error, "response.data", "").includes(
+        "index: username_1 dup"
+      )
+        ? "Username is already taken"
+        : get(error, "response.data.message", "Error submitting the form");
+      viewMongoError(str);
     }
   };
 
@@ -193,19 +192,11 @@ export default function EditProfile({ alert }) {
     </IconButton>
   );
 
-  console.log("isDirty ", isDirty);
-
-  React.useEffect(() => {
-    if (loading) {
-      setLoading(true);
-    } else {
-      setLoading(false);
-    }
-  }, [loading]);
-
-  React.useEffect(() => {
+  /*  React.useEffect(() => {
     if (alert) trigger();
-  }, [null]);
+  }, [null]); */
+
+  console.log("data error", errors);
 
   console.log("gender", watch("gender"));
 
@@ -238,30 +229,55 @@ export default function EditProfile({ alert }) {
         </Grid>
         <Grid item xs={12} sm={6}>
           <Controller
-            name="phone"
+            name="username"
             defaultValue=""
             control={control}
             render={({ field }) => {
+              const { onChange, value, ...rest } = field;
               return (
                 <TextField
-                  {...field}
-                  label="Phone"
-                  placeholder="+234 9065369929"
-                  // value={textMask}
-                  //onChange={(e) => e.target.value}
-                  name="numberformat"
-                  id="formatted-numberformat-input"
-                  InputProps={{
-                    // @ts-ignore
-                    inputComponent: TextMaskCustom,
-                  }}
-                  fullWidth
-                  variant="outlined"
+                  {...rest}
+                  value={value}
+                  onChange={(e) => onChange(trim(e.target.value).toLowerCase())}
                   size="small"
+                  fullWidth
+                  InputProps={{ readOnly: Boolean(user?.username) }}
+                  id="username"
+                  label="Username"
+                  variant="outlined"
+                  required
+                  error={Boolean(errors.username?.message)}
+                  helperText={get(errors, "username.message", "")}
                 />
               );
             }}
           />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Controller
+            name="phone"
+            defaultValue=""
+            control={control}
+            render={({ field }) => {
+              const { onChange, value, ...rest } = field;
+              return (
+                <PhoneInput
+                  specialLabel="Phone (optional)"
+                  country={"ng"}
+                  placeholder="234 906 536 992 9"
+                  value={value}
+                  // @ts-ignore
+                  onChange={(phone, countryData) => onChange(phone)}
+                  inputProps={{
+                    name: "phone",
+                  }}
+                />
+              );
+            }}
+          />
+          <Typography sx={{ pl: 2, pt: 1 }} color="red" variant="caption">
+            {get(errors, "phone.message", "")}
+          </Typography>
         </Grid>
         <Grid item xs={12} sm={6}>
           <Controller
@@ -275,10 +291,8 @@ export default function EditProfile({ alert }) {
                   size="small"
                   fullWidth
                   id="firstname"
-                  label="First Name"
+                  label="First Name (optional)"
                   variant="outlined"
-                  required
-                  error={Boolean(errors.firstName?.message)}
                 />
               );
             }}
@@ -296,36 +310,8 @@ export default function EditProfile({ alert }) {
                   size="small"
                   fullWidth
                   id="lastName"
-                  label="Last Name"
+                  label="Last Name (optional)"
                   variant="outlined"
-                  required
-                  error={Boolean(errors.lastName?.message)}
-                />
-              );
-            }}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <Controller
-            name="username"
-            defaultValue=""
-            control={control}
-            render={({ field }) => {
-              const { onChange, value, ...rest } = field;
-              return (
-                <TextField
-                  {...rest}
-                  value={value}
-                  onChange={(e) => onChange(trim(e.target.value).toLowerCase())}
-                  size="small"
-                  disabled={!Boolean(usernames)}
-                  fullWidth
-                  InputProps={{ readOnly: Boolean(user?.username) }}
-                  id="username"
-                  label="Username"
-                  variant="outlined"
-                  required
-                  error={Boolean(errors.username?.message)}
                 />
               );
             }}
@@ -337,33 +323,27 @@ export default function EditProfile({ alert }) {
             defaultValue=""
             control={control}
             render={({ field }) => {
-              const { value, onChange } = field;
               return (
-                <Stack spacing={2} alignItems="center" direction="row">
-                  <Typography>Gender</Typography>
-                  <RadioGroup row {...field}>
-                    <FormControlLabel
-                      value="Female"
-                      control={<Radio />}
-                      label="Female"
-                    />
-                    <FormControlLabel
-                      value="Male"
-                      control={<Radio />}
-                      label="Male"
-                    />
-                  </RadioGroup>
-                </Stack>
+                <TextField
+                  {...field}
+                  id="gender"
+                  select
+                  label="Gender (optional)"
+                  fullWidth
+                  size="small"
+                >
+                  {["male", "female"].map((option) => (
+                    <MenuItem key={option} value={option}>
+                      {titleCase(option)}
+                    </MenuItem>
+                  ))}
+                </TextField>
               );
             }}
           />
         </Grid>
         <Grid sx={{ mt: 5 }} container justifyContent="center" item xs={12}>
-          <Button
-            disabled={loadingState || !isDirty}
-            startIcon={<SaveIcon />}
-            type="submit"
-          >
+          <Button startIcon={<SaveIcon />} type="submit">
             Submit
           </Button>
         </Grid>

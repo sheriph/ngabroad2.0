@@ -45,7 +45,7 @@ export default function Editor({ onChange, value }) {
       // integration to choose the right communication channel. This example uses
       // a POST request with JSON as a data structure but your configuration
       // could be different.
-      xhr.open("POST", "/api/uploadimage", true);
+      xhr.open("POST", "/api/others/uploadimage", true);
       xhr.responseType = "json";
     }
 

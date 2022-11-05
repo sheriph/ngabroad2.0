@@ -22,13 +22,14 @@ import ArticleRender from "./others/articlerender";
 import { default as NextLink } from "next/link";
 import LazyLoad from "react-lazyload";
 import IntroRender from "./others/introrender";
+import QuestionMarkIcon from "@mui/icons-material/QuestionMark";
 
 var relativeTime = require("dayjs/plugin/relativeTime");
 dayjs.extend(relativeTime);
 
 const getCommentCount = async (key) => {
   try {
-    const commentCount = await axios.post("/api/getcommentcount", {
+    const commentCount = await axios.post("/api/others/getcommentcount", {
       post_id: key.split("_")[0],
     });
     console.log("commentCount", commentCount.data);
@@ -40,11 +41,14 @@ const getCommentCount = async (key) => {
 
 export default function PostCard({ post }) {
   const answer = false;
-  const { data: username } = useSWRImmutable(post.user_id, getUsername);
-  /*  const { data: commentCount } = useSWRImmutable(
+  const { data: username } = useSWRImmutable(post.user_id, getUsername, {
+    keepPreviousData: true,
+  });
+  const { data: commentCount } = useSWRImmutable(
     post._id ? `${post._id}_getcommentcountinforum` : undefined,
-    getCommentCount
-  ); */
+    getCommentCount,
+    { keepPreviousData: true, revalidateOnMount: true }
+  );
 
   return (
     <LazyLoad once>
@@ -67,6 +71,9 @@ export default function PostCard({ post }) {
                   length: 150,
                   omission: " ...",
                 })}
+                {post.post_type === "question" && (
+                  <QuestionMarkIcon fontSize="small" />
+                )}
               </Link>
             </NextLink>
 
@@ -115,15 +122,17 @@ export default function PostCard({ post }) {
                         {dayjs().to(dayjs(post.createdAt))}
                       </Typography>
                     </Stack>
-                    {/* <Stack>
+                    <Stack>
                       <Stack alignItems="center" spacing={1} direction="row">
                         <CommentOutlinedIcon
-                          sx={{ fontSize: "1rem" }}
+                          sx={{ fontSize: "0.9rem" }}
                           fontSize="small"
                         />
-                        <Typography>{commentCount}</Typography>
+                        <Typography variant="caption">
+                          {commentCount}
+                        </Typography>
                       </Stack>
-                    </Stack> */}
+                    </Stack>
                   </Stack>
                 </Stack>
               </Grid>

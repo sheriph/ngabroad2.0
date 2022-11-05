@@ -6,6 +6,7 @@ import { Box } from "@mui/system";
 import ReactVisibilitySensor from "react-visibility-sensor";
 import { flatten } from "lodash";
 import { BounceLoader } from "react-spinners";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 export default function PostList({ posts = [], setSize, loading }) {
   const visibleCallback = (isVisible) => {
@@ -31,8 +32,8 @@ export default function PostList({ posts = [], setSize, loading }) {
             <Box display="flex" justifyContent="center">
               <Button
                 onClick={visibleCallback}
-                variant="outlined"
-                sx={{ minWidth: { xs: "100%", md: "250px" } }}
+                variant="text"
+                endIcon={<ExpandMoreIcon />}
               >
                 Load More
               </Button>

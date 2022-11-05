@@ -1,6 +1,5 @@
 import { MongoClient, ServerApiVersion } from "mongodb";
-import { postCommentSchema, postSchema } from "../../lib/mongodb/schema";
-import { seoSlug } from "../../lib/utility";
+import { postCommentSchema, postSchema } from "../../../lib/mongodb/schema";
 const ObjectID = require("mongodb").ObjectId;
 const uri = process.env.MONGODB_URI;
 const clientOptions = {

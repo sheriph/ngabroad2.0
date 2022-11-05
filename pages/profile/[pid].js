@@ -14,7 +14,6 @@ import { styled } from "@mui/material/styles";
 import dynamic from "next/dynamic";
 import Footer from "../../components/footer.js/footer";
 import Amplify, { withSSRContext } from "aws-amplify";
-import getUser from "../../lib/mongodb/getuser";
 
 /* Auth.configure({
   ...config,
@@ -27,24 +26,24 @@ const MeComponent = dynamic(() => import("../../components/mecomponent"), {
 
 const HeaderAppOffset = styled("div")(({ theme }) => theme.mixins.toolbar);
 
-export default function Me({ ssrUser }) {
+export default function Me() {
   return (
     <Container disableGutters>
-      <Loading />
+      {/*  <Loading /> */}
       <Stack id="headerId" spacing={1}>
         <Box component={Container}>
-          <HeaderApp ssrUser={ssrUser} />
-          <HeaderAppOffset />
+          <HeaderApp />
+          {/*  <HeaderAppOffset /> */}
           {/* // 
       @ts-ignore */}
-          <MeComponent ssrUser={ssrUser} />
+          <MeComponent />
         </Box>
         <Footer />
       </Stack>
     </Container>
   );
 }
-
+/* 
 export async function getServerSideProps({ params, req }) {
   try {
     // console.log("req", req);
@@ -61,7 +60,7 @@ export async function getServerSideProps({ params, req }) {
     if (err === "The user is not authenticated") {
       return {
         redirect: {
-          destination: `/login/?url=account/${params.pid}`,
+          destination: `/login/?url=profile/${params.pid}`,
           permanent: false,
         },
       };
@@ -71,3 +70,4 @@ export async function getServerSideProps({ params, req }) {
     };
   }
 }
+ */

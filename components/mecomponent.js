@@ -1,6 +1,7 @@
 import {
   Box,
   Divider,
+  Skeleton,
   Stack,
   Tab,
   Table,
@@ -27,23 +28,63 @@ import PortraitIcon from "@mui/icons-material/Portrait";
 import ContactMailOutlinedIcon from "@mui/icons-material/ContactMailOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import VpnKeyOutlinedIcon from "@mui/icons-material/VpnKeyOutlined";
+import { useAuthenticator } from "@aws-amplify/ui-react";
+import { useRouter } from "next/router";
+import { get } from "lodash";
+import useSWRImmutable from "swr/immutable";
+import axios from "axios";
 
-export default function MeComponent({ ssrUser }) {
+const profileUserFetcher = async (key) => {
+  try {
+    const username = key.split("-")[0];
+    const user = await axios.post("/api/others/getuserwithusername", {
+      username,
+    });
+    console.log("user", user.data);
+    return user.data;
+  } catch (error) {
+    console.log("error", error);
+    throw new Error(error);
+  }
+};
+
+export default function MeComponent() {
   const [meCategory, setMeCategory] = useRecoilState(meCategory_);
-  const { user, loading, error, mutate } = useAuthUser();
+  const router = useRouter();
+  const username = get(router, "query.pid", "");
+  const { user: userExist } = useAuthenticator((context) => [
+    context.authStatus,
+  ]);
+  const { user, isLoading, mutate } = useAuthUser(userExist);
+
+  const {
+    data: profileUser,
+    mutate: profileUserMutate,
+    error: profileUserError,
+    isValidating: profileUserIsValidating,
+    isLoading: profileUserIsLoading,
+  } = useSWRImmutable(
+    username ? `${username}-getuserdetail` : undefined,
+    profileUserFetcher
+  );
+
   const mobile = useMediaQuery("(max-width:600px)", { noSsr: true });
 
-  console.log("ssrUser in me", ssrUser);
+  //console.log("user in me", username, user, profileUser);
 
-  React.useEffect(() => {
-    if (!loading && ssrUser._id !== user?._id) {
+  /*   React.useEffect(() => {
+    if (!isLoading && ssrUser._id !== user?._id) {
       setMeCategory("Account Details");
     }
-  }, [ssrUser._id === user?._id]);
+  }, [ssrUser._id === user?._id]); */
+
+  if (!profileUser) return <Skeleton sx={{ height: "500px", width: "100%" }} />;
+
+  console.log('profileUser', profileUser)
 
   return (
     <Stack sx={{ p: { xs: 1, sm: 2 } }} direction="row" spacing={2}>
-      <MeSideBar ssrUser={ssrUser} />
+      <MeSideBar profileUser={profileUser} />
       <Divider
         sx={{
           position: "relative",
@@ -63,7 +104,7 @@ export default function MeComponent({ ssrUser }) {
         }}
       >
         <Stack spacing={1}>
-          {ssrUser._id === user?._id && (
+          {profileUser?._id === user?._id ? (
             <Tabs
               scrollButtons={true}
               sx={{
@@ -95,17 +136,19 @@ export default function MeComponent({ ssrUser }) {
                 value="Password and Security"
               />
             </Tabs>
+          ) : (
+            ""
           )}
           <Stack>
-            {meCategory === "Account Details" && (
-              <MeProfile ssrUser={ssrUser} />
+            {meCategory === "Account Details" ? (
+              <MeProfile profileUser={profileUser} />
+            ) : (
+              ""
             )}
           </Stack>
+          <Stack>{meCategory === "Edit Profile" ? <EditProfile /> : ""}</Stack>
           <Stack>
-            {meCategory === "Edit Profile" && <EditProfile alert={false} />}
-          </Stack>
-          <Stack>
-            {meCategory === "Password and Security" && <MeSecurity />}
+            {meCategory === "Password and Security" ? <MeSecurity /> : ""}
           </Stack>
         </Stack>
       </Box>

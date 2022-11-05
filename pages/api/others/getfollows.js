@@ -1,5 +1,4 @@
-import { get } from "lodash";
-import { MongoClient } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 const uri = process.env.MONGODB_URI;
 const clientOptions = {
   useUnifiedTopology: true,
@@ -12,25 +11,23 @@ export default async function handler(req, res) {
   try {
     // console.log(`req.body`, req.body);
 
+    const { user_id } = req.body;
+    console.log("user_id", user_id);
     await client.connect();
-    const query = {};
+    const query = { user_id: new ObjectId(user_id) };
     const options = {
       // sorting
       sort: {},
       //what to return
-      projection: { username: 1, _id: 0 },
+      projection: { post_id: 1 },
     };
-    const response = await client
+    const follows = await client
       .db("nga")
-      .collection("users")
-      .find(query, options)
-      .toArray();
-    const usernames = response
-      .map((username) => get(username, "username", ""))
-      .filter((username) => username);
-    console.log("usernames", usernames);
+      .collection("follows")
+      .countDocuments(query);
+    console.log("follows", follows);
     await client.close();
-    res.status(200).json(usernames);
+    res.status(200).json(follows);
   } catch (err) {
     console.log(`err`, err);
     await client.close();

@@ -39,6 +39,7 @@ import { styled, alpha } from "@mui/material/styles";
 import SearchMobile from "./searchmobile";
 import SearchDesktop from "./searchdesktop";
 import { toast } from "react-toastify";
+import { useAuthenticator } from "@aws-amplify/ui-react";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   // @ts-ignore
@@ -78,7 +79,9 @@ HideOnScroll.propTypes = {
 
 export default function HeaderApp(props) {
   const [login, setLogin] = useRecoilState(login_);
-  const { user, isValidating, loading } = useAuthUser();
+  // const { user, isValidating, loading } = useAuthUser();
+  const { user } = useAuthenticator((context) => [context.authStatus]);
+
   const [addPost, setAddPost] = useRecoilState(addPost_);
   const setOpenSearch = useSetRecoilState(mobileSearchOpen_);
   console.log("user", user);
@@ -122,7 +125,7 @@ export default function HeaderApp(props) {
             </Box>
 
             {user ? (
-              <AccountMenu user={user} />
+              <AccountMenu />
             ) : (
               <Button onClick={() => setLogin(true)} color="inherit">
                 Login

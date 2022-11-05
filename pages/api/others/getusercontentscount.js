@@ -16,12 +16,11 @@ export default async function handler(req, res) {
 
     const { key } = req.body;
 
-    const [postType, page, limit] = key.split("-");
-    console.log("postType", postType, page, limit);
+    const [postType, id] = key.split("-");
+    console.log("postType", postType, id);
 
     await client.connect();
-    const query =
-      Boolean(postType) && postType !== "all" ? { post_type: postType } : {};
+    const query = { post_type: postType, user_id: new ObjectId(id) };
 
     const options = {
       // sorting
@@ -32,18 +31,14 @@ export default async function handler(req, res) {
     const posts = await client
       .db("nga")
       .collection("posts")
-      .find(query, options)
-      .limit(Number(limit))
-      .skip(Number(page) * Number(limit))
-      // .limit(index ? index * 5 : 5)
-      .toArray();
-    // console.log("posts", posts);
+      .countDocuments(query);
+
     console.timeEnd("getPostTimer");
+    await client.close();
     res.status(200).json(posts);
   } catch (err) {
     console.log(`err`, err);
-    res.status(400).json(err);
-  } finally {
     await client.close();
+    res.status(400).json(err);
   }
 }

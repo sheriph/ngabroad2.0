@@ -44,6 +44,7 @@ import SendOutlinedIcon from "@mui/icons-material/SendOutlined";
 import Radio from "@mui/material/Radio";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import { useRouter } from "next/router";
+import { useAuthenticator } from "@aws-amplify/ui-react";
 
 export default function ReplyPost() {
   const schema = Yup.object().shape({
@@ -66,7 +67,10 @@ export default function ReplyPost() {
   });
   const [termsDialog, setTermsDialog] = useState(false);
   const [replyPost, setReplyPost] = useRecoilState(replyPost_);
-  const { user } = useAuthUser();
+  const { user: userExist } = useAuthenticator((context) => [
+    context.authStatus,
+  ]);
+  const { user } = useAuthUser(userExist);
   const [loading, setLoading] = React.useState(false);
 
   console.log("postReplyData", postReplyData);
@@ -80,7 +84,7 @@ export default function ReplyPost() {
       //  setLoading(true);
       // @ts-ignore
       await toast.promise(
-        axios.post("/api/createpostcomment", {
+        axios.post("/api/others/createpostcomment", {
           content: content,
           // @ts-ignore
           post_id: parentPost._id,
@@ -88,7 +92,11 @@ export default function ReplyPost() {
           // @ts-ignore
           title: parentPost.title,
           // @ts-ignore
-          quotedUser_id: get(post, "user_id", "62fd5507d0b451b394f7dc3a"),
+          quotedUser_id: get(
+            post,
+            "user_id",
+            "" /* "62fd5507d0b451b394f7dc3a" */
+          ),
           // @ts-ignore
           quotedPostContent: get(post, "content", ""),
           // @ts-ignore

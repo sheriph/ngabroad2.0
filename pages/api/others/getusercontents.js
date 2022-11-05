@@ -1,3 +1,4 @@
+import { get } from "lodash";
 import { MongoClient, ObjectId } from "mongodb";
 const uri = process.env.MONGODB_URI;
 const clientOptions = {
@@ -11,24 +12,34 @@ export default async function handler(req, res) {
   try {
     // console.log(`req.body`, req.body);
 
-    const { user_id } = req.body;
-    console.log("user_id", user_id);
+    console.time("getPostTimer");
+
+    const { key } = req.body;
+
+    const [postType, page, limit, id] = key.split("-");
+    console.log("postType", postType, page, limit, id);
+
     await client.connect();
-    const query = { user_id: new ObjectId(user_id) };
+    const query = { post_type: postType, user_id: new ObjectId(id) };
+
     const options = {
       // sorting
       sort: {},
       //what to return
-      projection: { post_id: 1 },
+      projection: {},
     };
-    const follows = await client
+    const posts = await client
       .db("nga")
-      .collection("follows")
+      .collection("posts")
       .find(query, options)
+      .limit(Number(limit))
+      .skip(Number(page) * Number(limit))
+      // .limit(index ? index * 5 : 5)
       .toArray();
-    console.log("follows", follows);
+    // console.log("posts", posts);
+    console.timeEnd("getPostTimer");
     await client.close();
-    res.status(200).json(follows);
+    res.status(200).json(posts);
   } catch (err) {
     console.log(`err`, err);
     await client.close();

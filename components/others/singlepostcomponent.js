@@ -59,7 +59,7 @@ export default function SinglePostComponent({ post, comments }) {
         >
           <Toolbar />
           <Box sx={{ overflow: "auto" }}>
-            <DesktopSideBar ssrPosts={null} ssrTags={null} />
+            <DesktopSideBar setSize={null} />
           </Box>
         </Drawer>
       </Box>

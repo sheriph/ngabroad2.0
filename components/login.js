@@ -2,7 +2,7 @@ import { Alert, AlertTitle, Box, Grid, Stack, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 
 import { useRecoilState, useSetRecoilState } from "recoil";
-import { addComment_, isLoading_, login_ } from "../lib/recoil";
+import { login_ } from "../lib/recoil";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import { Authenticator } from "@aws-amplify/ui-react";
 import { toast } from "react-toastify";
@@ -41,19 +41,15 @@ export default function Login() {
     },
   };
 
-  const { authStatus, user } = useAuthenticator((context) => [
-    context.authStatus,
-  ]);
+  const { authStatus } = useAuthenticator((context) => [context.authStatus]);
 
-  const id = "toast-login";
-
-  const { mutate } = useSWRConfig();
+  // const { mutate } = useSWRConfig();
 
   React.useEffect(() => {
     console.log("authStatus", authStatus);
     if (authStatus === "authenticated") {
-      console.log("mutating and closing authenticator");
-      mutate("/useAuthUser");
+      // console.log("mutating and closing authenticator");
+      // mutate("/useAuthUser");
       setLogin(false);
     }
   }, [authStatus]);

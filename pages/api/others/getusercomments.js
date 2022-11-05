@@ -12,24 +12,34 @@ export default async function handler(req, res) {
   try {
     // console.log(`req.body`, req.body);
 
-    const { user_id } = req.body;
-    console.log("user_id", user_id);
+    console.time("getPostTimer");
+
+    const { key } = req.body;
+
+    const [page, limit, id] = key.split("-");
+    console.log("postType", page, limit, id);
+
     await client.connect();
-    const query = { user_id: new ObjectId(user_id) };
+    const query = { user_id: new ObjectId(id) };
+
     const options = {
       // sorting
       sort: {},
       //what to return
       projection: {},
     };
-    const postscomments = await client
+    const posts = await client
       .db("nga")
-      .collection("postscomments")
+      .collection("comments")
       .find(query, options)
+      .limit(Number(limit))
+      .skip(Number(page) * Number(limit))
+      // .limit(index ? index * 5 : 5)
       .toArray();
-    console.log("postscomments", postscomments);
+    // console.log("posts", posts);
+    console.timeEnd("getPostTimer");
     await client.close();
-    res.status(200).json(postscomments);
+    res.status(200).json(posts);
   } catch (err) {
     console.log(`err`, err);
     await client.close();

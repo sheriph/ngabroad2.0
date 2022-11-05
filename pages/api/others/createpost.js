@@ -1,7 +1,7 @@
 import { truncate } from "lodash";
 import { MongoClient, ServerApiVersion } from "mongodb";
-import { postSchema } from "../../lib/mongodb/schema";
-import { seoSlug } from "../../lib/utility";
+import { postSchema } from "../../../lib/mongodb/schema";
+import { seoSlug } from "../../../lib/utility";
 const ObjectID = require("mongodb").ObjectId;
 const uri = process.env.MONGODB_URI;
 const clientOptions = {
@@ -14,8 +14,7 @@ const client = new MongoClient(uri, clientOptions);
 
 export default async function handler(req, res) {
   try {
-    const { user_id, title, countries, otherTags, content, post_type } =
-      req.body;
+    const { user_id, title, content, post_type } = req.body;
     const slug = seoSlug(title);
     console.log("slug", slug);
     const newPost = {
@@ -26,7 +25,6 @@ export default async function handler(req, res) {
       updatedAts: [],
       approves: [],
       slug: truncate(slug, { length: 100, omission: "" }),
-      tags: { otherTags: [...otherTags], countries: [...countries] },
       post_type: post_type,
     };
 

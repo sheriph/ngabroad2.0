@@ -34,7 +34,7 @@ import axios from "axios";
 const getPosts = async (key) => {
   console.log("posts key", key);
   try {
-    const posts = await axios.post("/api/getposts", { key });
+    const posts = await axios.post("/api/others/getposts", { key });
     console.log("posts in fetch", posts.data);
 
     return posts.data;
@@ -61,7 +61,16 @@ export default function PostComponent() {
     isValidating,
   } = useSWRInfinite(
     (pageIndex) => `${postType}-${pageIndex++}-${4}`,
-    getPosts
+    getPosts,
+    {
+      persistSize: true,
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      initialSize: 1,
+      keepPreviousData: true,
+      revalidateFirstPage: true,
+    }
   );
 
   React.useEffect(() => {

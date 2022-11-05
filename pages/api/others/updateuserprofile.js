@@ -1,5 +1,5 @@
 import { MongoClient, ObjectId } from "mongodb";
-import { userSchema } from "../../lib/mongodb/schema";
+import { userSchema } from "../../../lib/mongodb/schema";
 import { forIn, get, trim } from "lodash";
 const uri = process.env.MONGODB_URI;
 const clientOptions = {
@@ -11,13 +11,19 @@ const client = new MongoClient(uri, clientOptions);
 
 export default async function handler(req, res) {
   try {
-    if (process.env.NODE_ENV !== "development") {
+    await client.connect();
+    if (process.env.NODE_ENV === "development") {
       await client.db("nga").command({
         collMod: "users",
         validator: userSchema,
         validationLevel: "strict",
         validationAction: "error",
       });
+
+      await client
+        .db("nga")
+        .collection("users")
+        .createIndex({ username: 1 }, { unique: true });
     }
 
     const { data, _id } = req.body;
@@ -35,8 +41,8 @@ export default async function handler(req, res) {
     await client.close();
     res.status(200).json(update.acknowledged);
   } catch (error) {
-    console.log(`err`, error.message, error.errInfo);
+    console.log(`err`, error.message);
     await client.close();
-    res.status(400).json({ message: error.message, info: error.errInfo });
+    res.status(400).json(error.message);
   }
 }

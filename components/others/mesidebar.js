@@ -18,6 +18,7 @@ import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined
 import ModeEditOutlineOutlinedIcon from "@mui/icons-material/ModeEditOutlineOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { useAuthUser } from "../../lib/utility";
+import { useAuthenticator } from "@aws-amplify/ui-react";
 
 const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
   "&.Mui-selected": {
@@ -28,21 +29,24 @@ const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
   },
 }));
 
-export default function MeSideBar({ ssrUser }) {
+export default function MeSideBar({ profileUser }) {
   const [meCtegory, setMeCategory] = useRecoilState(meCategory_);
 
-  const { user, loading, error, mutate } = useAuthUser();
+  const { user: userExist } = useAuthenticator((context) => [
+    context.authStatus,
+  ]);
+  const { user, isLoading, mutate } = useAuthUser(userExist);
 
   const handleCategory = (e) => {
     console.log("e", e);
     setMeCategory(e.target.innerText);
   };
 
-  React.useEffect(() => {
+  /*   React.useEffect(() => {
     if (!loading && ssrUser._id !== user?._id) {
       setMeCategory("Account Details");
     }
-  }, [ssrUser._id === user?._id]);
+  }, [ssrUser._id === user?._id]); */
 
   return (
     <Box
@@ -63,7 +67,7 @@ export default function MeSideBar({ ssrUser }) {
             </ListItemIcon>
             <ListItemText primary="Account Details" />
           </CustomListItemButton>
-          {ssrUser._id === user?._id && (
+          {profileUser?._id === user?._id && (
             <React.Fragment>
               <CustomListItemButton
                 selected={meCtegory === "Edit Profile"}

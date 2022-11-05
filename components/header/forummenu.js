@@ -21,6 +21,7 @@ import { addPost_, login_, postReplyData_, replyPost_ } from "../../lib/recoil";
 import { useRecoilState } from "recoil";
 import { toast } from "react-toastify";
 import { useAuthUser } from "../../lib/utility";
+import { useAuthenticator } from "@aws-amplify/ui-react";
 
 export default function ForumMenu({ post, showMenu }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -28,7 +29,9 @@ export default function ForumMenu({ post, showMenu }) {
   const [addPost, setAddPost] = useRecoilState(addPost_);
   const [postReplyData, setPostReplyData] = useRecoilState(postReplyData_);
   const [replyPost, setReplyPost] = useRecoilState(replyPost_);
-  const { user, isValidating, loading } = useAuthUser();
+  // const { user, isValidating, loading } = useAuthUser();
+  const { user } = useAuthenticator((context) => [context.authStatus]);
+
   const [login, setLogin] = useRecoilState(login_);
 
   const open = Boolean(post && user && showMenu && anchorEl);

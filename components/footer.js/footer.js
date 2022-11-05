@@ -16,30 +16,31 @@ import ReplyPost from "../replypost";
 import Login from "../login";
 import EditProfile from "../../components/others/meeditprofile";
 import { useAuthUser } from "../../lib/utility";
+import { useAuthenticator } from "@aws-amplify/ui-react";
 
 export default function Footer() {
-  const { user } = useAuthUser();
+  const { user: userExist } = useAuthenticator((context) => [
+    context.authStatus,
+  ]);
+  const { user } = useAuthUser(userExist);
   const [addPost, setAddPost] = useRecoilState(addPost_);
   const [replyPost, setReplyPost] = useRecoilState(replyPost_);
   const [login, setLogin] = useRecoilState(login_);
   const [updateProfile, setUpdateProfile_] = useRecoilState(updateProfile_);
   const [showAlert, setShowAlert] = React.useState(false);
 
-  console.log("user footer", user);
+ // console.log("user footer", user);
 
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
 
   React.useEffect(() => {
-    if (
-      user &&
-      Boolean(!user?.firstName || !user?.lastName || !user?.username)
-    ) {
+    if (user && Boolean(!user?.username)) {
       setShowAlert(true);
     } else {
       setShowAlert(false);
     }
-  }, [user?.firstName, user?.lastName, user?.username]);
+  }, [user?.username]);
 
   return (
     <Stack>
@@ -53,10 +54,12 @@ export default function Footer() {
       >
         <Login />
       </Dialog>
-      {/* <Dialog
-        sx={{
-          "&.MuiModal-root.MuiDialog-root": { zIndex: 1402 },
-        }}
+      <Dialog
+        sx={
+          {
+            // "&.MuiModal-root.MuiDialog-root": { zIndex: 1402 },
+          }
+        }
         fullScreen={fullScreen}
         open={showAlert}
       >
@@ -65,9 +68,9 @@ export default function Footer() {
             We are happy to welcome you as a new member of this community.
             Please complete your profile to start using your account.
           </Alert>
-          <EditProfile alert={true} />
+          <EditProfile />
         </Stack>
-      </Dialog> */}
+      </Dialog>
       <Dialog
         sx={{
           "&.MuiModal-root.MuiDialog-root": { zIndex: 1402 },

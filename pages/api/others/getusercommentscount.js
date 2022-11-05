@@ -1,5 +1,5 @@
-import { flatten, uniq } from "lodash";
-import { MongoClient } from "mongodb";
+import { get } from "lodash";
+import { MongoClient, ObjectId } from "mongodb";
 const uri = process.env.MONGODB_URI;
 const clientOptions = {
   useUnifiedTopology: true,
@@ -10,25 +10,30 @@ const client = new MongoClient(uri, clientOptions);
 
 export default async function handler(req, res) {
   try {
+    // console.log(`req.body`, req.body);
+
+    console.time("getPostTimer");
+
+    const { user_id } = req.body;
+    console.log("user_id", user_id);
+
     await client.connect();
-    const query = {};
+    const query = { user_id: new ObjectId(user_id) };
+
     const options = {
       // sorting
       sort: {},
       //what to return
-      projection: { tags: 1 },
+      projection: {},
     };
-    const tags = await client
+    const posts = await client
       .db("nga")
-      .collection("posts")
-      .find(query, options)
-      .toArray();
+      .collection("comments")
+      .countDocuments(query);
 
-    const countries = uniq(flatten(tags.map((doc) => doc.tags.countries)));
-    const otherTags = uniq(flatten(tags.map((doc) => doc.tags.otherTags)));
-    const ssrTags = { countries, otherTags };
+    console.timeEnd("getPostTimer");
     await client.close();
-    res.status(200).json(ssrTags);
+    res.status(200).json(posts);
   } catch (err) {
     console.log(`err`, err);
     await client.close();

@@ -52,6 +52,7 @@ import { useRouter } from "next/router";
 import QuoteReadMore from "./others/quotereadmore";
 import ArticleRender from "./others/articlerender";
 import { toast } from "react-toastify";
+import { useAuthenticator } from "@aws-amplify/ui-react";
 
 var relativeTime = require("dayjs/plugin/relativeTime");
 dayjs.extend(relativeTime);
@@ -61,7 +62,10 @@ export default function SinglePostCard({
   parentPost,
   isComment = false,
 }) {
-  const { user } = useAuthUser();
+  const { user: userExist } = useAuthenticator((context) => [
+    context.authStatus,
+  ]);
+  const { user } = useAuthUser(userExist);
   const [replyPost, setReplyPost] = useRecoilState(replyPost_);
 
   const [postReplyData, setPostReplyData] = useRecoilState(postReplyData_);
@@ -72,7 +76,7 @@ export default function SinglePostCard({
   const getVotes = async (post_id) => {
     try {
       const key = post_id.split("_")[0];
-      const votes = await axios.post("/api/getvotes", { post_id: key });
+      const votes = await axios.post("/api/others/getvotes", { post_id: key });
       console.log("votes", votes.data);
       return votes.data;
     } catch (error) {
@@ -127,12 +131,12 @@ export default function SinglePostCard({
       setLogin(true);
       return;
     }
-    setUpdatePost(true);
     setPostReplyData({
       post,
       parentPost,
       isComment: isComment,
     });
+    setUpdatePost(true);
     setAddPost(true);
   };
 
@@ -172,7 +176,7 @@ export default function SinglePostCard({
           populateCache: true,
           revalidate: false,
         });
-        await axios.post("/api/vote", {
+        await axios.post("/api/others/vote", {
           user_id: user._id,
           status,
           post_id: post._id,
@@ -219,7 +223,7 @@ export default function SinglePostCard({
       });
 
       try {
-        await axios.post("/api/vote", {
+        await axios.post("/api/others/vote", {
           user_id: user._id,
           status,
           post_id: post._id,
@@ -248,7 +252,7 @@ export default function SinglePostCard({
           populateCache: true,
           revalidate: false,
         });
-        await axios.post("/api/vote", {
+        await axios.post("/api/others/vote", {
           user_id: user._id,
           status,
           post_id: post._id,
@@ -294,7 +298,7 @@ export default function SinglePostCard({
         populateCache: true,
         revalidate: false,
       });
-      await axios.post("/api/follow", {
+      await axios.post("/api/others/follow", {
         user_id: user._id,
         post_id: parentPost._id,
         post_title: parentPost.title,
@@ -425,10 +429,10 @@ export default function SinglePostCard({
                 />
                 <Typography variant="caption">{downvotes}</Typography>
               </Stack>
-              <Stack sx={{ cursor: "pointer" }} spacing={1} direction="row">
+              {/*  <Stack sx={{ cursor: "pointer" }} spacing={1} direction="row">
                 <ShareIcon fontSize="small" />
                 <Typography variant="caption">Share</Typography>
-              </Stack>
+              </Stack> */}
               <Stack
                 onClick={showReply}
                 sx={{ cursor: "pointer" }}

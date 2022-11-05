@@ -1,5 +1,5 @@
 import { MongoClient, ServerApiVersion, ObjectId } from "mongodb";
-import { userSchema } from "../../lib/mongodb/schema";
+import { userSchema } from "../../../lib/mongodb/schema";
 const uri = process.env.MONGODB_URI;
 const clientOptions = {
   useUnifiedTopology: true,

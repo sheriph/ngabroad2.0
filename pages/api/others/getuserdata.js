@@ -1,7 +1,7 @@
 import { withSSRContext } from "aws-amplify";
 import { get } from "lodash";
 import { MongoClient, ServerApiVersion } from "mongodb";
-import { userSchema } from "../../lib/mongodb/schema";
+import { userSchema } from "../../../lib/mongodb/schema";
 const uri = process.env.MONGODB_URI;
 const clientOptions = {
   useUnifiedTopology: true,
@@ -23,19 +23,11 @@ export default async function handler(req, res) {
     const newUser = {
       createdAt: new Date(),
       lastSeen: new Date(),
-      stats: {
-        likes: 0,
-        dislikes: 0,
-        comments: 0,
-        questions: 0,
-        answers: 0,
-        posts: 0,
-      },
       email: email,
       role: "user",
     };
 
-    if (process.env.NODE_ENV !== "development") {
+    if (process.env.NODE_ENV === "development") {
       await client.db("nga").command({
         collMod: "users",
         validator: userSchema,
@@ -44,7 +36,7 @@ export default async function handler(req, res) {
       });
     }
 
-    const upsert = await client
+    await client
       .db("nga")
       .collection("users")
       .updateOne(filter, { $setOnInsert: newUser }, { upsert: true });
@@ -56,6 +48,7 @@ export default async function handler(req, res) {
     res.status(200).json(userData);
   } catch (error) {
     await client.close();
-    res.status(400).json(error);
+    console.log("error.response", error.response);
+    res.status(400).json(error.response);
   }
 }

@@ -1,5 +1,6 @@
 import {
   Avatar,
+  Button,
   Divider,
   Link,
   Paper,
@@ -25,17 +26,19 @@ import ThumbDownIcon from "@mui/icons-material/ThumbDown";
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 
 import dayjs from "dayjs";
-import { get, lowerCase, truncate } from "lodash";
-import { startCase } from "lodash";
+
 import React from "react";
-import useSWR from "swr";
-import { HtmlTooltip, useAuthUser } from "../../lib/utility";
+import { HtmlTooltip, titleCase, useAuthUser } from "../../lib/utility";
 import { Box } from "@mui/system";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
+import useSWR from "swr";
+
 import useSWRImmutable from "swr/immutable";
 import axios from "axios";
-import ArticleRender from "./articlerender";
-import { default as NextLink } from "next/link";
+
+import ProfilePosts from "./profileposts";
+import ProfileQuestions from "./profilequestions";
+import ProfileComments from "./profilecomments";
 
 const advancedFormat = require("dayjs/plugin/advancedFormat");
 dayjs.extend(advancedFormat);
@@ -43,7 +46,7 @@ dayjs.extend(advancedFormat);
 const getVotes = async (user_id) => {
   try {
     const key = user_id.split("_")[0];
-    const votes = await axios.post("/api/getmyvotes", { user_id: key });
+    const votes = await axios.post("/api/others/getmyvotes", { user_id: key });
     console.log("votes", votes.data);
     return votes.data;
   } catch (error) {
@@ -54,7 +57,9 @@ const getVotes = async (user_id) => {
 const getFollows = async (user_id) => {
   try {
     const key = user_id.split("_")[0];
-    const follows = await axios.post("/api/getfollows", { user_id: key });
+    const follows = await axios.post("/api/others/getfollows", {
+      user_id: key,
+    });
     console.log("follows fetcher", follows.data);
     return follows.data;
   } catch (error) {
@@ -62,81 +67,86 @@ const getFollows = async (user_id) => {
   }
 };
 
-const getPosts = async (user_id) => {
+const getPostsCount = async (key) => {
   try {
-    const key = user_id.split("_")[0];
-    const post = await axios.post("/api/getmyposts", { user_id: key });
-    console.log("post fetcher", post.data);
-    return post.data;
+    const follows = await axios.post("/api/others/getusercontentscount", {
+      key,
+    });
+    console.log("postsCount fetcher", follows.data);
+    return follows.data;
   } catch (error) {
     console.log("error", error);
   }
 };
 
-const getComments = async (user_id) => {
+const getCommentsCount = async (key) => {
+  const user_id = key.split("-")[0];
   try {
-    const key = user_id.split("_")[0];
-    const comments = await axios.post("/api/getmycomments", { user_id: key });
-    console.log("comments fetcher", comments.data);
-    return comments.data;
+    const follows = await axios.post("/api/others/getusercommentscount", {
+      user_id,
+    });
+    console.log("commentsCount fetcher", follows.data);
+    return follows.data;
   } catch (error) {
     console.log("error", error);
   }
 };
 
-export default function MeProfile({ ssrUser }) {
+export default function MeProfile({ profileUser }) {
   const [tabValue, setTabValue] = React.useState("1");
 
   const { data: votes } = useSWRImmutable(
-    `${ssrUser._id}_allmyvotes`,
+    profileUser?._id ? `${profileUser?._id}_allmyvotes` : undefined,
     getVotes
   );
   const { data: follows } = useSWRImmutable(
-    `${ssrUser?._id}_allmyfollow`,
+    profileUser?._id ? `${profileUser?._id}_allmyfollow` : undefined,
     getFollows
   );
-  const { data: posts } = useSWRImmutable(
-    `${ssrUser?._id}_allmyposts`,
-    getPosts
+
+  const { data: postsCount } = useSWRImmutable(
+    profileUser?._id ? `post-${profileUser?._id}-allmyposts` : undefined,
+    getPostsCount
   );
-  const { data: comments } = useSWRImmutable(
-    `${ssrUser?._id}_allmycomments`,
-    getComments
+
+  const { data: questionsCount } = useSWRImmutable(
+    profileUser?._id ? `question-${profileUser?._id}-allmyposts` : undefined,
+    getPostsCount
+  );
+
+  const { data: commentsCount } = useSWRImmutable(
+    profileUser?._id ? `${profileUser?._id}-allmycomments` : undefined,
+    getCommentsCount
   );
 
   const upvotes = votes ? votes.filter((vote) => vote.status).length : 0;
   const downvotes = votes ? votes.filter((vote) => !vote.status).length : 0;
 
-  console.log("votes follows", posts, comments, upvotes, downvotes);
-
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
+
+  console.log("follows", follows);
 
   return (
     <Stack spacing={1} sx={{ mt: 1 }}>
       <Stack justifyContent="center" spacing={3} direction="row">
         <Avatar
-          alt={ssrUser.username}
-          src={ssrUser.image}
+          alt={profileUser?.username}
+          src={profileUser?.image}
           sx={{ width: { xs: 80, sm: 100 }, height: { xs: 80, sm: 100 } }}
         />
         <Stack spacing={1}>
-          <Stack
-            divider={<Divider orientation="vertical" flexItem />}
-            spacing={1}
-            direction="row"
-          >
+          <Stack spacing={1} direction="row">
             <Typography variant="h1">
-              {startCase(lowerCase(`${ssrUser.firstName} ${ssrUser.lastName}`))}
+              {titleCase(`${profileUser?.firstName} ${profileUser?.lastName}`)}
             </Typography>
-            <Link href={`/profile/${ssrUser.username}`} variant="caption">
-              @{ssrUser.username}
+            <Link href={`/profile/${profileUser.username}`} variant="caption">
+              @{profileUser.username}
             </Link>
           </Stack>
-          <Typography>Travel Consultant</Typography>
           <Typography variant="caption">
-            Joined {dayjs(ssrUser.createdAt).format("MMMM YYYY")}
+            Joined {dayjs(profileUser.createdAt).format("MMMM YYYY")}
           </Typography>
           <HtmlTooltip
             arrow
@@ -149,8 +159,8 @@ export default function MeProfile({ ssrUser }) {
                       fontSize="small"
                     />
                     <Typography variant="caption">
-                      Number of times{" "}
-                      {startCase(lowerCase(`${ssrUser.firstName}`))} was upvoted
+                      Number of times {titleCase(`${profileUser.firstName}`)}{" "}
+                      was upvoted
                     </Typography>
                   </Stack>
                   <Stack alignItems="center" spacing={1} direction="row">
@@ -163,9 +173,8 @@ export default function MeProfile({ ssrUser }) {
                       fontSize="small"
                     />
                     <Typography variant="caption">
-                      Number of times{" "}
-                      {startCase(lowerCase(`${ssrUser.firstName}`))} was
-                      downvoted
+                      Number of times {titleCase(`${profileUser.firstName}`)}{" "}
+                      was downvoted
                     </Typography>
                   </Stack>
                   <Stack alignItems="center" spacing={1} direction="row">
@@ -174,8 +183,7 @@ export default function MeProfile({ ssrUser }) {
                       fontSize="small"
                     />
                     <Typography variant="caption">
-                      Number of posts{" "}
-                      {startCase(lowerCase(`${ssrUser.firstName}`))} is
+                      Number of posts {titleCase(`${profileUser.firstName}`)} is
                       following
                     </Typography>
                   </Stack>
@@ -214,161 +222,51 @@ export default function MeProfile({ ssrUser }) {
                   sx={{ width: 17, height: 17 }}
                   fontSize="small"
                 />
-                <Typography variant="caption">
-                  {follows?.length || 0}
-                </Typography>
+                <Typography variant="caption">{follows || 0}</Typography>
               </Stack>
             </Stack>
           </HtmlTooltip>
         </Stack>
       </Stack>
 
-      {posts ? (
-        <Box sx={{ width: "100%", typography: "body1" }}>
-          <TabContext value={tabValue}>
-            <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-              <TabList onChange={handleTabChange}>
-                <Tab
-                  sx={{ textTransform: "none" }}
-                  label={`${
-                    (posts || []).filter((post) => post.post_type === "post")
-                      .length
-                  } Posts`}
-                  value="1"
-                />
-                <Tab
-                  sx={{ textTransform: "none" }}
-                  label={`${
-                    (posts || []).filter(
-                      (post) => post.post_type === "question"
-                    ).length
-                  } Questions`}
-                  value="2"
-                />
-                <Tab
-                  sx={{ textTransform: "none" }}
-                  label={`${(comments || []).length} Comments`}
-                  value="3"
-                />
-              </TabList>
-            </Box>
-            <TabPanel value="1">
-              <Stack
-                spacing={2}
-                divider={<Divider orientation="horizontal" flexItem />}
-              >
-                {(posts || [])
-                  .filter((post) => post.post_type === "post")
-                  .map((post, key) => (
-                    <Stack spacing={1} key={key}>
-                      <NextLink
-                        href={`/${encodeURIComponent(post.slug)}`}
-                        passHref
-                      >
-                        <Link
-                          variant="h1"
-                          textAlign="left"
-                          sx={{
-                            p: 0,
-                            justifyContent: "flex-start",
-                            color: "text.primary",
-                            textDecorationStyle: "dotted",
-                          }}
-                          gutterBottom
-                          underline="always"
-                        >
-                          {truncate(startCase(lowerCase(post.title)), {
-                            length: 150,
-                            omission: " ...",
-                          })}
-                        </Link>
-                      </NextLink>
-
-                      <ArticleRender
-                        content={truncate(post.content, {
-                          length: 220,
-                          omission: ` ...`,
-                        })}
-                      />
-                    </Stack>
-                  ))}
-              </Stack>
-            </TabPanel>
-            <TabPanel value="2">
-              <Stack
-                spacing={2}
-                divider={<Divider orientation="horizontal" flexItem />}
-              >
-                {(posts || [])
-                  .filter((post) => post.post_type === "question")
-                  .map((post, key) => (
-                    <Stack spacing={1} key={key}>
-                      <NextLink
-                        href={`/${encodeURIComponent(post.slug)}`}
-                        passHref
-                      >
-                        <Link
-                          variant="h2"
-                          textAlign="left"
-                          sx={{
-                            p: 0,
-                            justifyContent: "flex-start",
-                            color: "text.primary",
-                            textDecorationStyle: "dotted",
-                          }}
-                          gutterBottom
-                          underline="always"
-                        >
-                          {truncate(startCase(lowerCase(post.content)), {
-                            length: 150,
-                            omission: " ...",
-                          })}
-                        </Link>
-                      </NextLink>
-                    </Stack>
-                  ))}
-              </Stack>
-            </TabPanel>
-            <TabPanel value="3">
-              <Stack
-                spacing={2}
-                divider={<Divider orientation="horizontal" flexItem />}
-              >
-                {(comments || []).map((comment, key) => (
-                  <Stack spacing={1} key={key}>
-                    <NextLink
-                      href={`/${encodeURIComponent(comment.slug)}`}
-                      passHref
-                    >
-                      <Link
-                        variant="h2"
-                        textAlign="left"
-                        sx={{
-                          p: 0,
-                          justifyContent: "flex-start",
-                          color: "text.primary",
-                          textDecorationStyle: "dotted",
-                        }}
-                        gutterBottom
-                        underline="always"
-                      >
-                        Re:{" "}
-                        {truncate(startCase(lowerCase(comment.title)), {
-                          length: 150,
-                          omission: " ...",
-                        })}
-                      </Link>
-                    </NextLink>
-                    <ArticleRender content={comment.content} />
-                  </Stack>
-                ))}
-              </Stack>
-            </TabPanel>
-          </TabContext>
-        </Box>
-      ) : (
-        <Skeleton sx={{ height: 500 }} />
-      )}
+      <Box sx={{ width: "100%", typography: "body1" }}>
+        <TabContext value={tabValue}>
+          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+            <TabList onChange={handleTabChange}>
+              <Tab
+                sx={{ textTransform: "none" }}
+                label={`${postsCount} Posts`}
+                value="1"
+              />
+              <Tab
+                sx={{ textTransform: "none" }}
+                label={`${questionsCount} Questions`}
+                value="2"
+              />
+              <Tab
+                sx={{ textTransform: "none" }}
+                label={`${commentsCount} Comments`}
+                value="3"
+              />
+            </TabList>
+          </Box>
+          <TabPanel sx={{ "&.MuiTabPanel-root": { py: 2, px: 0 } }} value="1">
+            <ProfilePosts postsCount={postsCount} id={profileUser._id} />
+          </TabPanel>
+          <TabPanel sx={{ "&.MuiTabPanel-root": { py: 2, px: 0 } }} value="2">
+            <ProfileQuestions
+              questionsCount={questionsCount}
+              id={profileUser._id}
+            />
+          </TabPanel>
+          <TabPanel sx={{ "&.MuiTabPanel-root": { py: 2, px: 0 } }} value="3">
+            <ProfileComments
+              commentsCount={commentsCount}
+              id={profileUser._id}
+            />
+          </TabPanel>
+        </TabContext>
+      </Box>
     </Stack>
   );
 }

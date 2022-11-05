@@ -13,15 +13,46 @@ import Settings from "@mui/icons-material/Settings";
 import Logout from "@mui/icons-material/Logout";
 import { Auth } from "aws-amplify";
 import { useSWRConfig } from "swr";
-import { meCategory_ } from "../../lib/recoil";
-import { useRecoilState } from "recoil";
+import { blockLoading_, meCategory_ } from "../../lib/recoil";
+import { useRecoilState, useSetRecoilState } from "recoil";
 import { useRouter } from "next/router";
+import useSWRImmutable from "swr/immutable";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { useAuthenticator } from "@aws-amplify/ui-react";
+import { useAuthUser } from "../../lib/utility";
 
-export default function AccountMenu({ user }) {
+const userFetcher = async () => {
+  try {
+    console.log("geting authed user");
+    const user = await axios.get("/api/others/getuserdata");
+    console.log("user", user.data);
+    return user.data;
+  } catch (error) {
+    console.log("error", error);
+    throw new Error(error);
+  }
+};
+
+export default function AccountMenu() {
   const [anchorEl, setAnchorEl] = React.useState(null);
-  const { mutate } = useSWRConfig();
   const [meCtegory, setMeCategory] = useRecoilState(meCategory_);
+  const setBlockLoading = useSetRecoilState(blockLoading_);
+
   const router = useRouter();
+
+  const { user: userExist } = useAuthenticator((context) => [
+    context.authStatus,
+  ]);
+  const { user, isLoading, mutate } = useAuthUser(userExist);
+
+  React.useEffect(() => {
+    if (isLoading) {
+      setBlockLoading(true);
+    } else {
+      setBlockLoading(false);
+    }
+  }, [isLoading]);
 
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
@@ -35,10 +66,10 @@ export default function AccountMenu({ user }) {
     try {
       console.log("signing out authed user");
       const user = await Auth.signOut();
-      await mutate("/useAuthUser", null, {
-        revalidate: true,
+      mutate(null, {
         optimisticData: null,
         populateCache: true,
+        revalidate: false,
       });
       console.log("auth user", user);
     } catch (error) {
@@ -46,12 +77,6 @@ export default function AccountMenu({ user }) {
       throw new Error(error);
     }
   };
-
-  /* const mut = await mutate(null, {
-          rollbackOnError: false,
-          optimisticData: null,
-          populateCache: true,
-        }); */
 
   return (
     <React.Fragment>
@@ -111,7 +136,7 @@ export default function AccountMenu({ user }) {
         <MenuItem
           onClick={() => {
             setMeCategory("Account Details");
-            router.push(`account/${user?.username}`);
+            router.push(`profile/${user?.username}`);
           }}
         >
           <Avatar /> My account
@@ -121,7 +146,7 @@ export default function AccountMenu({ user }) {
           onClick={() => {
             setMeCategory("Edit Profile");
             console.log("go to settings");
-            router.push(`account/${user?.username}`);
+            router.push(`profile/${user?.username}`);
           }}
         >
           <ListItemIcon>

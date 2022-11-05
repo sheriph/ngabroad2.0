@@ -34,7 +34,7 @@ export default function Layout({ children }) {
   }, [Router]);
 
   return (
-    <Container maxWidth="lg">
+    <Container sx={{ px: 0 }} maxWidth="lg">
       <Stack>
         <Loading isAnimating={loading} />
         <BlockingLoading isAnimating={blockLoading} />

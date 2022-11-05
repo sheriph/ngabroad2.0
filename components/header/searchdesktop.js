@@ -67,7 +67,7 @@ export default function SearchDesktop() {
     try {
       const text = key.split("textsearchkey")[1];
       console.log("text", text);
-      const res = await axios.post("/api/autosearch", { text });
+      const res = await axios.post("/api/others/autosearch", { text });
       console.log("res.data", res.data);
 
       return res.data;
