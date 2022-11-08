@@ -24,13 +24,14 @@ export default async function handler(req, res) {
 
     const options = {
       // sorting
-      sort: {},
+      sort: { createdAt: -1 },
       //what to return
       projection: {},
     };
     const posts = await client
       .db("nga")
-      .collection("comments")
+      .collection("postscomments")
+      // @ts-ignore
       .find(query, options)
       .limit(Number(limit))
       .skip(Number(page) * Number(limit))
@@ -41,7 +42,7 @@ export default async function handler(req, res) {
     await client.close();
     res.status(200).json(posts);
   } catch (err) {
-    console.log(`err`, err);
+    console.log(`err getusercomments`, err);
     await client.close();
     res.status(400).json(err);
   }

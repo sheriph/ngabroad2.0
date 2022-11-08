@@ -29,7 +29,7 @@ export default async function handler(req, res) {
     await client.close();
     res.status(200).json(commentCount);
   } catch (err) {
-    console.log(`err`, err);
+    console.log(`err getcommentcount`, err);
     await client.close();
     res.status(400).json(err);
   }

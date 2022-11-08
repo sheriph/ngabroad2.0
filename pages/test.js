@@ -34,13 +34,12 @@ export default function Test() {
 
   const { cache } = useSWRConfig();
 
-  console.log("modifyOffer 1", data);
   const [myHtml, setHtml] = React.useState("");
   const [flightOffer, setFlightOffer] = React.useState(null);
   const processWp = async () => {
     try {
-      const posts = await axios.get("/api/processwp");
-      console.log("posts", posts.data);
+      // const posts = await axios.get("/api/processwp");
+      // console.log("posts", posts.data);
     } catch (error) {
       console.log(error.response.data, error);
     }
@@ -115,6 +114,22 @@ export default function Test() {
     }
   };
 
+  const testVisa = async () => {
+    try {
+      //  await revalidateToken();
+      const email = await axios.post("/api/visa/orderemail", {
+        passengerData,
+        visaOrderParams,
+        reference: "OIDIJDJODJ",
+        createdAt: new Date(),
+      });
+      console.log("email.data", { data: email.data });
+      setHtml(email.data);
+    } catch (error) {
+      console.log("email.data error.response", error.response);
+    }
+  };
+
   const runLambda = async () => {
     try {
       const data = await API.post("apiforhello", "/datasource", {
@@ -130,9 +145,9 @@ export default function Test() {
     <Stack
       divider={<Divider sx={{ mb: 2 }} orientation="horizontal" flexItem />}
     >
-      <Button onClick={testemail}>TEST</Button>
-      <Button onClick={getModifyOffer}>RUN</Button>
-      <Button onClick={runLambda}>TEST LAMBDA</Button>
+      {/* <Button onClick={processWp}>PROCESS WP</Button> */}
+      <Button onClick={testVisa}>RUN</Button>
+      {/* <Button onClick={runLambda}>TEST LAMBDA</Button> */}
       <Box dangerouslySetInnerHTML={{ __html: myHtml }} />
     </Stack>
   );
@@ -917,7 +932,63 @@ const offerPricing = {
 
 const offer = first(get(offerPricing, "data", []));
 
-console.log(
-  "email",
-  get(first(get(flightOrder, "data.travelers", [])), "contact.emailAddress", "")
-);
+const passengerData = {
+  phone: "2349065369929",
+  email: "sheriph4real@gmail.com",
+  travelersData: [
+    {
+      title: "Mr",
+      lastname: "adeniyi",
+      firstname: "sheriff subair omo baba",
+      travelerType: "ADULT",
+      travelerId: "118",
+    },
+    {
+      travelerType: "CHILD",
+      travelerId: "119",
+      firstname: "fdffs",
+      title: "Mr",
+      lastname: "sddssdsddsdsd",
+    },
+    {
+      travelerType: "INFANT",
+      travelerId: "120",
+      firstname: "sjkshjs",
+      title: "Ms",
+      lastname: "dssdsddsdssdd",
+    },
+  ],
+  payment: "Online Debit/Credit Card",
+};
+
+const visaOrderParams = {
+  "Hotel Reservation For Visa": {
+    price: 5000,
+    selected: true,
+    type: "product",
+  },
+  "Flight Reservation For Visa": {
+    price: 5000,
+    selected: true,
+    type: "product",
+  },
+  "Application Form Filling": {
+    price: 10000,
+    selected: true,
+    type: "product",
+  },
+  "Embassy Appointment Booking": {
+    price: 5000,
+    selected: true,
+    type: "product",
+  },
+  passengers: {
+    adult: 1,
+    child: 1,
+    infant: 1,
+  },
+  "Departure City, Country": "Lagos, Nigeria",
+  "Arrival City, Country": "London, UK",
+  "Arrival Date": "2022-11-16T23:00:00.000Z",
+  "Return Date": "2022-12-30T23:00:00.000Z",
+};

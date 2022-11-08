@@ -15,65 +15,9 @@ const client = new MongoClient(uri, clientOptions);
 
 export default async function handler(req, res) {
   try {
+    await client.connect();
     const posts = await getAllPostsWithSlug();
 
-    for (let post of posts.edges) {
-      const { slug, title, content, date } = post.node;
-      const user_id = "62fd5507d0b451b394f7dc3a";
-      const countries = [];
-      const otherTags = [];
-      const post_type = "post";
-      const newPost = {
-        title: title,
-        user_id: new ObjectID(user_id),
-        content: content,
-        createdAt: new Date(date),
-        updatedAts: [],
-        approves: [],
-        slug: slug,
-        tags: { otherTags: [...otherTags], countries: [...countries] },
-        post_type: post_type,
-      };
-
-      await client.connect();
-      if (process.env.NODE_ENV === "development") {
-        console.log("adding validation");
-        await client.db("nga").command({
-          collMod: "posts",
-          validator: postSchema,
-          validationLevel: "strict",
-          validationAction: "error",
-        });
-
-        await client
-          .db("nga")
-          .collection("posts")
-          .createIndex({ title: 1, slug: 1 }, { unique: true });
-      }
-
-      const insert = await client
-        .db("nga")
-        .collection("posts")
-        .insertOne(newPost);
-    }
-
-    /*  const { user_id, title, countries, otherTags, content, post_type } =
-      req.body;
-    const slug = seoSlug(title);
-    console.log("slug", slug);
-    const newPost = {
-      title: title,
-      user_id: new ObjectID(user_id),
-      content: content,
-      createdAt: new Date(),
-      updatedAts: [],
-      approves: [],
-      slug: truncate(slug, { length: 100, omission: "" }),
-      tags: { otherTags: [...otherTags], countries: [...countries] },
-      post_type: post_type,
-    };
-
-    await client.connect();
     if (process.env.NODE_ENV === "development") {
       console.log("adding validation");
       await client.db("nga").command({
@@ -88,11 +32,27 @@ export default async function handler(req, res) {
         .collection("posts")
         .createIndex({ title: 1, slug: 1 }, { unique: true });
     }
+    let i = 1;
 
-    const insert = await client
-      .db("nga")
-      .collection("posts")
-      .insertOne(newPost); */
+    for (let post of posts.edges) {
+      console.log("stage", i);
+      const { slug, title, content, date } = post.node;
+      const user_id = "62fd5507d0b451b394f7dc3a";
+      const post_type = "post";
+      const newPost = {
+        title: title,
+        user_id: new ObjectID(user_id),
+        content: content,
+        createdAt: new Date(date),
+        updatedAts: [],
+        approves: [],
+        slug: slug,
+        post_type: post_type,
+      };
+
+      await client.db("nga").collection("posts").insertOne(newPost);
+      i++;
+    }
 
     res.status(200).json(posts);
   } catch (error) {

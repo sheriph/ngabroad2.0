@@ -12,6 +12,10 @@ import PostCard from "../postcard";
 import { blockLoading_ } from "../../lib/recoil";
 import { useSetRecoilState } from "recoil";
 
+
+
+const number = process.env.NODE_ENV === "development" ? 3 : 20;
+
 const getPosts = async (key) => {
   console.log("posts key", key);
   try {
@@ -34,7 +38,7 @@ export default function ProfileQuestions({ id, questionsCount }) {
     setSize,
     isValidating,
   } = useSWRInfinite(
-    (pageIndex) => `question-${pageIndex++}-${4}-${id}`,
+    (pageIndex) => `question-${pageIndex++}-${number}-${id}`,
     getPosts,
     {
       persistSize: true,

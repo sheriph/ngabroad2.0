@@ -25,6 +25,9 @@ const getPosts = async (key) => {
   }
 };
 
+const number = process.env.NODE_ENV === "development" ? 3 : 20;
+
+
 export default function ProfilePosts({ id, postsCount }) {
   const {
     data: posts,
@@ -34,7 +37,7 @@ export default function ProfilePosts({ id, postsCount }) {
     setSize,
     isValidating,
   } = useSWRInfinite(
-    (pageIndex) => `post-${pageIndex++}-${4}-${id}`,
+    (pageIndex) => `post-${pageIndex++}-${number}-${id}`,
     getPosts,
     {
       persistSize: true,

@@ -49,17 +49,28 @@ export async function getAllPostsWithSlug() {
   const data = await fetchAPI(
     `
     {
-      posts(first: 100) {
+      posts(
+        first: 100
+        where: {orderby: {order: ASC, field: DATE}}
+        after: "YXJyYXljb25uZWN0aW9uOjY5NDY="
+      ) {
         edges {
           node {
-            slug
-            title
+            title(format: RAW)
             content(format: RAW)
             date
+            slug
           }
+          cursor
+        }
+        pageInfo {
+          total
+          endCursor
+          startCursor
         }
       }
     }
+    
   `,
     {
       variables: {},

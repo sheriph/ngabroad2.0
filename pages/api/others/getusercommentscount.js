@@ -28,14 +28,14 @@ export default async function handler(req, res) {
     };
     const posts = await client
       .db("nga")
-      .collection("comments")
+      .collection("postscomments")
       .countDocuments(query);
 
     console.timeEnd("getPostTimer");
     await client.close();
     res.status(200).json(posts);
   } catch (err) {
-    console.log(`err`, err);
+    console.log(`err getusercommentscounts`, err);
     await client.close();
     res.status(400).json(err);
   }

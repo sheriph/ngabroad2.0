@@ -39,7 +39,7 @@ import { Auth } from "aws-amplify";
 import AccountMenu from "./accountmenu";
 import OtherMenu from "./othermenu";
 import ForumIcon from "@mui/icons-material/Forum";
-import { useAuthUser } from "../../lib/utility";
+import { titleCase, useAuthUser } from "../../lib/utility";
 import ForumMenu from "./forummenu";
 import Slide from "@mui/material/Slide";
 import KeyboardArrowUpOutlinedIcon from "@mui/icons-material/KeyboardArrowUpOutlined";
@@ -101,7 +101,7 @@ export default function SearchDesktop() {
       <Stack>
         <TextField
           ref={container}
-         // aria-describedby={id}
+          // aria-describedby={id}
           fullWidth
           sx={{
             backgroundColor: (t) => alpha(t.palette.common.white, 0.15),
@@ -136,7 +136,7 @@ export default function SearchDesktop() {
             zIndex: (t) => t.zIndex.appBar,
             top: "10px",
           }}
-         // id={id}
+          // id={id}
           open={openSearch && Boolean(data)}
           anchorEl={container.current}
         >
@@ -164,7 +164,7 @@ export default function SearchDesktop() {
                         href={`/${post.slug}`}
                         variant="h2"
                       >
-                        {post?.title}
+                        {titleCase(post?.title)}
                       </Link>
                       <IntroRender
                         content={truncate(post.content, { length: 150 })}

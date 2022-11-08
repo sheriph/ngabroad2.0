@@ -31,6 +31,8 @@ import { blockLoading_, postType_ } from "../lib/recoil";
 import useSWRInfinite from "swr/infinite";
 import axios from "axios";
 
+const number = process.env.NODE_ENV === "development" ? 3 : 20;
+
 const getPosts = async (key) => {
   console.log("posts key", key);
   try {
@@ -60,7 +62,7 @@ export default function PostComponent() {
     setSize,
     isValidating,
   } = useSWRInfinite(
-    (pageIndex) => `${postType}-${pageIndex++}-${4}`,
+    (pageIndex) => `${postType}-${pageIndex++}-${number}`,
     getPosts,
     {
       persistSize: true,
@@ -83,7 +85,7 @@ export default function PostComponent() {
 
   const loading = isLoading || isValidating;
 
-  console.log("posts ", posts, error, size);
+  console.log("posts ", posts, error, size, number);
 
   return (
     <Stack direction="row">

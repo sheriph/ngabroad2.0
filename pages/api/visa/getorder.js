@@ -11,20 +11,18 @@ const client = new MongoClient(uri, clientOptions);
 
 export default async function handler(req, res) {
   try {
-    const { user_id } = req.body;
-    console.log("_id", user_id);
-    const query = { _id: new ObjectId(user_id) };
-
-    const projection = { username: 1, _id: 0 };
+    const { reference } = req.body;
+    console.log("reference", reference);
+    const query = { reference: reference };
     await client.connect();
-    const userData = await client.db("nga").collection("users").findOne(query);
-    // @ts-ignore
-    console.log("userData", userData);
+    const order = await client
+      .db("nga")
+      .collection("visaorders")
+      .findOne(query);
     await client.close();
-    // @ts-ignore
-    res.status(200).json(userData?.username);
+    res.status(200).json(order);
   } catch (error) {
-    console.log("error.message getusername", error.message);
+    console.log("error.message order", error.message);
     await client.close();
     res.status(400).json(error.message);
   }

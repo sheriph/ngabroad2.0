@@ -24,13 +24,14 @@ export default async function handler(req, res) {
 
     const options = {
       // sorting
-      sort: {},
+      sort: { createdAt: -1 },
       //what to return
       projection: {},
     };
     const posts = await client
       .db("nga")
       .collection("posts")
+      // @ts-ignore
       .find(query, options)
       .limit(Number(limit))
       .skip(Number(page) * Number(limit))

@@ -168,9 +168,7 @@ export default function CreatePost() {
           }
         );
         console.log("slug.data", slug.data);
-        setLoading(false);
-        router.push(slug.data);
-        return;
+        await router.push(slug.data);
       }
       setLoading(false);
       setAddPost(false);

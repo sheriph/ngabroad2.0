@@ -22,6 +22,7 @@ export default function Footer() {
   const { user: userExist } = useAuthenticator((context) => [
     context.authStatus,
   ]);
+  console.log('userExist', userExist)
   const { user } = useAuthUser(userExist);
   const [addPost, setAddPost] = useRecoilState(addPost_);
   const [replyPost, setReplyPost] = useRecoilState(replyPost_);

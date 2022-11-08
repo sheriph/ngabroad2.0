@@ -108,7 +108,7 @@ export default function SinglePostCard({
   } = useSWRImmutable(`${post._id}_votesforapost`, getVotes);
 
   const { data: follows, mutate: mutatefollows } = useSWRImmutable(
-    user?._id && "/api/getfollows",
+    user?._id && "/api/others/getfollows",
     getFollows
   );
   console.log("votes", post.post_type, votes, votesError, validatevotes);

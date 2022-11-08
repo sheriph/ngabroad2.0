@@ -27,6 +27,9 @@ const getPosts = async (key) => {
   }
 };
 
+const number = process.env.NODE_ENV === "development" ? 3 : 20;
+
+
 export default function ProfileComments({ id, commentsCount }) {
   const {
     data: comments,
@@ -35,7 +38,7 @@ export default function ProfileComments({ id, commentsCount }) {
     size,
     setSize,
     isValidating,
-  } = useSWRInfinite((pageIndex) => `${pageIndex++}-${4}-${id}`, getPosts, {
+  } = useSWRInfinite((pageIndex) => `${pageIndex++}-${number}-${id}`, getPosts, {
     persistSize: true,
     revalidateIfStale: false,
     revalidateOnFocus: false,

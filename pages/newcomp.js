@@ -1,54 +1,93 @@
-import { Box, Button, Stack, Typography } from "@mui/material";
-import React from "react";
-import BookingClass from "../components/flight/bookingclass";
-import DateRange from "../components/flight/daterange";
-import Locations from "../components/flight/locations";
-import Passengers from "../components/flight/passengers";
-import Dates from "../components/flight/singledate";
-import Trip from "../components/flight/trip";
-import TripSettings from "../components/flight/tripsettings";
-import { setCookie } from "cookies-next";
-import axios from "axios";
-import { deleteCookie, getCookie } from "cookies-next";
-//import FlightSearchForm from "../components/flight/flightsearchform";
-import dynamic from "next/dynamic";
+import * as React from "react";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import Checkbox from "@mui/material/Checkbox";
+import { Button, Paper, Stack, Typography } from "@mui/material";
+import { money } from "../lib/utility";
+import { visaProducts_ } from "../lib/recoil";
+import { useRecoilState } from "recoil";
+import CountUp from "react-countup";
 
-const FlightSearchForm = dynamic(
-  () => import("../components/flight/flightsearchform"),
-  {
-    ssr: false,
-  }
-);
+export default function CheckboxList() {
+  const [visaProducts, setVisaProducts] = useRecoilState(visaProducts_);
+  const getTotalPrice = (products) => {
+    try {
+      return products
+        .filter((product) => product.selected)
+        .reduce((a, b) => a + b.price, 0);
+    } catch (error) {
+      console.log("error", error);
+      return 0;
+    }
+  };
+  const [counterEnd, setCounterEnd] = React.useState(
+    getTotalPrice(visaProducts)
+  );
 
-export default function NewComp() {
-  const [count, setCount] = React.useState("");
-  const store = async () => {};
+  const handleToggle = (e) => {
+    console.log("e", e);
+    const text = e.target.innerText;
+    const updatedProducts = visaProducts.map((visaProduct) => ({
+      ...visaProduct,
+      selected:
+        visaProduct.name === text
+          ? !visaProduct.selected
+          : visaProduct.selected,
+    }));
+    setVisaProducts(updatedProducts);
+    setCounterEnd(getTotalPrice(updatedProducts));
+  };
 
   return (
-    <React.Fragment>
-      <Box
-        display="flex"
-        flexDirection={"column"}
-        justifyContent="center"
-        alignItems="center"
-      >
-        {/* <BookingClass /> */}
-        {/* <Passengers /> */}
-        {/* <Trip /> */}
-        {/*  <TripSettings /> */}
-        {/*  <DateRange /> */}
-        {/* <Dates item={1} /> */}
-        {/* <Box width={400}>
-        <Locations index={0} />
-      </Box> */}
-      </Box>
-
-      <Stack>
-        {/* 
-      // @ts-ignore */}
-        {/* <FlightSearchForm /> */}
-        {/*    <SegmentCard segment /> */}
+    <Stack variant="outlined" component={Paper}>
+      <List sx={{ width: "100%", bgcolor: "background.paper" }}>
+        {visaProducts.map((visaProduct, index) => (
+          <ListItem
+            key={index}
+            secondaryAction={
+              <Typography>
+                {visaProduct.price ? money(visaProduct.price) : "Free"}
+              </Typography>
+            }
+            disablePadding
+          >
+            <ListItemButton onClick={handleToggle} dense>
+              <ListItemIcon>
+                <Checkbox
+                  edge="start"
+                  checked={visaProduct.selected}
+                  size="medium"
+                  //  disableRipple
+                />
+              </ListItemIcon>
+              <ListItemText primary={visaProduct.name} />
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+      <Stack sx={{ p: 2 }} justifyContent="space-between" direction="row">
+        <CountUp
+          start={0}
+          end={counterEnd}
+          duration={2.75}
+          separator=" "
+          // decimals={4}
+          decimal=","
+          prefix="₦ "
+          delay={0}
+          redraw={true}
+        >
+          {({ countUpRef, start, update }) => (
+            <Button startIcon={<>Grand Total :</>} variant="outlined">
+              <span ref={countUpRef} />
+            </Button>
+          )}
+        </CountUp>
+        <Button variant="contained">Complete</Button>
       </Stack>
-    </React.Fragment>
+    </Stack>
   );
 }
