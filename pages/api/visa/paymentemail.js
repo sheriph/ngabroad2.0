@@ -42,8 +42,7 @@ export default async function generateEmail(req, res) {
 
   console.time("start");
 
-  const { passengerData, visaOrderParams, reference, createdAt, paymentLink } =
-    req.body;
+  const { passengerData, visaOrderParams, reference } = req.body;
   // console.log("flightOffer", flightOffer);
 
   const values = [
@@ -71,7 +70,7 @@ export default async function generateEmail(req, res) {
               color="#FFFFFF"
               align="center"
             >
-              Booking Confirmed
+              Payment Received
             </MjmlText>
             <MjmlText
               fontSize={16}
@@ -86,17 +85,14 @@ export default async function generateEmail(req, res) {
         <MjmlSection backgroundColor={"#FFFFFF"}>
           <MjmlColumn>
             <MjmlText>
-              This is a confirmation of your booking. If you have made payment,
-              kindly wait while we process your order. Thank you.
+              We have confirmed payment for this order. Thank you for using our
+              services. Rest assured that your order is receiving our full
+              attention and should be ready soon.
             </MjmlText>
             <MjmlText>
-              Booking Date: {dayjs(createdAt).format("Do MMM YYYY [at] hh:mma")}{" "}
+              Payment Date: {dayjs().format("Do MMM YYYY [at] hh:mma")}{" "}
             </MjmlText>
             <MjmlText>Total : {money(values)} </MjmlText>
-            <MjmlText align="left">
-              Bank Details: Naijagoingabroad Ltd, 0124782295, Stanbic Ibtc
-            </MjmlText>
-            <MjmlButton href={paymentLink}>Click Here To Pay Online</MjmlButton>
           </MjmlColumn>
         </MjmlSection>
 
@@ -214,7 +210,7 @@ export default async function generateEmail(req, res) {
       to: [get(passengerData, "email", "")],
       cc: ["info@naijagoingabroad.com"],
       html,
-      subject: `Your Order : ${reference}`,
+      subject: `Payment Received : ${reference}`,
       // text: html,
     },
     (err, info) => {

@@ -6,7 +6,7 @@ import { default as NextLink } from "next/link";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 
 export default function PostsCard({ post, comments }) {
-  console.log("comments", comments);
+  // console.log("comments", comments);
   return (
     <Box>
       <Stack spacing={1}>
@@ -47,7 +47,7 @@ export default function PostsCard({ post, comments }) {
         >
           <SinglePostCard key={0} post={post} parentPost={post} />
           {comments.map((comment, key) => {
-            console.log("key comment", key, comment);
+            // console.log("key comment", key, comment);
             return (
               <SinglePostCard
                 isComment

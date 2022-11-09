@@ -2,6 +2,7 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Alert,
   Box,
   Button,
   Checkbox,
@@ -30,14 +31,29 @@ import axios from "axios";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { blockLoading_, retrieveFlightKey_ } from "../../lib/recoil";
 import { toast } from "react-toastify";
-import { money, revalidateToken, titleCase } from "../../lib/utility";
+import Script from "next/script";
+
+import {
+  makePayment,
+  money,
+  revalidateToken,
+  titleCase,
+} from "../../lib/utility";
 import { useSWRConfig } from "swr";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import dayjs from "dayjs";
+import { useRouter } from "next/router";
 
 const getOrder = async (reference) => {
   try {
-    const order = axios.post("/api/visa/getorder", { reference });
+    const order = toast.promise(
+      axios.post("/api/visa/getorder", { reference }),
+      {
+        error: "Failed to retrieve order, please check your reference",
+        pending: "Loading your order",
+        success: "Success",
+      }
+    );
     return (await order).data;
   } catch (error) {
     console.log("error.response", error.response);
@@ -51,8 +67,22 @@ export default function FindMyOrder() {
       .transform((value, originalValue) => trim(originalValue.toUpperCase())),
   });
   const setBlockLoading = useSetRecoilState(blockLoading_);
+  const [scriptLoaded, setScriptLoaded] = React.useState(false);
 
-  const [reference, setReference] = React.useState("");
+  const router = useRouter();
+
+  const ref = get(router, "query.ref", undefined);
+
+  React.useEffect(() => {
+    if (window !== undefined) {
+      console.log(
+        "router",
+        `${window.location.hostname}/visa/myorder/?ref=${ref}`
+      );
+    }
+  }, [null]);
+
+  //const [reference, setReference] = React.useState("");
 
   const {
     handleSubmit,
@@ -71,10 +101,11 @@ export default function FindMyOrder() {
     isLoading,
     isValidating,
     // @ts-ignore
-  } = useSWRImmutable(reference || getCookie("reference"), getOrder, {
+  } = useSWRImmutable(ref, getOrder, {
     keepPreviousData: true,
     shouldRetryOnError: true,
     errorRetryCount: 3,
+    revalidateOnMount: true,
   });
 
   // @ts-ignore
@@ -83,12 +114,25 @@ export default function FindMyOrder() {
     visaOrderParams,
     passengerData,
     createdAt,
+    paymentStatus,
   } = order || {};
+
+  const amount = [
+    get(visaOrderParams, "Application Form Filling", {}),
+    get(visaOrderParams, "Embassy Appointment Booking", {}),
+    get(visaOrderParams, "Flight Reservation For Visa", {}),
+    get(visaOrderParams, "Hotel Reservation For Visa", {}),
+  ]
+    .filter((value) => value.selected)
+    .reduce((a, b) => a + b.price, 0);
+
+  console.log("amount", amount, router);
 
   const onSubmit = async (data) => {
     console.log("data", data);
     const { reference } = data;
-    setReference(reference);
+    //setReference(reference);
+    router.push(`/visa/myorder/?ref=${reference}`);
   };
 
   React.useEffect(() => {
@@ -100,6 +144,22 @@ export default function FindMyOrder() {
   }, [isLoading, isValidating]);
 
   console.log("passengerData", passengerData, visaOrderParams);
+  const handlePayment = () => {
+    const { firstname, lastname } = first(
+      get(passengerData, "travelersData", {})
+    );
+    makePayment(
+      amount,
+      get(passengerData, "email", ""),
+      get(passengerData, "phone", ""),
+      `${firstname} ${lastname}`,
+      bookingReference,
+      passengerData,
+      visaOrderParams,
+      mutate,
+      setBlockLoading
+    );
+  };
 
   return (
     <Stack
@@ -109,6 +169,14 @@ export default function FindMyOrder() {
       spacing={2}
     >
       <Stack spacing={1}>
+        <Script
+          src="https://checkout.flutterwave.com/v3.js"
+          strategy="lazyOnload"
+          onLoad={() => {
+            console.log("Payment Script has loaded");
+            setScriptLoaded(true);
+          }}
+        />
         <Accordion defaultExpanded={!mobile} variant="outlined">
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
@@ -174,9 +242,17 @@ export default function FindMyOrder() {
                 STANBIC IBTC BANK : 00278282828 <br />
                 WEMA BANK NIGERIA : 002728282828
               </Typography>
-              <Link sx={{ cursor: "pointer" }} underline="always">
-                Click Here To Pay online
-              </Link>
+              {paymentStatus === "paid" ? (
+                <Alert severity="success">Payment Already completed</Alert>
+              ) : (
+                <Button
+                  size="small"
+                  onClick={handlePayment}
+                  disabled={!scriptLoaded && !Boolean(amount)}
+                >
+                  Click To Pay online
+                </Button>
+              )}
             </Stack>
           </AccordionDetails>
         </Accordion>

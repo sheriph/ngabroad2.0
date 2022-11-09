@@ -111,7 +111,7 @@ export default function SinglePostCard({
     user?._id && "/api/others/getfollows",
     getFollows
   );
-  console.log("votes", post.post_type, votes, votesError, validatevotes);
+ // console.log("votes", post.post_type, votes, votesError, validatevotes);
 
   const showReply = () => {
     if (!user) {
@@ -276,7 +276,7 @@ export default function SinglePostCard({
     ? follows.map((follow) => follow.post_id === parentPost._id).includes(true)
     : false;
 
-  console.log("follows isFollow", follows, isFollow);
+ // console.log("follows isFollow", follows, isFollow);
 
   const handleFollow = async (remove) => {
     if (!user) {
@@ -317,7 +317,7 @@ export default function SinglePostCard({
     }
   };
 
-  console.log("post", post);
+ // console.log("post", post);
   return (
     <Stack spacing={2} direction="row">
       <Stack sx={{ width: "100%" }}>

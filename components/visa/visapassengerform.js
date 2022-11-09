@@ -159,6 +159,7 @@ export default function VisaPassengerForm() {
           visaOrderParams,
           reference,
           createdAt: new Date(),
+          paymentLink: `${window.location.hostname}/visa/myorder/?ref=${reference}`,
         }),
         {
           error: "Fail to send booking to email",
@@ -168,7 +169,7 @@ export default function VisaPassengerForm() {
       );
       setCookie("reference", reference, { maxAge: 60 * 60 });
       console.log("reference", reference);
-      router.push("/visa/myorder");
+      router.push(`/visa/myorder/?ref=${reference}`);
     } catch (error) {
       console.log("error", error);
     } finally {

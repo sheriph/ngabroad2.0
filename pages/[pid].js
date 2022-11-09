@@ -13,7 +13,7 @@ const SinglePostComponent = dynamic(
 );
 
 export default function Questions({ post, comments }) {
-  console.log("post comments", post, comments);
+ // console.log("post comments", post, comments);
   const setPost = useSetRecoilState(post_);
   React.useEffect(() => {
     setPost(post);
@@ -43,7 +43,7 @@ export async function getStaticProps({ params }) {
   try {
     const jsonPost = await getPost(params.pid);
     const post = jsonPost ? JSON.parse(jsonPost) : undefined;
-    console.log("post", post);
+   // console.log("post", post);
     if (!post) throw new Error("post not found");
     const jsonPostComments = await getPostComments(post._id);
     const comments = jsonPostComments ? JSON.parse(jsonPostComments) : [];

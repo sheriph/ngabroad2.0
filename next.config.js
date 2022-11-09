@@ -32,6 +32,9 @@ const nextConfig = {
     CLIENT_SECRET: process.env.CLIENT_SECRET,
     USER_EMAIL: process.env.USER_EMAIL,
     USER_PASSWORD: process.env.USER_PASSWORD,
+    FLW_PUBLIC_KEY: process.env.FLW_PUBLIC_KEY,
+    FLW_SECRET_KEY: process.env.FLW_SECRET_KEY,
+    NEXT_PUBLIC_FLW_PUBLIC_KEY: process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY,
   },
 };
 

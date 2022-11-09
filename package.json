@@ -24,6 +24,7 @@
     "clsx": "latest",
     "cookies-next": "^2.1.1",
     "dayjs": "^1.10.7",
+    "flutterwave-node-v3": "^1.0.11",
     "formidable": "^2.0.1",
     "intersection-observer": "^0.12.2",
     "jsonwebtoken": "^8.5.1",

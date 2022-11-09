@@ -117,7 +117,7 @@ export default function Test() {
   const testVisa = async () => {
     try {
       //  await revalidateToken();
-      const email = await axios.post("/api/visa/orderemail", {
+      const email = await axios.post("/api/visa/paymentemail", {
         passengerData,
         visaOrderParams,
         reference: "OIDIJDJODJ",

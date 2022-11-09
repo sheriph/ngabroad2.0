@@ -19,7 +19,9 @@ export default async function handler(req, res) {
       .db("nga")
       .collection("visaorders")
       .findOne(query);
+    if (!order) throw new Error("Not Found");
     await client.close();
+    console.log("order", order);
     res.status(200).json(order);
   } catch (error) {
     console.log("error.message order", error.message);
