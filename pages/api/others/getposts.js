@@ -25,7 +25,7 @@ export default async function handler(req, res) {
 
     const options = {
       // sorting
-      sort: { createdAt: -1 },
+      sort: { updatedAt: -1 },
       //what to return
       projection: {},
     };

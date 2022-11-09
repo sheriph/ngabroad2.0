@@ -22,7 +22,7 @@ export default async function handler(req, res) {
       user_id: new ObjectID(user_id),
       content: content,
       createdAt: new Date(),
-      updatedAts: [],
+      updatedAt: new Date(),
       approves: [],
       slug: truncate(slug, { length: 100, omission: "" }),
       post_type: post_type,

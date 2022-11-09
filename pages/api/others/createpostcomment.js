@@ -21,7 +21,7 @@ export default async function handler(req, res) {
       quotedUser_id,
       slug,
     } = req.body;
-    const newPost = {
+    const newComment = {
       content: content,
       user_id: new ObjectID(user_id),
       post_id: new ObjectID(post_id),
@@ -31,7 +31,7 @@ export default async function handler(req, res) {
       },
       createdAt: new Date(),
       title: title,
-      updatedAts: [],
+      updatedAt: new Date(),
       approves: [],
       post_type: "comment",
       slug: slug,
@@ -48,12 +48,12 @@ export default async function handler(req, res) {
       });
     }
 
-    const insert = await client
-      .db("nga")
-      .collection("postscomments")
-      .insertOne(newPost);
+    await client.db("nga").collection("postscomments").insertOne(newComment);
+    const query = { _id: new ObjectID(post_id) };
+    const operation = { $set: { updatedAt: new Date() } };
+    await client.db("nga").collection("posts").updateOne(query, operation);
     await client.close();
-    res.status(200).json(insert.acknowledged);
+    res.status(200).json(true);
   } catch (error) {
     console.log("error", error);
     await client.close();
