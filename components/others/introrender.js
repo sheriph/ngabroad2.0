@@ -14,7 +14,7 @@ export default function IntroRender({ content }) {
     if (node.type === "tag" && node.name === "figure") return null;
 
     if (node.type === "text") {
-      console.log("node.data", node.data);
+     // console.log("node.data", node.data);
       return (
         <Typography sx={{ all: "unset" }} component="p" key={index}>
           {node.data}

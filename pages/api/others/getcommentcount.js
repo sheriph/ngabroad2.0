@@ -13,6 +13,7 @@ export default async function handler(req, res) {
     // console.log(`req.body`, req.body);
 
     const { post_id } = req.body;
+   // console.log('comment post_id', post_id)
     await client.connect();
     const query = { post_id: new ObjectId(post_id) };
     const options = {

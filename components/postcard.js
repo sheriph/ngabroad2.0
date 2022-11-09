@@ -1,5 +1,13 @@
 import React from "react";
-import { Avatar, Button, Grid, Link, Stack, Typography } from "@mui/material";
+import {
+  Avatar,
+  Button,
+  Grid,
+  Link,
+  Skeleton,
+  Stack,
+  Typography,
+} from "@mui/material";
 import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
 import CommentIcon from "@mui/icons-material/Comment";
 import CommentOutlinedIcon from "@mui/icons-material/CommentOutlined";
@@ -43,12 +51,21 @@ export default function PostCard({ post }) {
   const answer = false;
   const { data: username } = useSWRImmutable(post.user_id, getUsername, {
     keepPreviousData: true,
+    errorRetryCount: 3,
+    shouldRetryOnError: true,
+    errorRetryInterval: 10000,
   });
   const { data: commentCount } = useSWRImmutable(
     post._id ? `${post._id}_getcommentcountinforum` : undefined,
     getCommentCount,
-    { keepPreviousData: true, revalidateOnMount: true }
+    {
+      keepPreviousData: true,
+      errorRetryCount: 3,
+      shouldRetryOnError: true,
+      errorRetryInterval: 10000,
+    }
   );
+  //console.log("commentCount, error", commentCount, error);
 
   return (
     <LazyLoad once>
@@ -99,20 +116,26 @@ export default function PostCard({ post }) {
               <Grid item>
                 <Stack alignItems="center" spacing={1} direction="row">
                   <Stack spacing={2} alignItems="center" direction="row">
-                    <Stack spacing={0.5} alignItems="center" direction="row">
-                      <PersonOutlineOutlinedIcon
-                        sx={{ fontSize: "1rem" }}
-                        fontSize="small"
-                      />
-                      <NextLink
-                        href={`/profile/${encodeURIComponent(username)}`}
-                        passHref
-                      >
-                        <Link underline="always" variant="caption">
-                          @{username}
-                        </Link>
-                      </NextLink>
-                    </Stack>
+                    {username ? (
+                      <Stack spacing={0.5} alignItems="center" direction="row">
+                        <PersonOutlineOutlinedIcon
+                          sx={{ fontSize: "1rem" }}
+                          fontSize="small"
+                        />
+                        <NextLink
+                          href={`/profile/${encodeURIComponent(username)}`}
+                          passHref
+                        >
+                          <Link underline="always" variant="caption">
+                            @{username}
+                          </Link>
+                        </NextLink>
+                      </Stack>
+                    ) : (
+                      <Stack spacing={0.5} alignItems="center" direction="row">
+                        <Skeleton sx={{ width: 20, height: 20 }} />
+                      </Stack>
+                    )}
                     <Stack spacing={0.5} alignItems="center" direction="row">
                       <AccessTimeOutlinedIcon
                         sx={{ fontSize: "1rem" }}
@@ -123,15 +146,19 @@ export default function PostCard({ post }) {
                       </Typography>
                     </Stack>
                     <Stack>
-                      <Stack alignItems="center" spacing={1} direction="row">
-                        <CommentOutlinedIcon
-                          sx={{ fontSize: "0.9rem" }}
-                          fontSize="small"
-                        />
-                        <Typography variant="caption">
-                          {commentCount}
-                        </Typography>
-                      </Stack>
+                      {commentCount >= 0 ? (
+                        <Stack alignItems="center" spacing={1} direction="row">
+                          <CommentOutlinedIcon
+                            sx={{ fontSize: "0.9rem" }}
+                            fontSize="small"
+                          />
+                          <Typography variant="caption">
+                            {commentCount}
+                          </Typography>
+                        </Stack>
+                      ) : (
+                        <Skeleton sx={{ width: 20, height: 20 }} />
+                      )}
                     </Stack>
                   </Stack>
                 </Stack>

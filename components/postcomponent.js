@@ -31,7 +31,7 @@ import { blockLoading_, postType_ } from "../lib/recoil";
 import useSWRInfinite from "swr/infinite";
 import axios from "axios";
 
-const number = process.env.NODE_ENV === "development" ? 3 : 20;
+const number = process.env.NODE_ENV === "development" ? 3 : 30;
 
 const getPosts = async (key) => {
   console.log("posts key", key);
