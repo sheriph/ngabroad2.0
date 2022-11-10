@@ -17,24 +17,23 @@ import PropTypes from "prop-types";
 const HeaderAppOffset = styled("div")(({ theme }) => theme.mixins.toolbar);
 
 function ScrollTop(props) {
-  const { children, window } = props;
+  const { children } = props;
   // Note that you normally won't need to set the window ref as useScrollTrigger
   // will default to window.
   // This is only being set here because the demo is in an iframe.
   const trigger = useScrollTrigger({
-    target: window ? window() : undefined,
     disableHysteresis: true,
     threshold: 100,
   });
 
   const handleClick = (event) => {
     const anchor = (event.target.ownerDocument || document).querySelector(
-      "#back-to-top-anchor"
+      "#jumptotopngabroad"
     );
 
     if (anchor) {
       anchor.scrollIntoView({
-        block: "center",
+        block: "start",
       });
     }
   };
@@ -86,11 +85,11 @@ export default function Layout(props) {
   }, [Router]);
 
   return (
-    <Container  sx={{ px: 0 }} maxWidth="lg">
+    <Container sx={{ px: 0 }} maxWidth="lg">
       <Stack>
         <Loading isAnimating={loading} />
         <BlockingLoading isAnimating={blockLoading} />
-        <Box id="back-to-top-anchor">
+        <Box id="jumptotopngabroad">
           <HeaderApp post={post} />
           {/* <Toolbar /> */}
           <Box sx={{ mb: 7 }} />
