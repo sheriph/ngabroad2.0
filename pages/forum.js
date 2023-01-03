@@ -12,7 +12,7 @@ const PostComponent = dynamic(() => import("../components/postcomponent"), {
 export default function Forum() {
   // @ts-ignore
   return (
-    <Container>
+    <Container maxWidth="lg" >
       {/* 
     // @ts-ignore */}
       <PostComponent />

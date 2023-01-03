@@ -1,19 +1,10 @@
-import { get } from "lodash";
-import { MongoClient } from "mongodb";
-const uri = process.env.MONGODB_URI;
-const clientOptions = {
-  useUnifiedTopology: true,
-  useNewUrlParser: true,
-};
-// @ts-ignore
-const client = new MongoClient(uri, clientOptions);
+import clientPromise from "../../../lib/mongodb/mongodbinstance";
 
 export default async function handler(req, res) {
   try {
     const { title } = req.body;
     console.log(`req.body`, title);
-
-    await client.connect();
+    const client = await clientPromise;
     const query = { title: title };
     const options = {
       // sorting
@@ -27,11 +18,9 @@ export default async function handler(req, res) {
       .findOne(query, options);
 
     console.log("response", response);
-    await client.close();
     res.status(200).json(response);
   } catch (err) {
     console.log(`err`, err);
-    await client.close();
     res.status(400).json(err);
   }
 }

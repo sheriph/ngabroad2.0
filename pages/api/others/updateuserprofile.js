@@ -1,17 +1,10 @@
 import { MongoClient, ObjectId } from "mongodb";
+import clientPromise from "../../../lib/mongodb/mongodbinstance";
 import { userSchema } from "../../../lib/mongodb/schema";
-import { forIn, get, trim } from "lodash";
-const uri = process.env.MONGODB_URI;
-const clientOptions = {
-  useUnifiedTopology: true,
-  useNewUrlParser: true,
-};
-// @ts-ignore
-const client = new MongoClient(uri, clientOptions);
 
 export default async function handler(req, res) {
   try {
-    await client.connect();
+    const client = await clientPromise;
     if (process.env.NODE_ENV === "development") {
       await client.db("nga").command({
         collMod: "users",
@@ -32,17 +25,14 @@ export default async function handler(req, res) {
     const updateOperation = {
       $set: { ...data },
     };
-    await client.connect();
     const update = await client
       .db("nga")
       .collection("users")
       .updateOne(queryOperation, updateOperation);
     console.log("update", update);
-    await client.close();
     res.status(200).json(update.acknowledged);
   } catch (error) {
     console.log(`err`, error.message);
-    await client.close();
     res.status(400).json(error.message);
   }
 }

@@ -1,27 +1,32 @@
-import { get } from "lodash";
-import { MongoClient, ObjectId } from "mongodb";
-const uri = process.env.MONGODB_URI;
-const clientOptions = {
-  useUnifiedTopology: true,
-  useNewUrlParser: true,
-};
-// @ts-ignore
-const client = new MongoClient(uri, clientOptions);
+import clientPromise from "../../../lib/mongodb/mongodbinstance";
 
 export default async function handler(req, res) {
   try {
     // console.log(`req.body`, req.body);
 
-    console.time("getPostTimer");
+    const client = await clientPromise;
 
-    const { key } = req.body;
+    const { offset, limit, text } = req.body;
 
-    const [postType, page, limit] = key.split("-");
-    console.log("postType", postType, page, limit);
+    console.log("text", text);
 
-    await client.connect();
-    const query =
-      Boolean(postType) && postType !== "all" ? { post_type: postType } : {};
+    if (process.env.NODE_ENV === "development") {
+      /*  await client.db("nga").collection("posts").dropIndexes();
+      const index = await client
+        .db("cl9ne")
+        .collection("products")
+        .listIndexes()
+        .toArray();
+      console.log("index", index); */
+      await client.db("nga").collection("posts").createIndex({
+        title: "text",
+        content: "text",
+        post_type: "text",
+        city: "text",
+      });
+    }
+
+    const query = text ? { $text: { $search: text } } : {};
 
     const options = {
       // sorting
@@ -29,22 +34,24 @@ export default async function handler(req, res) {
       //what to return
       projection: {},
     };
+
+    const sort = text
+      ? { score: { $meta: "textScore" }, updatedAt: -1 }
+      : { updatedAt: -1 };
+
     const posts = await client
       .db("nga")
       .collection("posts")
+      .find(query)
+      .skip(offset)
+      .limit(limit)
       // @ts-ignore
-      .find(query, options)
-      .limit(Number(limit))
-      .skip(Number(page) * Number(limit))
-      // .limit(index ? index * 5 : 5)
+      .sort(sort)
       .toArray();
-    // console.log("posts", posts);
-    console.timeEnd("getPostTimer");
-    await client.close();
+
     res.status(200).json(posts);
   } catch (err) {
     console.log(`err getposts`, err);
-    await client.close();
     res.status(400).json(err);
   }
 }

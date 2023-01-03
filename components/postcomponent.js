@@ -6,6 +6,7 @@ import {
   Container,
   Divider,
   Drawer,
+  InputAdornment,
   List,
   ListItemButton,
   ListItemIcon,
@@ -30,13 +31,19 @@ import { useRecoilValue, useSetRecoilState } from "recoil";
 import { blockLoading_, postType_ } from "../lib/recoil";
 import useSWRInfinite from "swr/infinite";
 import axios from "axios";
+import FilterList from "./others/filterlist";
+import { debounce } from "lodash";
 
 const number = process.env.NODE_ENV === "development" ? 3 : 30;
 
 const getPosts = async (key) => {
-  console.log("posts key", key);
+  const { index, url, text } = JSON.parse(key);
   try {
-    const posts = await axios.post("/api/others/getposts", { key });
+    const posts = await axios.post(url, {
+      offset: index === 0 ? Number(index) : Number(index) * number,
+      limit: number,
+      text,
+    });
     console.log("posts in fetch", posts.data);
 
     return posts.data;
@@ -47,13 +54,43 @@ const getPosts = async (key) => {
 };
 
 export default function PostComponent() {
-  const mobile = useMediaQuery("(max-width:900px)", { noSsr: true });
-  const [drawerOpen, setDrawerOpen] = React.useState(false);
-  const handleDrawer = () => setDrawerOpen(!drawerOpen);
-
   const postType = useRecoilValue(postType_);
   const setBlockLoading = useSetRecoilState(blockLoading_);
+  const [searchKey, setSearchKey] = React.useState("");
+  const [searkeyLive, setSearkeyLive] = React.useState("");
+  const handleSearchKey = (e) => {
+    const value = e.target.value;
+    setSearchKey(value);
+    delayedRunSearch();
+  };
 
+  const updateSearch = () => {
+    setSearkeyLive(searchKey);
+  };
+
+  const delayedRunSearch = React.useCallback(debounce(updateSearch, 2000), [
+    searchKey,
+  ]);
+
+  React.useEffect(() => {
+    delayedRunSearch();
+    return delayedRunSearch.cancel;
+  }, [searchKey, delayedRunSearch]);
+
+  const getKey = (index, previousPageData) => {
+    if (previousPageData && !previousPageData.length) {
+      //setIsLastProducts(true);
+      return null;
+    }
+    return JSON.stringify({
+      index,
+      url: "/api/others/getposts",
+      tag: "Get paginated posts on forum home",
+      text:
+        searkeyLive.length > 4 ? `${searkeyLive} ${postType.toString()}` : "",
+    });
+  };
+  console.log("searkeyLive, searchKey", searkeyLive, searchKey);
   const {
     data: posts,
     error,
@@ -61,19 +98,9 @@ export default function PostComponent() {
     size,
     setSize,
     isValidating,
-  } = useSWRInfinite(
-    (pageIndex) => `${postType}-${pageIndex++}-${number}`,
-    getPosts,
-    {
-      persistSize: true,
-      revalidateIfStale: false,
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      initialSize: 1,
-      keepPreviousData: true,
-      revalidateFirstPage: true,
-    }
-  );
+  } = useSWRInfinite(getKey, getPosts, {
+    keepPreviousData: true,
+  });
 
   React.useEffect(() => {
     if (isLoading || isValidating) {
@@ -88,8 +115,8 @@ export default function PostComponent() {
   console.log("posts ", posts, error, size, number);
 
   return (
-    <Stack direction="row">
-      <Box>
+    <Stack>
+      {/* <Box>
         <Drawer
           onClose={handleDrawer}
           keepMounted
@@ -97,6 +124,7 @@ export default function PostComponent() {
           variant={mobile ? "temporary" : "permanent"}
           sx={{
             width: 250,
+            display: { xs: "block", md: "none" },
             //  pl: 2,
             flexShrink: 0,
             [`& .MuiDrawer-paper`]: {
@@ -110,24 +138,47 @@ export default function PostComponent() {
             <DesktopSideBar setSize={setSize} />
           </Box>
         </Drawer>
-      </Box>
-      <Box component="main" sx={{ flexGrow: 1 }}>
+        <Stack sx={{ display: { xs: "none", md: "flex" }, width: 250 }}>
+          <Toolbar />
+          <Box sx={{ overflow: "auto" }}>
+            <DesktopSideBar setSize={setSize} />
+          </Box>
+        </Stack>
+      </Box> */}
+      <Stack spacing={1}>
         {/* Mobile Head */}
-        <Stack
+        {/* <Stack
           justifyContent="center"
           sx={{ display: { xs: "flex", md: "none" }, mb: 1 }}
         >
           <Button onClick={handleDrawer} endIcon={<FilterListIcon />}>
             Filter
           </Button>
-        </Stack>
+        </Stack> */}
+        <TextField
+          sx={{ mb: 2 }}
+          id="standard-basic"
+          fullWidth
+          value={searchKey}
+          onChange={handleSearchKey}
+          // label=""
+          placeholder="Study in Canada ..."
+          variant="standard"
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <FilterList />
+              </InputAdornment>
+            ),
+          }}
+        />
         <PostList
           loading={loading}
           // @ts-ignore
           posts={posts}
           setSize={setSize}
         />
-      </Box>
+      </Stack>
     </Stack>
   );
 }
