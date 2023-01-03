@@ -13,6 +13,7 @@ export default async function handler(req, res) {
     console.log(`req.body`, text);
 
     await client.connect();
+    
 
     // sort returned documents by descending text relevance score
     const sort = { score: { $meta: "textScore" } };
