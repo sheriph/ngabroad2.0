@@ -32,9 +32,6 @@ const nextConfig = {
       "https://ngav21e78a8b3cc4f543578f719d56dc031e1c170205-dev.s3.eu-west-2.amazonaws.com",
     ],
   },
-  experimental: {
-    appDir: true,
-  },
 };
 
 module.exports = nextConfig;
