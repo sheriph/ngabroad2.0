@@ -8,22 +8,20 @@ import Copyright from "../src/Copyright";
 import Header from "../components/header/header";
 import HeaderApp from "../components/header/headerapp";
 import { styled } from "@mui/material/styles";
-
-const HeaderAppOffset = styled("div")(({ theme }) => theme.mixins.toolbar);
+import { Button } from "@mui/material";
+import { useRecoilState } from "recoil";
+import { showNewPostDialog_ } from "../lib/recoil";
 
 export default function Index() {
+  const [showNewPostDialog, setShowNewPostDialog] =
+    useRecoilState(showNewPostDialog_);
   return (
     <Box sx={{ my: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
         Next.js example
       </Typography>
-      {/* 
-    // @ts-ignore */}
-      <Link href="/about" color="secondary">
-        Go to the about page
-      </Link>
-      <ProTip />
-      <Copyright />
+
+      <Button onClick={() => setShowNewPostDialog(true)}>Create Post</Button>
     </Box>
   );
 }

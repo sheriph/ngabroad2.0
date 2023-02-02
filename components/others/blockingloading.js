@@ -1,8 +1,8 @@
 import { Backdrop } from "@mui/material";
-import Image from "next/image";
 import React from "react";
 import { BounceLoader } from "react-spinners";
 import { styled, alpha } from "@mui/material/styles";
+import Image from "next/image";
 
 export default function BlockingLoading({ isAnimating }) {
   return (
@@ -16,7 +16,12 @@ export default function BlockingLoading({ isAnimating }) {
       open={isAnimating}
     >
       {/* <BounceLoader color="#5348dc" /> */}
-      <Image  src="/images/base/ngaloading2.gif" width={160} height={120} />
+      <Image
+        alt="loading"
+        src="/images/base/ngaloading2.gif"
+        width={160}
+        height={120}
+      />
     </Backdrop>
   );
 }

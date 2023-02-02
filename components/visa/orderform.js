@@ -22,7 +22,6 @@ import ReactDatePicker from "react-datepicker";
 import { Controller, useForm } from "react-hook-form";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import Passengers from "../flight/passengers";
 import VisaPassengers from "./visapassengers";
 import { useRouter } from "next/router";
 

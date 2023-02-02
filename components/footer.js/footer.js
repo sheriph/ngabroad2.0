@@ -9,7 +9,13 @@ import {
 } from "@mui/material";
 import Image from "next/image";
 import { useRecoilState } from "recoil";
-import { addPost_, login_, replyPost_, updateProfile_ } from "../../lib/recoil";
+import {
+  addPost_,
+  login_,
+  replyPost_,
+  showNewPostDialog_,
+  updateProfile_,
+} from "../../lib/recoil";
 import { useTheme } from "@mui/material/styles";
 import CreatePost from "../createapost";
 import ReplyPost from "../replypost";
@@ -17,20 +23,23 @@ import Login from "../login";
 import EditProfile from "../../components/others/meeditprofile";
 import { useAuthUser } from "../../lib/utility";
 import { useAuthenticator } from "@aws-amplify/ui-react";
+import NewPostEditor from "../visa/newposteditor";
 
 export default function Footer() {
   const { user: userExist } = useAuthenticator((context) => [
     context.authStatus,
   ]);
-  console.log('userExist', userExist)
+// console.log("userExist", userExist);
   const { user } = useAuthUser(userExist);
   const [addPost, setAddPost] = useRecoilState(addPost_);
   const [replyPost, setReplyPost] = useRecoilState(replyPost_);
   const [login, setLogin] = useRecoilState(login_);
   const [updateProfile, setUpdateProfile_] = useRecoilState(updateProfile_);
   const [showAlert, setShowAlert] = React.useState(false);
+  const [showNewPostDialog, setShowNewPostDialog] =
+    useRecoilState(showNewPostDialog_);
 
- // console.log("user footer", user);
+  // console.log("user footer", user);
 
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
@@ -91,6 +100,16 @@ export default function Footer() {
         onClose={() => setAddPost(false)}
       >
         <CreatePost />
+      </Dialog>
+      <Dialog
+        sx={{
+          "&.MuiModal-root.MuiDialog-root": { zIndex: 1402 },
+        }}
+        fullScreen={fullScreen}
+        open={showNewPostDialog}
+        onClose={() => setShowNewPostDialog(false)}
+      >
+        <NewPostEditor />
       </Dialog>
     </Stack>
   );

@@ -87,7 +87,7 @@ export default function Layout(props) {
   return (
     <Container sx={{ px: 0 }} maxWidth="lg">
       <Stack>
-        <Loading isAnimating={loading} />
+      <Loading isAnimating={loading} />
         <BlockingLoading isAnimating={blockLoading} />
         <Box id="jumptotopngabroad">
           <HeaderApp post={post} />

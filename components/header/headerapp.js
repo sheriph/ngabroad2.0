@@ -84,7 +84,7 @@ export default function HeaderApp(props) {
 
   const [addPost, setAddPost] = useRecoilState(addPost_);
   const setOpenSearch = useSetRecoilState(mobileSearchOpen_);
-  console.log("user", user);
+ // console.log("user", user);
 
   return (
     <HideOnScroll {...props}>

@@ -132,6 +132,7 @@ export default function CreatePost() {
 
   const onSubmit = async (data) => {
     console.log("data", data);
+    return;
     const { title, /* countries, otherTags, */ content } = data;
     try {
       setLoading(true);

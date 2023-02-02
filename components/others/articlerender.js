@@ -3,7 +3,7 @@ import ReactHtmlParser, { processNodes } from "react-html-parser";
 
 import React from "react";
 import { Link, Stack, Typography } from "@mui/material";
-import Image from "next/future/image";
+import Image from "next/image";
 
 const shimmer = (w, h) => `
 <svg width="${w}" height="${h}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -78,7 +78,7 @@ export default function ArticleRender({ content }) {
     }
 
     if (node.type === "text") {
-      console.log("node.data", node.data);
+    //  console.log("node.data", node.data);
       return (
         <Typography sx={{ all: "unset" }} component="p" key={index}>
           {node.data}

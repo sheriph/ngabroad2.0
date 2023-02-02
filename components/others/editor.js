@@ -10,7 +10,7 @@ export default function Editor({ onChange, value }) {
   let editor;
   const [editorLoaded, seteditorLoaded] = useRecoilState(editorLoaded_);
 
-  console.log("editorLoaded", editorLoaded);
+  // console.log("editorLoaded", editorLoaded);
 
   class MyUploadAdapter {
     constructor(loader) {
@@ -121,7 +121,7 @@ export default function Editor({ onChange, value }) {
   }
 
   function MyCustomUploadAdapterPlugin(editor) {
-    console.log("editor", editor);
+    // console.log("editor", editor);
     editor.plugins.get("FileRepository").createUploadAdapter = (loader) => {
       console.log("loader", loader);
       // Configure the URL to the upload script in your back-end here!
@@ -139,7 +139,7 @@ export default function Editor({ onChange, value }) {
       .then((newEditor) => {
         editor = newEditor;
         newEditor.model.document.on("change", () => {
-         // console.log("The Document has changed!");
+          // console.log("The Document has changed!");
           onChange(editor.getData());
         });
       })
