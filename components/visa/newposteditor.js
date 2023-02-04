@@ -5,10 +5,12 @@ import {
   Alert,
   AlertTitle,
   Autocomplete,
+  Badge,
   Box,
   Button,
   ButtonGroup,
   Checkbox,
+  Chip,
   CircularProgress,
   Dialog,
   Divider,
@@ -21,6 +23,7 @@ import {
   Paper,
   Skeleton,
   Stack,
+  Switch,
   Tab,
   Tabs,
   TextField,
@@ -65,38 +68,93 @@ import EditIcon from "@mui/icons-material/Edit";
 import GradingIcon from "@mui/icons-material/Grading";
 import { useTheme } from "@mui/material/styles";
 import tagsArray from "../../lib/tags";
+import HelpCenterOutlinedIcon from "@mui/icons-material/HelpCenterOutlined";
+import PsychologyAltIcon from "@mui/icons-material/PsychologyAlt";
+import LiveHelpIcon from "@mui/icons-material/LiveHelp";
+import CustomizedDialogs from "../others/alert";
+import BlockingLoading from "../others/blockingloading";
+import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
+import SkipNextIcon from "@mui/icons-material/SkipNext";
+import SkipPreviousIcon from "@mui/icons-material/SkipPrevious";
+import useUndo from "use-undo";
+import slugify from "slugify";
 
 const tagTitles = tagsArray.map((tag) => tag.item);
-console.log("tagTitles", tagTitles);
+//console.log("tagTitles", tagTitles);
 
 const tagsObj = tagTitles.reduce((acc, key) => {
   acc[key] = [];
   return acc;
 }, {});
 
-//console.log("tagsObj", tagsObj);
-
 export default function NewPostEditor() {
-  const [showNewPostDialog, setShowNewPostDialog] =
-    useRecoilState(showNewPostDialog_);
-  const [tab, setTab] = React.useState("1");
+  const [aiAssitedAlert, setaiAsistedAlert] = React.useState(false);
+  const [fetchAIcontent, setFetchAIcontent] = React.useState(false);
+  const [fetchAItitle, setFetchAItitle] = React.useState(false);
+  const [sameTitleDialog, setSameTitleDialog] = React.useState(false);
 
   const { user: userExist } = useAuthenticator((context) => [
     context.authStatus,
   ]);
   const { user, isLoading: loading } = useAuthUser(userExist);
+  console.log("user", user?._id);
+
+  const [
+    iniaicontent,
+    {
+      set: setaicontent,
+      reset: resetaicontent,
+      undo: undoaicontent,
+      redo: redoaicontent,
+      canUndo,
+      canRedo,
+    },
+  ] = useUndo("");
+  const { present: presentaicontent } = iniaicontent;
+
+  const setOptions = {
+    shouldDirty: true,
+    shouldTouch: true,
+    shouldValidate: true,
+  };
+
   const schema = Yup.object().shape({
-    title: Yup.string()
-      .required("Please enter the title")
-      .min(50, "Title is too short")
-      .trim("")
-      .lowercase(""),
-    /* content: Yup.string()
-      .min(20, "Comment is too short")
-      .when("post_type", {
-        is: "post",
-        then: Yup.string().required("Content is required"),
-      }), */
+    content: Yup.string().when("tab", {
+      is: "2",
+      then: Yup.string()
+        .required("Please provide content. Content field is required")
+        .min(
+          200,
+          "We have a minimum requirement for the length of content that can be posted. Please ensure that your post provides sufficient information and details."
+        ),
+    }),
+    aicontent: Yup.string().when("tab", {
+      is: "1",
+      then: Yup.string()
+        .required("Please provide Content. Content field is required")
+        .min(
+          200,
+          "We have a minimum requirement for the length of content that can be posted. Please ensure that your post provides sufficient information and details."
+        ),
+    }),
+    title: Yup.string().when("tab", {
+      is: "2",
+      then: Yup.string()
+        .required("Please provide Title. Title field is required")
+        .min(
+          20,
+          "Title must be at least 20 characters long. Please add more characters to make your title meaningful"
+        ),
+    }),
+    aititle: Yup.string().when("tab", {
+      is: "1",
+      then: Yup.string()
+        .required("Please provide Title. Title field is required")
+        .min(
+          20,
+          "Title must be at least 20 characters long. Please add more characters to make your title meaningful"
+        ),
+    }),
     /*   countries: Yup.array().transform((value, originalValue) => {
         return originalValue.map((item) => item.name);
       }),
@@ -110,8 +168,6 @@ export default function NewPostEditor() {
 
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
 
-  const defaultValues = {};
-
   const {
     handleSubmit,
     control,
@@ -122,26 +178,33 @@ export default function NewPostEditor() {
     reset,
     watch,
     unregister,
-    formState: { errors },
+    formState: { errors, isValidating, isSubmitting, isSubmitSuccessful },
   } = useForm({
     resolver: yupResolver(schema),
+    mode: "onSubmit",
     defaultValues: {
       title: "",
       content: "",
-      activePanel: "panel1",
+      tab: "1",
       ...tagsObj,
+      aititle: "",
+      aicontent: "",
     },
   });
 
   const [tagsDialog, setTagsDialog] = useState(false);
 
   const getAiContent = async (key) => {
+    /* setValue("aicontent", content, setOptions);
+    setValue("ai", false, setOptions);
+    setaicontent(content);
+    return content; */
     try {
-      const prompt = `edit using better English grammar and remove offensive words from the HTML content below, and the response should be an HTML document:${key}`;
+      const prompt = `Rewrite the content below with improved grammar, readability, and structure:${key}`;
       const max_tokens = 1000;
       const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
       const model = "text-davinci-003";
-      const temperature = 1;
+      const temperature = 0;
 
       const headers = {
         "Content-Type": "application/json",
@@ -163,8 +226,11 @@ export default function NewPostEditor() {
 
       console.log("response", response.data);
 
-      const content = get(response, "data.choices[0].text", "");
+      const content = trim(get(response, "data.choices[0].text", ""), `"\n`);
 
+      setValue("aicontent", content, setOptions);
+      setaicontent(content);
+      setFetchAIcontent(false);
       return content;
     } catch (error) {
       console.log("error", error);
@@ -173,11 +239,11 @@ export default function NewPostEditor() {
 
   const getAiTitle = async (key) => {
     try {
-      const prompt = `in less than 100 characters, what is the title of this blog post ? :${key}`;
+      const prompt = `in less than 100 characters, what is the title of this blog post on a travel website ? :${key}`;
       const max_tokens = 1000;
       const apiKey = process.env.OPENAI_API_KEY;
       const model = "text-davinci-003";
-      const temperature = 1;
+      const temperature = 0;
 
       const headers = {
         "Content-Type": "application/json",
@@ -205,6 +271,9 @@ export default function NewPostEditor() {
 
       const title = trim(get(response, "data.choices[0].text", ""), `"\n`);
 
+      setValue("aititle", title, setOptions);
+      setFetchAItitle(false);
+
       return title;
     } catch (error) {
       console.log("error", error);
@@ -217,7 +286,7 @@ export default function NewPostEditor() {
     isLoading: isLoadingAiContent,
     isValidating: isValidatingAiContent,
   } = useSWRImmutable(
-    tab === "2" && watch("content").length > 50 ? watch("content") : undefined,
+    fetchAIcontent ? presentaicontent : undefined,
     getAiContent
   );
 
@@ -227,9 +296,7 @@ export default function NewPostEditor() {
     isLoading: isLoadingAiTitle,
     isValidating: isValidatingAiTitle,
   } = useSWRImmutable(
-    tab === "2" && watch("content").length > 50
-      ? `${watch("content")}\n\n\n\n\n\n\n`
-      : undefined,
+    fetchAItitle ? `${watch("aicontent")}\n` : undefined,
     getAiTitle
   );
 
@@ -237,41 +304,89 @@ export default function NewPostEditor() {
 
   const onSubmit = async (data) => {
     console.log("data", data);
-    const content = data.activePanel === "panel1" ? data.content : aicontent;
-    const title = data.activePanel === "panel1" ? data.title : aititle;
-    const tags = pick(data, tagTitles);
-    const tagsArray = flatten(Object.values(tags));
-    console.log("tagsArray", title, content, tagsArray);
-    return;
     try {
-      await axios.post("/api/others/createpost", {
+      const { title, content, aititle, aicontent, ai, tab } = data;
+      const tags = pick(data, tagTitles);
+      const tagsArray = flatten(Object.values(tags));
+      const postTags = tagsArray.map((tag) => tag.title);
+      const postContent = tab === "1" ? aicontent : content;
+      const postTitle = tab === "1" ? aititle : title;
+      const prowrite = tab === "1" ? true : false;
+      const post = {
         user_id: user._id,
-        title,
-        content: "",
-      });
-      router.reload();
+        title: postTitle,
+        content: postContent,
+        tags: postTags,
+        prowrite,
+      };
+      console.log("post", post);
+
+      await axios.post("/api/others/createpost", post);
+      toast.success("Awesome! Your post has been created successfully");
+      //   router.reload();
     } catch (error) {
-      console.log(error?.response?.data, error);
+      console.log(error?.response?.data, error?.response);
+      if (get(error, "response.data.message", "").includes("title_1_slug_1")) {
+        toast.error("Post with matching title found");
+        setSameTitleDialog(true);
+      } else {
+        toast.error("Post creation took a tumble, let's try again!");
+      }
     }
   };
 
   console.log("errors", errors);
 
-  //backgroundColor: "primary.main",
+  const proWrite = () => {
+    if (watch("aicontent").length < 200) {
+      toast.error(
+        "Our ProWrite feature requires a minimum of 200 characters to be written before optimization can occur"
+      );
+      return;
+    }
+    setaicontent(watch("aicontent"));
+    setFetchAIcontent(true);
+  };
 
-  //console.log("values", watch("content"), watch("title"));
+  React.useEffect(() => {
+    console.log("CHANGES CAPTURED");
+    if (presentaicontent === watch("aicontent")) return;
+    setValue("aicontent", presentaicontent, setOptions);
+    mutateAiContent();
+  }, [presentaicontent]);
 
   return (
     <Stack>
       <Stack
-        sx={{ p: 2, "& .MuiTabs-scroller": { height: "40px" } }}
+        sx={{ "& .MuiTabs-scroller": { height: "40px" }, mt: -4 }}
         component="form"
         onSubmit={handleSubmit(onSubmit)}
         spacing={2}
       >
+        <BlockingLoading
+          isAnimating={
+            isSubmitting ||
+            isValidatingAiContent ||
+            isLoadingAiContent ||
+            isLoadingAiTitle ||
+            isValidatingAiTitle
+          }
+        />
+        {errors.aicontent?.message &&
+          isSubmitting &&
+          toast.error(errors.aicontent?.message)}
+        {errors.aititle?.message &&
+          isSubmitting &&
+          toast.error(errors.aititle?.message)}
+        {errors.title?.message &&
+          isSubmitting &&
+          toast.error(errors.title?.message)}
+        {errors.content?.message &&
+          isSubmitting &&
+          toast.error(errors.content?.message)}
         <Dialog
           sx={{
-            "&.MuiModal-root.MuiDialog-root": { zIndex: 1410 },
+            "&.MuiModal-root.MuiDialog-root": { zIndex: 1420 },
           }}
           open={tagsDialog}
           fullScreen={fullScreen}
@@ -280,11 +395,58 @@ export default function NewPostEditor() {
         >
           <Stack>
             <Alert severity="info">
-              <AlertTitle>One Last step - Taging</AlertTitle>
-              Tag your post with relevant keywords to make it easier for others
-              to discover. Improves visibility & attracts a wider audience.
+              <AlertTitle>One Last step - Title & Taging</AlertTitle>
+              Generate a suitable title and Tag your post with relevant keywords
+              to make it easier for others to discover.
             </Alert>
             <Stack spacing={2} sx={{ p: 2 }}>
+              {watch("tab") === "1" ? (
+                <Controller
+                  name="aititle"
+                  control={control}
+                  render={({ field }) => {
+                    const { onChange, value, ...rest } = field;
+                    return (
+                      <TextField
+                        {...rest}
+                        value={value}
+                        onChange={(e) => onChange(e.target.value)}
+                        size="small"
+                        fullWidth
+                        multiline
+                        id="title"
+                        placeholder="Post Title"
+                        variant="outlined"
+                        required
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment
+                              onClick={() => {
+                                setFetchAItitle(true);
+                                mutateAiTitle();
+                              }}
+                              position="start"
+                            >
+                              <Button startIcon={<RefreshIcon />}>
+                                ProWrite
+                              </Button>
+                            </InputAdornment>
+                          ),
+                        }}
+                        inputProps={{ maxLength: 100 }}
+                        sx={{
+                          [`& fieldset`]: {
+                            borderRadius: 1,
+                          },
+                          "& .MuiOutlinedInput-root": { pl: 0 },
+                        }}
+                      />
+                    );
+                  }}
+                />
+              ) : (
+                ""
+              )}
               {tagsArray.map((tag, index) => {
                 return (
                   <Stack
@@ -304,6 +466,7 @@ export default function NewPostEditor() {
                       // @ts-ignore
                       defaultValue={[]}
                       control={control}
+                      // rules={{validate}}
                       render={({ field }) => {
                         const { onChange, value, ...rest } = field;
                         return (
@@ -357,34 +520,217 @@ export default function NewPostEditor() {
             </Stack>
           </Stack>
         </Dialog>
-        <TabContext value={tab}>
-          <TabList>
+        <CustomizedDialogs
+          open={aiAssitedAlert}
+          setOpen={setaiAsistedAlert}
+          title="AI Assisted Writing"
+        >
+          Write with Confidence with NGabroad's ProWrite AI Feature! Create
+          posts with ease using this AI-assisted writing feature. ProWrite
+          improves your grammar, streamlines structure, and offers title
+          suggestions. Regardless of your English skills, share your travel
+          experiences with the community confidently. And don't sweat it; AI
+          recommendations are just recommendations. You have the final say on
+          what stays and what goes, always in control of your content and title.
+          Join the growing NGabroad community with ease!
+        </CustomizedDialogs>
+        <CustomizedDialogs
+          open={sameTitleDialog}
+          setOpen={setSameTitleDialog}
+          title="Error : similar post issues"
+          zIndex={1450}
+        >
+          <Alert severity="error">
+            <Stack spacing={1}>
+              <Link
+                href={`/${slugify(
+                  watch("tab") === "1" ? watch("aititle") : watch("title")
+                )}`}
+              >
+                Post with same title: How to{" "}
+              </Link>
+              <Typography>
+                Hey there! So you're trying to create a post and ran into an
+                error that the title already exists. Here's what I recommend:
+              </Typography>
+              <ul>
+                <li>
+                  Check the existing post to see if its content is similar or
+                  related to your post.
+                </li>
+                <li>
+                  If the content is similar or related, consider contributing to
+                  the existing one to build unique content and avoid duplicate
+                  content.
+                </li>
+                <li>
+                  If the content is not the same, try adding more details or
+                  context to the title to make it unique.
+                </li>
+                <li>
+                  Consider modifying the title to make it more specific or
+                  relevant to the content of your post.
+                </li>
+                <li>
+                  You can also change the format or structure of the title to
+                  make it stand out
+                </li>
+              </ul>
+            </Stack>
+          </Alert>
+        </CustomizedDialogs>
+        <TabContext value={watch("tab")}>
+          <TabList
+            onChange={(event, newValue) =>
+              setValue("tab", newValue, setOptions)
+            }
+          >
             <Tab
-              icon={<EditIcon fontSize="small" />}
+              icon={<AutoFixHighIcon fontSize="small" />}
               iconPosition="start"
               sx={{ minHeight: 0 }}
-              label="CREATE POST"
+              label="ProWrite Editor"
               value="1"
+              wrapped
             />
             <Tab
               sx={{ minHeight: 0 }}
               icon={<GradingIcon fontSize="small" />}
               iconPosition="start"
-              label="REVIEW POST"
+              label="Manual Editor"
               value="2"
-            />
-            <CloseIcon
-              sx={{
-                cursor: "pointer",
-                position: "absolute",
-                right: 0,
-                mr: 1,
-                top: 10,
-              }}
-              onClick={() => setShowNewPostDialog(false)}
+              wrapped
             />
           </TabList>
           <TabPanel sx={{ p: 0 }} value="1">
+            <Stack spacing={1}>
+              <Stack
+                sx={{ cursor: "pointer" }}
+                onClick={() => setaiAsistedAlert(true)}
+                direction="row"
+              >
+                <LiveHelpIcon
+                  fontSize="small"
+                  color="secondary"
+                  sx={{ cursor: "pointer" }}
+                />
+                <Typography>About ProWrite</Typography>
+              </Stack>
+              <Stack sx={{ position: "relative" }}>
+                <Controller
+                  name="aicontent"
+                  control={control}
+                  render={({ field }) => {
+                    const { onChange, value, ...rest } = field;
+                    return (
+                      <TextField
+                        {...rest}
+                        value={value}
+                        onChange={(e) => {
+                          onChange(e.target.value);
+                        }}
+                        size="small"
+                        fullWidth
+                        multiline
+                        minRows={10}
+                        id="prowrtie editor"
+                        placeholder="Start typing ..."
+                        variant="outlined"
+                        required
+                        inputProps={{ maxLength: 2000 }}
+                        sx={{
+                          [`& fieldset`]: {
+                            borderRadius: 1,
+                          },
+                        }}
+                      />
+                    );
+                  }}
+                />
+                <Stack
+                  component={Paper}
+                  sx={{
+                    position: "absolute",
+                    bottom: 1,
+                    right: 1,
+                    width: 30,
+                    height: 30,
+                    borderRadius: 10,
+                    color: "primary.main",
+                  }}
+                  variant="outlined"
+                  justifyContent="center"
+                  alignItems="center"
+                >
+                  <Typography variant="caption">
+                    {watch("aicontent").length}
+                  </Typography>
+                </Stack>
+              </Stack>
+              <Grid container>
+                <Grid sx={{}} item xs={8}>
+                  <ButtonGroup
+                    fullWidth
+                    variant="contained"
+                    aria-label="outlined primary button group"
+                    sx={{ borderBottomRightRadius: 0, width: "98%" }}
+                  >
+                    <Button
+                      disabled={!canUndo}
+                      sx={{ width: "70px" }}
+                      onClick={undoaicontent}
+                    >
+                      <SkipPreviousIcon />
+                    </Button>
+                    <Button
+                      onClick={proWrite}
+                      color="inherit"
+                      sx={{ width: "100%" }}
+                    >
+                      <Badge badgeContent={0} variant="dot" color="success">
+                        ProWrite
+                      </Badge>
+                    </Button>
+                    <Button
+                      sx={{
+                        width: "70px",
+                        borderTopRightRadius: 0,
+                        borderBottomRightRadius: 0,
+                      }}
+                      disabled={!canRedo}
+                      onClick={redoaicontent}
+                    >
+                      <SkipNextIcon />
+                    </Button>
+                  </ButtonGroup>
+                </Grid>
+                <Grid item xs={4}>
+                  <Button
+                    sx={{
+                      borderTopLeftRadius: 0,
+                      borderBottomLeftRadius: 0,
+                      height: "100%",
+                    }}
+                    fullWidth
+                    variant="contained"
+                    onClick={() => {
+                      if (watch("aicontent").length < 200) {
+                        toast.error(
+                          "Our ProWrite feature requires a minimum of 200 characters to be written before optimization can occur"
+                        );
+                        return;
+                      }
+                      setTagsDialog(true);
+                      setFetchAItitle(true);
+                    }}
+                  >
+                    Continue
+                  </Button>
+                </Grid>
+              </Grid>
+            </Stack>
+          </TabPanel>
+          <TabPanel sx={{ p: 0 }} value="2">
             <Stack spacing={1}>
               <Controller
                 name="title"
@@ -418,12 +764,7 @@ export default function NewPostEditor() {
                 render={({ field }) => {
                   const { onChange, value, ...rest } = field;
                   return (
-                    <Box
-                      sx={{
-                        border: errors?.content ? "1px solid" : "none",
-                        borderColor: "error.main",
-                      }}
-                    >
+                    <Box>
                       <Editor onChange={onChange} value={value} />
                       <Typography color="error" variant="caption">
                         {get(errors, "post.message")}
@@ -432,174 +773,42 @@ export default function NewPostEditor() {
                   );
                 }}
               />
+              <ButtonGroup variant="contained">
+                <Button
+                  sx={{
+                    borderTopLeftRadius: 0,
+                    borderBottomLeftRadius: 0,
+                    height: "100%",
+                  }}
+                  fullWidth
+                  variant="contained"
+                  onClick={() => {
+                    if (watch("content").length < 200) {
+                      toast.error(
+                        "Minimum of 200 characters are required"
+                      );
+                      return;
+                    } else if (watch("title").length < 20) {
+                      toast.error(
+                        "Title must be at least 20 characters long. Please add more characters to make your title meaningful"
+                      );
+                      return;
+                    }
+                    setTagsDialog(true);
+                  }}
+                >
+                  Continue
+                </Button>
+              </ButtonGroup>
             </Stack>
           </TabPanel>
-          <TabPanel sx={{ p: 0 }} value="2">
-            <Controller
-              name="activePanel"
-              control={control}
-              render={({ field }) => {
-                const { onChange, value, ...rest } = field;
-                return (
-                  <Stack spacing={1}>
-                    <Accordion
-                      expanded={value === "panel1"}
-                      onChange={() => onChange("panel1")}
-                      variant="outlined"
-                      sx={{
-                        borderColor:
-                          value === "panel1" ? "primary.main" : "none",
-                      }}
-                    >
-                      <AccordionSummary
-                        expandIcon={
-                          <Radio size="small" checked={value === "panel1"} />
-                        }
-                        aria-controls="panel1a-content"
-                        id="panel1a-header"
-                      >
-                        <Typography>{titleCase(watch("title"))}</Typography>
-                      </AccordionSummary>
-                      <AccordionDetails>
-                        <ArticleRender content={watch("content")} />
-                      </AccordionDetails>
-                    </Accordion>
-                    <Accordion
-                      expanded={value === "panel2"}
-                      onChange={() => onChange("panel2")}
-                      variant="outlined"
-                      sx={{
-                        borderColor:
-                          value === "panel2" ? "primary.main" : "none",
-                      }}
-                    >
-                      <AccordionSummary
-                        sx={{ cursor: "default !important" }}
-                        expandIcon={
-                          <Radio size="small" checked={value === "panel2"} />
-                        }
-                        aria-controls="panel2a-content"
-                        id="panel2a-header"
-                      >
-                        <Stack alignItems="center" spacing={1} direction="row">
-                          {isLoadingAiTitle || isValidatingAiTitle ? (
-                            <CircularProgress size={16} color="primary" />
-                          ) : (
-                            <RefreshIcon
-                              sx={{ cursor: "pointer" }}
-                              color="primary"
-                              fontSize="small"
-                              onClick={() => mutateAiTitle("")}
-                            />
-                          )}
-                          {aititle ? (
-                            <Typography>{titleCase(aititle)}</Typography>
-                          ) : (
-                            <Skeleton sx={{ height: "40px" }}>
-                              <Typography>
-                                {titleCase(watch("title"))}
-                              </Typography>
-                            </Skeleton>
-                          )}
-                        </Stack>
-                      </AccordionSummary>
-                      <AccordionDetails>
-                        <Stack spacing={1} direction="row">
-                          {isLoadingAiContent || isValidatingAiContent ? (
-                            <CircularProgress size={16} color="primary" />
-                          ) : (
-                            <RefreshIcon
-                              sx={{ cursor: "pointer" }}
-                              color="primary"
-                              fontSize="small"
-                              onClick={() => mutateAiContent("")}
-                            />
-                          )}
-
-                          {aicontent ? (
-                            <ArticleRender content={aicontent} />
-                          ) : (
-                            <Stack sx={{ width: "100%" }}>
-                              <Skeleton
-                                sx={{
-                                  height: "300px",
-                                  width: "100%",
-                                  transformOrigin: "0 0",
-                                }}
-                              />
-                            </Stack>
-                          )}
-                        </Stack>
-                      </AccordionDetails>
-                    </Accordion>
-                  </Stack>
-                );
-              }}
-            />
-          </TabPanel>
+      
         </TabContext>
-        <ButtonGroup
-          fullWidth
-          variant="contained"
-          aria-label="outlined primary button group"
-        >
-          <Button
-            onClick={() => {
-              if (watch("activePanel") === "panel2") {
-                setValue("content", aicontent, {
-                  shouldDirty: true,
-                  shouldTouch: true,
-                  shouldValidate: true,
-                });
-                // @ts-ignore
-                setValue("title", aititle, {
-                  shouldDirty: true,
-                  shouldTouch: true,
-                  shouldValidate: true,
-                });
-                setValue("activePanel", "panel1", {
-                  shouldDirty: true,
-                  shouldTouch: true,
-                  shouldValidate: true,
-                });
-              }
-              setTab("1");
-            }}
-            disabled={tab === "1"}
-          >
-            {tab === "1"
-              ? ""
-              : watch("activePanel") === "panel1"
-              ? "Edit MY Content"
-              : "Edit AI Content"}
-          </Button>
-          <Button
-            onClick={() => {
-              if (tab === "1") {
-                if (watch("content").length < 250) {
-                  toast.error(
-                    "We have a minimum requirement for the length of content that can be posted. Please ensure that your post provides sufficient information and details."
-                  );
-                  return;
-                }
-                setTab("2");
-              } else if (tab === "2") {
-                setTagsDialog(true);
-              }
-            }}
-          >
-            {tab === "1"
-              ? "Continue"
-              : watch("activePanel") === "panel1"
-              ? "Submit MY Content"
-              : "Submit AI Content"}
-          </Button>
-        </ButtonGroup>
       </Stack>
     </Stack>
   );
 }
-console.log("tagsArray", tagsArray);
+
 const top100Films = [
   { title: "The Shawshank Redemption", year: 1994 },
   { title: "The Godfather", year: 1972 },

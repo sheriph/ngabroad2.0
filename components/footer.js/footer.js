@@ -24,6 +24,7 @@ import EditProfile from "../../components/others/meeditprofile";
 import { useAuthUser } from "../../lib/utility";
 import { useAuthenticator } from "@aws-amplify/ui-react";
 import NewPostEditor from "../visa/newposteditor";
+import CustomizedDialogs from "../others/alert";
 
 export default function Footer() {
   const { user: userExist } = useAuthenticator((context) => [
@@ -101,7 +102,7 @@ export default function Footer() {
       >
         <CreatePost />
       </Dialog>
-      <Dialog
+      {/* <Dialog
         sx={{
           "&.MuiModal-root.MuiDialog-root": { zIndex: 1402 },
         }}
@@ -110,7 +111,15 @@ export default function Footer() {
         onClose={() => setShowNewPostDialog(false)}
       >
         <NewPostEditor />
-      </Dialog>
+      </Dialog> */}
+      <CustomizedDialogs
+        open={showNewPostDialog}
+        setOpen={setShowNewPostDialog}
+        zIndex={1402}
+        title="Create a new post"
+      >
+        <NewPostEditor />
+      </CustomizedDialogs>
     </Stack>
   );
 }

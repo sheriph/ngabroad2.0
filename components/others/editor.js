@@ -6,6 +6,7 @@ import { editorLoaded_, isLoading_ } from "../../lib/recoil";
 import { getAwsUrl } from "../../lib/utility";
 import React from "react";
 
+
 export default function Editor({ onChange, value }) {
   let editor;
   const [editorLoaded, seteditorLoaded] = useRecoilState(editorLoaded_);
@@ -125,6 +126,7 @@ export default function Editor({ onChange, value }) {
     editor.plugins.get("FileRepository").createUploadAdapter = (loader) => {
       console.log("loader", loader);
       // Configure the URL to the upload script in your back-end here!
+      console.log('loader', loader)
       return new MyUploadAdapter(loader);
     };
   }

@@ -78,7 +78,7 @@ export default function ArticleRender({ content }) {
     }
 
     if (node.type === "text") {
-    //  console.log("node.data", node.data);
+      //  console.log("node.data", node.data);
       return (
         <Typography sx={{ all: "unset" }} component="p" key={index}>
           {node.data}
@@ -107,25 +107,18 @@ export default function ArticleRender({ content }) {
       const { src, alt, width, height } = node.attribs;
 
       return (
-        <Box
-          sx={{ height: { xs: "320px", md: "640px" }, width: "100%" }}
-          // display="block"
-          justifyContent="center"
-          position="relative"
-          key={index}
-        >
-          <Image
-            src={src}
-            alt={alt}
-            style={{ objectFit: "contain" }}
-            placeholder="blur"
-            fill
-            ///   blurDataURL={`data:image/svg+xml;base64,${toBase64(
-            //     shimmer(300, 400)
-            //    )}`}
-            blurDataURL={rgbDataURL(83, 72, 220)}
-          />
-        </Box>
+        <Image
+          src={src}
+          alt={alt}
+          placeholder="blur"
+          width={400}
+          height={400}
+          style={{ width: "100%", height: "auto", objectFit:"contain" }}
+          //   style={{objectFit:"contain"}}
+          //  objectFit="contain"
+          //  layout="fill"
+          blurDataURL={rgbDataURL(83, 72, 220)}
+        />
       );
     }
   };
