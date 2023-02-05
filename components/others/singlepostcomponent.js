@@ -35,7 +35,7 @@ const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
   },
 }));
 
-export default function SinglePostComponent({ post, comments }) {
+export default function SinglePostComponent({ post }) {
   const mobile = useMediaQuery("(max-width:900px)", { noSsr: true });
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const handleDrawer = () => setDrawerOpen(!drawerOpen);
@@ -59,12 +59,15 @@ export default function SinglePostComponent({ post, comments }) {
         >
           <Toolbar />
           <Box sx={{ overflow: "auto" }}>
-            <DesktopSideBar setSize={null} />
+            <DesktopSideBar />
           </Box>
         </Drawer>
       </Box>
       <Box component="main" sx={{ flexGrow: 1 }}>
-        <PostsCard comments={comments} post={post} />
+        <PostsCard
+          // @ts-ignore
+          post={post}
+        />
       </Box>
     </Stack>
   );

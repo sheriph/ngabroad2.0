@@ -24,7 +24,12 @@ import MenuIcon from "@mui/icons-material/Menu";
 import PropTypes from "prop-types";
 import { Box } from "@mui/system";
 import { useRecoilState, useSetRecoilState } from "recoil";
-import { addPost_, login_, mobileSearchOpen_ } from "../../lib/recoil";
+import {
+  addPost_,
+  login_,
+  mobileSearchOpen_,
+  showNewPostDialog_,
+} from "../../lib/recoil";
 import useSWR from "swr";
 import { Auth } from "aws-amplify";
 import AccountMenu from "./accountmenu";
@@ -40,6 +45,9 @@ import SearchMobile from "./searchmobile";
 import SearchDesktop from "./searchdesktop";
 import { toast } from "react-toastify";
 import { useAuthenticator } from "@aws-amplify/ui-react";
+import LoginIcon from "@mui/icons-material/Login";
+import CustomizedDialogs from "../others/alert";
+import NewPostEditor from "../newposteditor";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   // @ts-ignore
@@ -84,7 +92,9 @@ export default function HeaderApp(props) {
 
   const [addPost, setAddPost] = useRecoilState(addPost_);
   const setOpenSearch = useSetRecoilState(mobileSearchOpen_);
- // console.log("user", user);
+  const [showNewPostDialog, setShowNewPostDialog] =
+    useRecoilState(showNewPostDialog_);
+  // console.log("user", user);
 
   return (
     <HideOnScroll {...props}>
@@ -93,24 +103,26 @@ export default function HeaderApp(props) {
           <SearchMobile />
           <Toolbar component={Container} maxWidth="lg" variant="dense">
             <Stack sx={{ mr: 1 }}>LOGO</Stack>
-            <Typography component="div">
+            <Typography sx={{ flexGrow: 1 }} component="div">
               <OtherMenu />
             </Typography>
             <Typography sx={{ mr: "auto" }} component="div">
-              <Box
+              <Button
+                startIcon={<ForumIcon />}
                 onClick={() => {
                   if (!user) {
                     setLogin(true);
                     return;
                   }
-                  !props.post && setAddPost(true);
+                  setShowNewPostDialog(true);
                 }}
+                color="inherit"
               >
-                <ForumMenu showMenu={Boolean(props.post)} post={props.post} />
-              </Box>
+                Create Post
+              </Button>
             </Typography>
 
-            <SearchIcon
+            {/* <SearchIcon
               color="inherit"
               sx={{
                 mr: 3,
@@ -122,16 +134,28 @@ export default function HeaderApp(props) {
 
             <Box sx={{ mr: 3, display: { xs: "none", md: "block" } }}>
               <SearchDesktop />
-            </Box>
+            </Box> */}
 
             {user ? (
               <AccountMenu />
             ) : (
-              <Button onClick={() => setLogin(true)} color="inherit">
+              <Button
+                startIcon={<LoginIcon />}
+                onClick={() => setLogin(true)}
+                color="inherit"
+              >
                 Login
               </Button>
             )}
           </Toolbar>
+          <CustomizedDialogs
+            open={showNewPostDialog}
+            setOpen={setShowNewPostDialog}
+            zIndex={1402}
+            title="Create a new post"
+          >
+            <NewPostEditor />
+          </CustomizedDialogs>
         </Box>
       </AppBar>
     </HideOnScroll>

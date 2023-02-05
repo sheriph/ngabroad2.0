@@ -1,8 +1,11 @@
 import React from "react";
 import {
+  Alert,
   Avatar,
   Box,
   Button,
+  ButtonGroup,
+  CircularProgress,
   Divider,
   Fab,
   Grid,
@@ -22,6 +25,7 @@ import {
   capitalizeName,
   getUsername,
   LinkTypography,
+  titleCase,
   useAuthUser,
   useHost,
 } from "../lib/utility";
@@ -53,30 +57,30 @@ import QuoteReadMore from "./others/quotereadmore";
 import ArticleRender from "./others/articlerender";
 import { toast } from "react-toastify";
 import { useAuthenticator } from "@aws-amplify/ui-react";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import CustomizedDialogs from "./others/alert";
+import FormatQuoteIcon from "@mui/icons-material/FormatQuote";
+import ForumIcon from "@mui/icons-material/Forum";
+import ReplyCommentEditor from "./replycommenteditor";
+import NewCommentEditor from "./newcommenteditor";
 
 var relativeTime = require("dayjs/plugin/relativeTime");
 dayjs.extend(relativeTime);
 
-export default function SinglePostCard({
-  post,
-  parentPost,
-  isComment = false,
-}) {
+// @ts-ignore
+export default React.memo(function SinglePostCard({ post, parentPost }) {
   const { user: userExist } = useAuthenticator((context) => [
     context.authStatus,
   ]);
   const { user } = useAuthUser(userExist);
-  const [replyPost, setReplyPost] = useRecoilState(replyPost_);
 
-  const [postReplyData, setPostReplyData] = useRecoilState(postReplyData_);
-  const [updatePost, setUpdatePost] = useRecoilState(updatePost_);
-  const [addPost, setAddPost] = useRecoilState(addPost_);
-  const [login, setLogin] = useRecoilState(login_);
+  const [addcommentDialog, setAddCommentDialog] = React.useState(false);
+  const [replycommentDialog, setReplyCommentDialog] = React.useState(false);
 
-  const getVotes = async (post_id) => {
+  const getVotes = async (key) => {
     try {
-      const key = post_id.split("_")[0];
-      const votes = await axios.post("/api/others/getvotes", { post_id: key });
+      const { post_id, url } = JSON.parse(key);
+      const votes = await axios.post(url, { post_id });
       console.log("votes", votes.data);
       return votes.data;
     } catch (error) {
@@ -84,19 +88,24 @@ export default function SinglePostCard({
     }
   };
 
-  const getFollows = async (key) => {
+  const getUsername = async (key) => {
     try {
-      const follows = await axios.post(key, { user_id: user?._id });
-      console.log("follows fetcher", follows.data);
-      return follows.data;
+      const { user_id } = JSON.parse(key);
+      const username = await axios.post("/api/others/getusername", {
+        user_id: user_id,
+      });
+      console.log("username", username.data);
+      return username.data;
     } catch (error) {
-      console.log(error?.response?.data, error);
+      console.log("error", error);
     }
   };
 
-  const { data: username } = useSWRImmutable(post.user_id, getUsername);
-  const { data: quoteUsername } = useSWRImmutable(
-    get(post, "quote.user_id", ""),
+  const { data: username } = useSWRImmutable(
+    JSON.stringify({
+      user_id: post.user_id,
+      text: "get a single post username",
+    }),
     getUsername
   );
 
@@ -104,49 +113,27 @@ export default function SinglePostCard({
     data: votes,
     mutate: mutatevotes,
     error: votesError,
-    isValidating: validatevotes,
-  } = useSWRImmutable(`${post._id}_votesforapost`, getVotes);
-
-  const { data: follows, mutate: mutatefollows } = useSWRImmutable(
-    user?._id && "/api/others/getfollows",
-    getFollows
+    isValidating: isvalidatingvotes,
+  } = useSWRImmutable(
+    JSON.stringify({
+      url: "/api/others/getvotes",
+      tag: "Get votes for a single post",
+      post_id: post._id,
+    }),
+    getVotes
   );
- // console.log("votes", post.post_type, votes, votesError, validatevotes);
 
-  const showReply = () => {
-    if (!user) {
-      setLogin(true);
-      return;
-    }
-    setPostReplyData({
-      parentPost,
-      post,
-      isComment: isComment,
-    });
-    setReplyPost(true);
-  };
+  // console.log("votes", votes);
 
-  const showUpdate = () => {
-    if (!user) {
-      setLogin(true);
-      return;
-    }
-    setPostReplyData({
-      post,
-      parentPost,
-      isComment: isComment,
-    });
-    setUpdatePost(true);
-    setAddPost(true);
-  };
-
-  const upvotes = votes ? votes.filter((vote) => vote.status).length : 0;
-  const downvotes = votes ? votes.filter((vote) => !vote.status).length : 0;
+  const upvotes = votes?.filter((vote) => vote.voteType === "upvote").length;
+  const downvotes = votes?.filter(
+    (vote) => vote.voteType === "downvote"
+  ).length;
 
   const handleVote = async (status) => {
     // console.log("vote status", status);
     if (!user) {
-      setLogin(true);
+      toast.error("Please login to vote");
       return;
     } else if (!votes) {
       toast.error(
@@ -272,52 +259,47 @@ export default function SinglePostCard({
     return;
   };
 
-  const isFollow = follows
-    ? follows.map((follow) => follow.post_id === parentPost._id).includes(true)
-    : false;
-
- // console.log("follows isFollow", follows, isFollow);
-
-  const handleFollow = async (remove) => {
-    if (!user) {
-      setLogin(true);
-      return;
-    } else if (!follows) {
-      toast.error(
-        "Page not fully loaded yet. Please check your network or reload this page"
-      );
+  const handleUpVote = async () => {
+    if (!votes) return;
+    if (post.user_id === user._id) {
+      toast.error("No self-voting allowed, let others clap for you!");
       return;
     }
-    const newFollows = remove
-      ? follows.filter((follow) => follow.post_id !== parentPost._id)
-      : [...follows, { post_id: parentPost._id }];
-    console.log("newFollows", newFollows);
-    try {
-      await mutatefollows(newFollows, {
-        rollbackOnError: true,
-        populateCache: true,
-        revalidate: false,
-      });
-      await axios.post("/api/others/follow", {
-        user_id: user._id,
-        post_id: parentPost._id,
-        post_title: parentPost.title,
-        slug: parentPost.slug,
-        remove: remove,
-        post_type: parentPost.post_type,
-      });
 
-      await mutatefollows(newFollows, {
-        rollbackOnError: true,
-        populateCache: false,
-        revalidate: true,
-      });
+    try {
+      const newVote = {
+        post_id: post._id,
+        user_id: user._id,
+        voteType: "upvote",
+      };
+      await axios.post("/api/others/vote", newVote);
+      await mutatevotes();
     } catch (error) {
-      console.log(error?.response?.data, error);
+      console.log("error", error);
     }
   };
 
- // console.log("post", post);
+  const handleDownVote = async () => {
+    if (!votes) return;
+    if (post.user_id === user._id) {
+      toast.error("No self-voting allowed, let others clap for you!");
+      return;
+    }
+
+    try {
+      const newVote = {
+        post_id: post._id,
+        user_id: user._id,
+        voteType: "downvote",
+      };
+      await axios.post("/api/others/vote", newVote);
+      await mutatevotes();
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
+  //  console.log("post", post);
   return (
     <Stack spacing={2} direction="row">
       <Stack sx={{ width: "100%" }}>
@@ -331,50 +313,24 @@ export default function SinglePostCard({
             variant="h1"
             textAlign="left"
           >
-            {isComment && `Re:`}{" "}
-            {parentPost.post_type === "question" && isComment
-              ? truncate(capitalizeName(post.title), { length: 70 })
-              : capitalizeName(post.title)}
+            {titleCase(post?.title || `Re: ${post?.post?.title}`)}
           </Typography>
-          <Stack>
-            {isComment && get(post, "quote.content", "") && (
-              <Stack
-                sx={{
-                  borderLeftStyle: "solid",
-                  borderLeftColor: "primary.main",
-                  borderLeftWidth: "5px",
-                  pl: "10px",
-                  // ml: "5px",
-                  fontStyle: "italic",
-                  mb: 2,
-                }}
+          <Stack spacing={2}>
+            {post?.replyPost?.content && (
+              <Alert
+                icon={<FormatQuoteIcon />}
+                variant="outlined"
+                sx={{ mb: 2, mt: 1 }}
               >
-                {quoteUsername ? (
-                  <NextLink
-                    href={`/profile/${encodeURIComponent(quoteUsername)}`}
-                    passHref
-                  >
-                    <Link underline="always" variant="caption">
-                      @{quoteUsername}
-                    </Link>
-                  </NextLink>
-                ) : (
-                  <Skeleton variant="text">
-                    <LinkTypography>By Adeniyi Sheriff</LinkTypography>
-                  </Skeleton>
-                )}
-                <QuoteReadMore content={get(post, "quote.content", "")} />
-              </Stack>
+                <ArticleRender
+                  content={
+                    // @ts-ignore
+                    post?.replyPost?.content
+                  }
+                />
+              </Alert>
             )}
-            <Box>
-              {/*  {ReactHtmlParser(
-                post.post_type === "question" ? "" : post.content,
-                options
-              )} */}
-              <ArticleRender
-                content={post.post_type === "question" ? "" : post.content}
-              />
-            </Box>
+            <ArticleRender content={post.content} />
           </Stack>
           <Stack spacing={1} sx={{ mt: 2 }}>
             <Stack
@@ -396,83 +352,74 @@ export default function SinglePostCard({
                   <LinkTypography>By Adeniyi Sheriff</LinkTypography>
                 </Skeleton>
               )}
-              <Typography variant="caption">
-                {dayjs().to(dayjs(post.createdAt))}
-              </Typography>
+              <Stack alignItems="center" direction="row" spacing={1}>
+                <AccessTimeIcon sx={{ fontSize: 13 }} />
+                <Typography variant="caption">
+                  {dayjs().to(dayjs(post.createdAt))}
+                </Typography>
+              </Stack>
             </Stack>
-            <Stack spacing={1} direction="row">
-              <Stack
-                onClick={() => handleVote(true)}
-                sx={{ cursor: "pointer" }}
-                spacing={1}
-                direction="row"
-              >
-                <ThumbUpAltIcon
-                  sx={{ width: 17, height: 17 }}
-                  fontSize="small"
-                />
-                <Typography variant="caption">{upvotes}</Typography>
-              </Stack>
-              <Stack
-                onClick={() => handleVote(false)}
-                sx={{ cursor: "pointer" }}
-                spacing={1}
-                direction="row"
-              >
-                <ThumbDownIcon
-                  sx={{
-                    width: 15,
-                    height: 15,
-                    transform: "rotateY(180deg)",
-                  }}
-                  fontSize="small"
-                />
-                <Typography variant="caption">{downvotes}</Typography>
-              </Stack>
-              {/*  <Stack sx={{ cursor: "pointer" }} spacing={1} direction="row">
-                <ShareIcon fontSize="small" />
-                <Typography variant="caption">Share</Typography>
-              </Stack> */}
-              <Stack
-                onClick={showReply}
-                sx={{ cursor: "pointer" }}
-                spacing={1}
-                direction="row"
-              >
-                <ReplyIcon fontSize="small" />
-                <Typography variant="caption">Reply</Typography>
-              </Stack>
-              {!isComment && (
-                <Stack
-                  onClick={() => handleFollow(isFollow)}
-                  spacing={0.5}
-                  alignItems="center"
-                  direction="row"
-                  sx={{ cursor: "pointer" }}
-                >
-                  <BookmarkAddOutlinedIcon
-                    sx={{ fontSize: "1rem" }}
+            <ButtonGroup
+              sx={{
+                "& .MuiButtonGroup-grouped:not(:last-of-type)": {
+                  border: "none",
+                },
+              }}
+              variant="text"
+            >
+              <Button
+                sx={{ p: 0.5, fontSize: 12, mr: 1 }}
+                startIcon={
+                  <ThumbUpAltIcon
+                    sx={{ width: 17, height: 17 }}
                     fontSize="small"
                   />
-                  <Typography
-                    onClick={() => {
-                      console.log("clicked ");
-                      //setReplyPost(true);
+                }
+                color="inherit"
+                onClick={handleUpVote}
+              >
+                {upvotes}
+              </Button>
+
+              <Button
+                sx={{ p: 0.5, fontSize: 12, mr: 1 }}
+                startIcon={
+                  <ThumbDownIcon
+                    sx={{
+                      width: 15,
+                      height: 15,
+                      transform: "rotateY(180deg)",
                     }}
-                    variant="caption"
-                  >
-                    {isFollow ? "Unfollow" : "Follow"}
-                  </Typography>
-                </Stack>
-              )}
-            </Stack>
+                    fontSize="small"
+                  />
+                }
+                color="inherit"
+                onClick={handleDownVote}
+              >
+                {downvotes}
+              </Button>
+              <Button
+                sx={{ p: 0.5, fontSize: 12 }}
+                startIcon={<ReplyIcon fontSize="small" />}
+                color="inherit"
+                onClick={() => setReplyCommentDialog(true)}
+              >
+                Reply
+              </Button>
+              <Button
+                sx={{ p: 0.5, fontSize: 12, ml: 1 }}
+                startIcon={<ForumIcon sx={{ fontSize: 14 }} fontSize="small" />}
+                color="inherit"
+                onClick={() => setAddCommentDialog(true)}
+              >
+                Add Comment
+              </Button>
+            </ButtonGroup>
             <Divider />
             {user && user._id === post.user_id ? (
               <React.Fragment>
                 <Stack direction="row" spacing={2}>
-                  <LinkTypography onClick={showUpdate} variant="caption">
-                    Edit Post
-                  </LinkTypography>
+                  <LinkTypography variant="caption">Edit Post</LinkTypography>
                 </Stack>
                 <Divider />
               </React.Fragment>
@@ -482,6 +429,30 @@ export default function SinglePostCard({
           </Stack>
         </Stack>
       </Stack>
+      <CustomizedDialogs
+        open={replycommentDialog}
+        setOpen={setReplyCommentDialog}
+        zIndex={1402}
+        title={`Re: ${post.title}`}
+      >
+        <ReplyCommentEditor post={parentPost} replyPost={post} />
+      </CustomizedDialogs>
+      <CustomizedDialogs
+        open={addcommentDialog}
+        setOpen={setAddCommentDialog}
+        zIndex={1402}
+        title={`Re: ${post.title}`}
+      >
+        <ReplyCommentEditor post={parentPost} replyPost={null} />
+      </CustomizedDialogs>
+      {/*  <CustomizedDialogs
+        open={addcommentDialog}
+        setOpen={setCommentDialog}
+        zIndex={1402}
+        title={`Re: ${post.title}`}
+      >
+        <NewCommentEditor post={post} />
+      </CustomizedDialogs> */}
     </Stack>
   );
-}
+});

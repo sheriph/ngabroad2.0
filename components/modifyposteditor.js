@@ -54,25 +54,24 @@ import { toast } from "react-toastify";
 import useSWR from "swr";
 import { useRouter } from "next/router";
 import { useAuthenticator } from "@aws-amplify/ui-react";
-import { titleCase, useAuthUser } from "../../lib/utility";
-import Editor from "../others/editor";
-import { showNewPostDialog_ } from "../../lib/recoil";
+import { titleCase, useAuthUser } from "../lib/utility";
+import Editor from "./others/editor";
 import CloseIcon from "@mui/icons-material/Close";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { Radio } from "@mui/material";
 import useSWRImmutable from "swr/immutable";
-import ArticleRender from "../others/articlerender";
+import ArticleRender from "./others/articlerender";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import EditIcon from "@mui/icons-material/Edit";
 import GradingIcon from "@mui/icons-material/Grading";
 import { useTheme } from "@mui/material/styles";
-import tagsArray from "../../lib/tags";
+import tagsArray from "../lib/tags";
 import HelpCenterOutlinedIcon from "@mui/icons-material/HelpCenterOutlined";
 import PsychologyAltIcon from "@mui/icons-material/PsychologyAlt";
 import LiveHelpIcon from "@mui/icons-material/LiveHelp";
-import CustomizedDialogs from "../others/alert";
-import BlockingLoading from "../others/blockingloading";
+import CustomizedDialogs from "./others/alert";
+import BlockingLoading from "./others/blockingloading";
 import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
 import SkipNextIcon from "@mui/icons-material/SkipNext";
 import SkipPreviousIcon from "@mui/icons-material/SkipPrevious";
@@ -87,11 +86,10 @@ const tagsObj = tagTitles.reduce((acc, key) => {
   return acc;
 }, {});
 
-export default function NewPostEditor() {
+export default function ModifyPostEditor() {
+ 
   const [aiAssitedAlert, setaiAsistedAlert] = React.useState(false);
   const [fetchAIcontent, setFetchAIcontent] = React.useState(false);
-  const [fetchAItitle, setFetchAItitle] = React.useState(false);
-  const [sameTitleDialog, setSameTitleDialog] = React.useState(false);
 
   const { user: userExist } = useAuthenticator((context) => [
     context.authStatus,
@@ -156,11 +154,11 @@ export default function NewPostEditor() {
         ),
     }),
     /*   countries: Yup.array().transform((value, originalValue) => {
-        return originalValue.map((item) => item.name);
-      }),
-      otherTags: Yup.array().transform((value, originalValue) =>
-        keysIn(pickBy(originalValue, (val, key) => val === true))
-      ), */
+          return originalValue.map((item) => item.name);
+        }),
+        otherTags: Yup.array().transform((value, originalValue) =>
+          keysIn(pickBy(originalValue, (val, key) => val === true))
+        ), */
   });
 
   const router = useRouter();
@@ -183,11 +181,9 @@ export default function NewPostEditor() {
     resolver: yupResolver(schema),
     mode: "onSubmit",
     defaultValues: {
-      title: "",
       content: "",
       tab: "1",
       ...tagsObj,
-      aititle: "",
       aicontent: "",
     },
   });
@@ -196,9 +192,9 @@ export default function NewPostEditor() {
 
   const getAiContent = async (key) => {
     /* setValue("aicontent", content, setOptions);
-    setValue("ai", false, setOptions);
-    setaicontent(content);
-    return content; */
+      setValue("ai", false, setOptions);
+      setaicontent(content);
+      return content; */
     try {
       const prompt = `Rewrite the content below with improved grammar, readability, and structure:${key}`;
       const max_tokens = 1000;
@@ -237,49 +233,6 @@ export default function NewPostEditor() {
     }
   };
 
-  const getAiTitle = async (key) => {
-    try {
-      const prompt = `in less than 100 characters, what is the title of this blog post on a travel website ? :${key}`;
-      const max_tokens = 1000;
-      const apiKey = process.env.OPENAI_API_KEY;
-      const model = "text-davinci-003";
-      const temperature = 0;
-
-      const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      };
-
-      const data = {
-        prompt,
-        model,
-        max_tokens,
-        temperature,
-      };
-
-      const response = await axios.post(
-        "https://api.openai.com/v1/completions",
-        data,
-        { headers }
-      );
-
-      console.log(
-        "response",
-        response.data,
-        get(response, "data.choices[0].text", "")
-      );
-
-      const title = trim(get(response, "data.choices[0].text", ""), `"\n`);
-
-      setValue("aititle", title, setOptions);
-      setFetchAItitle(false);
-
-      return title;
-    } catch (error) {
-      console.log("error", error);
-    }
-  };
-
   const {
     data: aicontent,
     mutate: mutateAiContent,
@@ -290,31 +243,19 @@ export default function NewPostEditor() {
     getAiContent
   );
 
-  const {
-    data: aititle,
-    mutate: mutateAiTitle,
-    isLoading: isLoadingAiTitle,
-    isValidating: isValidatingAiTitle,
-  } = useSWRImmutable(
-    fetchAItitle ? `${watch("aicontent")}\n` : undefined,
-    getAiTitle
-  );
-
   // console.log("aititle", aititle);
 
   const onSubmit = async (data) => {
     console.log("data", data);
     try {
-      const { title, content, aititle, aicontent, ai, tab } = data;
+      const { content, aititle, aicontent, tab } = data;
       const tags = pick(data, tagTitles);
       const tagsArray = flatten(Object.values(tags));
       const postTags = tagsArray.map((tag) => tag.title);
       const postContent = tab === "1" ? aicontent : content;
-      const postTitle = tab === "1" ? aititle : title;
       const prowrite = tab === "1" ? true : false;
       const post = {
         user_id: user._id,
-        title: postTitle,
         content: postContent,
         tags: postTags,
         prowrite,
@@ -326,12 +267,7 @@ export default function NewPostEditor() {
       //   router.reload();
     } catch (error) {
       console.log(error?.response?.data, error?.response);
-      if (get(error, "response.data.message", "").includes("title_1_slug_1")) {
-        toast.error("Post with matching title found");
-        setSameTitleDialog(true);
-      } else {
-        toast.error("Post creation took a tumble, let's try again!");
-      }
+      toast.error("Post creation took a tumble, let's try again!");
     }
   };
 
@@ -355,6 +291,8 @@ export default function NewPostEditor() {
     mutateAiContent();
   }, [presentaicontent]);
 
+ // return <>hello</>;
+
   return (
     <Stack>
       <Stack
@@ -365,22 +303,12 @@ export default function NewPostEditor() {
       >
         <BlockingLoading
           isAnimating={
-            isSubmitting ||
-            isValidatingAiContent ||
-            isLoadingAiContent ||
-            isLoadingAiTitle ||
-            isValidatingAiTitle
+            isSubmitting || isValidatingAiContent || isLoadingAiContent
           }
         />
         {errors.aicontent?.message &&
           isSubmitting &&
           toast.error(errors.aicontent?.message)}
-        {errors.aititle?.message &&
-          isSubmitting &&
-          toast.error(errors.aititle?.message)}
-        {errors.title?.message &&
-          isSubmitting &&
-          toast.error(errors.title?.message)}
         {errors.content?.message &&
           isSubmitting &&
           toast.error(errors.content?.message)}
@@ -400,53 +328,6 @@ export default function NewPostEditor() {
               to make it easier for others to discover.
             </Alert>
             <Stack spacing={2} sx={{ p: 2 }}>
-              {watch("tab") === "1" ? (
-                <Controller
-                  name="aititle"
-                  control={control}
-                  render={({ field }) => {
-                    const { onChange, value, ...rest } = field;
-                    return (
-                      <TextField
-                        {...rest}
-                        value={value}
-                        onChange={(e) => onChange(e.target.value)}
-                        size="small"
-                        fullWidth
-                        multiline
-                        id="title"
-                        placeholder="Post Title"
-                        variant="outlined"
-                        required
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment
-                              onClick={() => {
-                                setFetchAItitle(true);
-                                mutateAiTitle();
-                              }}
-                              position="start"
-                            >
-                              <Button startIcon={<RefreshIcon />}>
-                                ProWrite
-                              </Button>
-                            </InputAdornment>
-                          ),
-                        }}
-                        inputProps={{ maxLength: 100 }}
-                        sx={{
-                          [`& fieldset`]: {
-                            borderRadius: 1,
-                          },
-                          "& .MuiOutlinedInput-root": { pl: 0 },
-                        }}
-                      />
-                    );
-                  }}
-                />
-              ) : (
-                ""
-              )}
               {tagsArray.map((tag, index) => {
                 return (
                   <Stack
@@ -534,51 +415,7 @@ export default function NewPostEditor() {
           what stays and what goes, always in control of your content and title.
           Join the growing NGabroad community with ease!
         </CustomizedDialogs>
-        <CustomizedDialogs
-          open={sameTitleDialog}
-          setOpen={setSameTitleDialog}
-          title="Error : similar post issues"
-          zIndex={1450}
-        >
-          <Alert severity="error">
-            <Stack spacing={1}>
-              <Link
-                href={`/${slugify(
-                  watch("tab") === "1" ? watch("aititle") : watch("title")
-                )}`}
-              >
-                Post with same title: How to{" "}
-              </Link>
-              <Typography>
-                Hey there! So you're trying to create a post and ran into an
-                error that the title already exists. Here's what I recommend:
-              </Typography>
-              <ul>
-                <li>
-                  Check the existing post to see if its content is similar or
-                  related to your post.
-                </li>
-                <li>
-                  If the content is similar or related, consider contributing to
-                  the existing one to build unique content and avoid duplicate
-                  content.
-                </li>
-                <li>
-                  If the content is not the same, try adding more details or
-                  context to the title to make it unique.
-                </li>
-                <li>
-                  Consider modifying the title to make it more specific or
-                  relevant to the content of your post.
-                </li>
-                <li>
-                  You can also change the format or structure of the title to
-                  make it stand out
-                </li>
-              </ul>
-            </Stack>
-          </Alert>
-        </CustomizedDialogs>
+
         <TabContext value={watch("tab")}>
           <TabList
             onChange={(event, newValue) =>
@@ -721,7 +558,6 @@ export default function NewPostEditor() {
                         return;
                       }
                       setTagsDialog(true);
-                      setFetchAItitle(true);
                     }}
                   >
                     Continue
@@ -732,32 +568,6 @@ export default function NewPostEditor() {
           </TabPanel>
           <TabPanel sx={{ p: 0 }} value="2">
             <Stack spacing={1}>
-              <Controller
-                name="title"
-                control={control}
-                render={({ field }) => {
-                  const { onChange, value, ...rest } = field;
-                  return (
-                    <TextField
-                      {...rest}
-                      value={value}
-                      onChange={(e) => onChange(e.target.value)}
-                      size="small"
-                      fullWidth
-                      id="title"
-                      placeholder="Post Title"
-                      variant="outlined"
-                      required
-                      inputProps={{ maxLength: 100 }}
-                      sx={{
-                        [`& fieldset`]: {
-                          borderRadius: 1,
-                        },
-                      }}
-                    />
-                  );
-                }}
-              />
               <Controller
                 name="content"
                 control={control}
@@ -784,14 +594,7 @@ export default function NewPostEditor() {
                   variant="contained"
                   onClick={() => {
                     if (watch("content").length < 200) {
-                      toast.error(
-                        "Minimum of 200 characters are required"
-                      );
-                      return;
-                    } else if (watch("title").length < 20) {
-                      toast.error(
-                        "Title must be at least 20 characters long. Please add more characters to make your title meaningful"
-                      );
+                      toast.error("Minimum of 200 characters are required");
                       return;
                     }
                     setTagsDialog(true);
@@ -802,137 +605,8 @@ export default function NewPostEditor() {
               </ButtonGroup>
             </Stack>
           </TabPanel>
-      
         </TabContext>
       </Stack>
     </Stack>
   );
 }
-
-const top100Films = [
-  { title: "The Shawshank Redemption", year: 1994 },
-  { title: "The Godfather", year: 1972 },
-  { title: "The Godfather: Part II", year: 1974 },
-  { title: "The Dark Knight", year: 2008 },
-  { title: "12 Angry Men", year: 1957 },
-  { title: "Schindler's List", year: 1993 },
-  { title: "Pulp Fiction", year: 1994 },
-  {
-    title: "The Lord of the Rings: The Return of the King",
-    year: 2003,
-  },
-  { title: "The Good, the Bad and the Ugly", year: 1966 },
-  { title: "Fight Club", year: 1999 },
-  {
-    title: "The Lord of the Rings: The Fellowship of the Ring",
-    year: 2001,
-  },
-  {
-    title: "Star Wars: Episode V - The Empire Strikes Back",
-    year: 1980,
-  },
-  { title: "Forrest Gump", year: 1994 },
-  { title: "Inception", year: 2010 },
-  {
-    title: "The Lord of the Rings: The Two Towers",
-    year: 2002,
-  },
-  { title: "One Flew Over the Cuckoo's Nest", year: 1975 },
-  { title: "Goodfellas", year: 1990 },
-  { title: "The Matrix", year: 1999 },
-  { title: "Seven Samurai", year: 1954 },
-  {
-    title: "Star Wars: Episode IV - A New Hope",
-    year: 1977,
-  },
-  { title: "City of God", year: 2002 },
-  { title: "Se7en", year: 1995 },
-  { title: "The Silence of the Lambs", year: 1991 },
-  { title: "It's a Wonderful Life", year: 1946 },
-  { title: "Life Is Beautiful", year: 1997 },
-  { title: "The Usual Suspects", year: 1995 },
-  { title: "Léon: The Professional", year: 1994 },
-  { title: "Spirited Away", year: 2001 },
-  { title: "Saving Private Ryan", year: 1998 },
-  { title: "Once Upon a Time in the West", year: 1968 },
-  { title: "American History X", year: 1998 },
-  { title: "Interstellar", year: 2014 },
-  { title: "Casablanca", year: 1942 },
-  { title: "City Lights", year: 1931 },
-  { title: "Psycho", year: 1960 },
-  { title: "The Green Mile", year: 1999 },
-  { title: "The Intouchables", year: 2011 },
-  { title: "Modern Times", year: 1936 },
-  { title: "Raiders of the Lost Ark", year: 1981 },
-  { title: "Rear Window", year: 1954 },
-  { title: "The Pianist", year: 2002 },
-  { title: "The Departed", year: 2006 },
-  { title: "Terminator 2: Judgment Day", year: 1991 },
-  { title: "Back to the Future", year: 1985 },
-  { title: "Whiplash", year: 2014 },
-  { title: "Gladiator", year: 2000 },
-  { title: "Memento", year: 2000 },
-  { title: "The Prestige", year: 2006 },
-  { title: "The Lion King", year: 1994 },
-  { title: "Apocalypse Now", year: 1979 },
-  { title: "Alien", year: 1979 },
-  { title: "Sunset Boulevard", year: 1950 },
-  {
-    title:
-      "Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb",
-    year: 1964,
-  },
-  { title: "The Great Dictator", year: 1940 },
-  { title: "Cinema Paradiso", year: 1988 },
-  { title: "The Lives of Others", year: 2006 },
-  { title: "Grave of the Fireflies", year: 1988 },
-  { title: "Paths of Glory", year: 1957 },
-  { title: "Django Unchained", year: 2012 },
-  { title: "The Shining", year: 1980 },
-  { title: "WALL·E", year: 2008 },
-  { title: "American Beauty", year: 1999 },
-  { title: "The Dark Knight Rises", year: 2012 },
-  { title: "Princess Mononoke", year: 1997 },
-  { title: "Aliens", year: 1986 },
-  { title: "Oldboy", year: 2003 },
-  { title: "Once Upon a Time in America", year: 1984 },
-  { title: "Witness for the Prosecution", year: 1957 },
-  { title: "Das Boot", year: 1981 },
-  { title: "Citizen Kane", year: 1941 },
-  { title: "North by Northwest", year: 1959 },
-  { title: "Vertigo", year: 1958 },
-  {
-    title: "Star Wars: Episode VI - Return of the Jedi",
-    year: 1983,
-  },
-  { title: "Reservoir Dogs", year: 1992 },
-  { title: "Braveheart", year: 1995 },
-  { title: "M", year: 1931 },
-  { title: "Requiem for a Dream", year: 2000 },
-  { title: "Amélie", year: 2001 },
-  { title: "A Clockwork Orange", year: 1971 },
-  { title: "Like Stars on Earth", year: 2007 },
-  { title: "Taxi Driver", year: 1976 },
-  { title: "Lawrence of Arabia", year: 1962 },
-  { title: "Double Indemnity", year: 1944 },
-  {
-    title: "Eternal Sunshine of the Spotless Mind",
-    year: 2004,
-  },
-  { title: "Amadeus", year: 1984 },
-  { title: "To Kill a Mockingbird", year: 1962 },
-  { title: "Toy Story 3", year: 2010 },
-  { title: "Logan", year: 2017 },
-  { title: "Full Metal Jacket", year: 1987 },
-  { title: "Dangal", year: 2016 },
-  { title: "The Sting", year: 1973 },
-  { title: "2001: A Space Odyssey", year: 1968 },
-  { title: "Singin' in the Rain", year: 1952 },
-  { title: "Toy Story", year: 1995 },
-  { title: "Bicycle Thieves", year: 1948 },
-  { title: "The Kid", year: 1921 },
-  { title: "Inglourious Basterds", year: 2009 },
-  { title: "Snatch", year: 2000 },
-  { title: "3 Idiots", year: 2009 },
-  { title: "Monty Python and the Holy Grail", year: 1975 },
-];

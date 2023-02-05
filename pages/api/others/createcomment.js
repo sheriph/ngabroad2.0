@@ -5,32 +5,17 @@ const ObjectID = require("mongodb").ObjectId;
 
 export default async function handler(req, res) {
   try {
-    const {
-      content,
-      user_id,
-      post_id,
-      title,
-      quotedPostContent,
-      quotedUser_id,
-      slug,
-    } = req.body;
+    const { user_id, content, prowrite, post, replyPost } = req.body;
     const client = await clientPromise;
     const newComment = {
       content: content,
       user_id: new ObjectID(user_id),
-      post_id: new ObjectID(post_id),
-      quote: {
-        content: quotedPostContent,
-        user_id: new ObjectID(quotedUser_id),
-      },
+      post,
+      replyPost,
       createdAt: new Date(),
-      title: title,
       updatedAt: new Date(),
-      approves: [],
-      post_type: "comment",
-      slug: slug,
+      prowrite,
     };
-
     if (process.env.NODE_ENV === "development") {
       console.log("adding validation");
       await client.db("nga").command({
@@ -41,16 +26,7 @@ export default async function handler(req, res) {
       });
     }
 
-    await client
-      .db("nga")
-      .collection("postscomments")
-      .insertOne(newComment);
-    const query = { _id: new ObjectID(post_id) };
-    const operation = { $set: { updatedAt: new Date() } };
-    await client
-      .db("nga")
-      .collection("posts")
-      .updateOne(query, operation);
+    await client.db("nga").collection("postscomments").insertOne(newComment);
     res.status(200).json(true);
   } catch (error) {
     console.log("error", error);

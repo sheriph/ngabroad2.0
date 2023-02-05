@@ -12,7 +12,7 @@ export default async function handler(req, res) {
       // sorting
       sort: {},
       //what to return
-      projection: { post_id: 1, user_id: 1, status: 1 },
+      projection: { voteType: 1, user_id: 1, post_id: 1 },
     };
     const votes = await client
       .db("nga")

@@ -36,8 +36,13 @@ export default async function handler(req, res) {
     };
 
     const sort = text
-      ? { score: { $meta: "textScore" }, updatedAt: -1 }
-      : { updatedAt: -1 };
+      ? {
+          score: { $meta: "textScore" },
+          lastCommentAt: -1,
+          updatedAt: -1,
+          createdAt: -1,
+        }
+      : { lastCommentAt: -1, updatedAt: -1, createdAt: -1 };
 
     const posts = await client
       .db("nga")

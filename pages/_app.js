@@ -89,7 +89,7 @@ export default function MyApp(props) {
         {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
         <ToastContainer />
         <CssBaseline />
-        <SWRConfig value={{ provider: localStorageProvider }}>
+        <SWRConfig value={{}}>
           <RecoilRoot>
             <Authenticator.Provider>
               <Layout>
@@ -102,6 +102,8 @@ export default function MyApp(props) {
     </CacheProvider>
   );
 }
+
+/* provider: localStorageProvider */
 
 MyApp.propTypes = {
   Component: PropTypes.elementType.isRequired,

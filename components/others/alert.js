@@ -32,6 +32,7 @@ function BootstrapDialogTitle(props) {
         pl: 2,
         backgroundColor: "primary.main",
         color: "white",
+        fontSize: 17,
       }}
       {...other}
     >

@@ -9,16 +9,16 @@ const PostComponent = dynamic(() => import("../components/postcomponent"), {
   ssr: false,
 });
 
-export default function Forum() {
+export default React.memo(function Forum() {
   // @ts-ignore
   return (
-    <Container maxWidth="lg" >
+    <Container maxWidth="lg">
       {/* 
     // @ts-ignore */}
       <PostComponent />
     </Container>
   );
-}
+});
 
 /* export async function getStaticProps() {
   try {

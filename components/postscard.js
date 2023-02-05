@@ -4,9 +4,11 @@ import { Box } from "@mui/system";
 import SinglePostCard from "./singlepostcard";
 import { default as NextLink } from "next/link";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import { first } from "lodash";
 
-export default function PostsCard({ post, comments }) {
-  // console.log("comments", comments);
+// @ts-ignore
+export default React.memo(function PostsCard({ post }) {
+  console.log("posts in postscard", post);
   return (
     <Box>
       <Stack spacing={1}>
@@ -16,8 +18,6 @@ export default function PostsCard({ post, comments }) {
           spacing={1}
           direction="row"
         >
-          {/* <Typography>Back to :</Typography>
-          <MobileCategoryChanger /> */}
           <NextLink href="/forum" passHref>
             <Link
               sx={{
@@ -36,33 +36,24 @@ export default function PostsCard({ post, comments }) {
             </Link>
           </NextLink>
         </Stack>
-        {/* <Divider
-          sx={{ display: { xs: "block", md: "none" } }}
-          orientation="horizontal"
-          flexItem
-        /> */}
-        <Stack
-          // divider={<Divider orientation="horizontal" flexItem />}
-          spacing={3}
-        >
-          <SinglePostCard key={0} post={post} parentPost={post} />
-          {comments.map((comment, key) => {
-            // console.log("key comment", key, comment);
+
+        <Stack spacing={3}>
+          {post.map((item, index) => {
             return (
-              <SinglePostCard
-                isComment
-                key={key + 1}
-                post={comment}
-                parentPost={post}
-              />
+              <Stack key={index}>
+                <SinglePostCard
+                  // @ts-ignore
+                  post={item}
+                  parentPost={first(post)}
+                />
+              </Stack>
             );
           })}
         </Stack>
       </Stack>
     </Box>
   );
-}
-
+});
 const text = `I am an instructor in a STEM field. I am teaching an upper-division course where I try to interact with the students rather than just lecturing. I am teaching in the students' native language; there do not seem to be any language issues.
 
 I am struggling because the students tend to give wrong answers to simple questions I ask during lectures. These really are simple questions; they should have learned this material during the first few weeks of their first year.

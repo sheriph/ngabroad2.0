@@ -4,15 +4,19 @@ import React, { useEffect, useState } from "react";
 import PostCard from "./postcard";
 import { Box } from "@mui/system";
 import ReactVisibilitySensor from "react-visibility-sensor";
-import { flatten } from "lodash";
+import { flatten, get, last } from "lodash";
 import { BounceLoader } from "react-spinners";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { useRecoilValue } from "recoil";
 
-export default function PostList({ posts = [], setSize, loading }) {
-  const visibleCallback = (isVisible) => {
-    console.log("isVisible", isVisible);
-    /* if (isVisible) */ setSize((size) => size + 1);
+export default function PostList({ posts = [], setSize }) {
+
+  const visibleCallback = () => {
+    setSize((size) => size + 1);
   };
+
+  const noMorePosts = last(posts)?.length === 0 ? true : false;
+
   return (
     <Box sx={{ mt: { xs: 0, md: 1 } }}>
       <Stack>
@@ -22,22 +26,24 @@ export default function PostList({ posts = [], setSize, loading }) {
         >
           {flatten(posts).map((post, index) => (
             <React.Fragment key={index}>
-              <PostCard key={index} post={post} />
+              <PostCard
+                key={index}
+                // @ts-ignore
+                post={post}
+              />
             </React.Fragment>
           ))}
 
-          {loading ? (
+          {noMorePosts ? (
             ""
           ) : (
-            <Box display="flex" justifyContent="center">
-              <Button
-                onClick={visibleCallback}
-                variant="text"
-                endIcon={<ExpandMoreIcon />}
-              >
-                Load More
-              </Button>
-            </Box>
+            <Button
+              onClick={visibleCallback}
+              variant="text"
+              endIcon={<ExpandMoreIcon />}
+            >
+              Load More
+            </Button>
           )}
 
           {/* <Button onClick={() => setSize((size) => size + 1)}>LOAD MORE</Button> */}

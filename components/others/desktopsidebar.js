@@ -40,78 +40,15 @@ const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
   },
 }));
 
-export default function DesktopSideBar({ setSize }) {
+export default function DesktopSideBar() {
   const router = useRouter();
   const [postType, setPostType] = useRecoilState(postType_);
 
   console.log("router", router.pathname);
 
-  const handleFilter = (post_type) => {
-    console.log({ post_type });
-    if (postType === post_type) {
-      setPostType("all");
-      setSize(1);
-    } else {
-      setPostType(post_type);
-      setSize(1);
-    }
-  };
-
-  if (router.pathname !== "/forum") {
-    return (
-      <Container>
-        <Button href="/forum">Back to forum posts</Button>
-      </Container>
-    );
-  } else {
-    return (
-      <Box>
-        <Stack>
-          <List dense component="nav" aria-label="category">
-            <Box sx={{ pointerEvents: "none", mb: 1 }}>
-              <Divider sx={{ width: "100%" }}>
-                <Chip size="small" label="Post Type" color="primary" />
-              </Divider>
-            </Box>
-            <ListItem sx={{ pr: 0 }}>
-              <CustomListItemButton
-                selected={postType === "post"}
-                onClick={() => handleFilter("post")}
-              >
-                <ListItemIcon>
-                  {postType === "post" ? (
-                    <DoneAllOutlinedIcon />
-                  ) : (
-                    <AddOutlinedIcon />
-                  )}
-                </ListItemIcon>
-                <ListItemText
-                  primaryTypographyProps={{ variant: "caption" }}
-                  primary="Posts"
-                />
-              </CustomListItemButton>
-            </ListItem>
-            <ListItem sx={{ pr: 0 }}>
-              <CustomListItemButton
-                selected={postType === "question"}
-                onClick={() => handleFilter("question")}
-              >
-                <ListItemIcon>
-                  {postType === "question" ? (
-                    <DoneAllOutlinedIcon />
-                  ) : (
-                    <AddOutlinedIcon />
-                  )}
-                </ListItemIcon>
-                <ListItemText
-                  primaryTypographyProps={{ variant: "caption" }}
-                  primary="Questions"
-                />
-              </CustomListItemButton>
-            </ListItem>
-          </List>
-        </Stack>
-      </Box>
-    );
-  }
+  return (
+    <Container>
+      <Button href="/forum">Back to forum posts</Button>
+    </Container>
+  );
 }

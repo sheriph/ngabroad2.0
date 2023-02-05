@@ -33,6 +33,10 @@ export default async function handler(req, res) {
       // @ts-ignore
       slug: slugify(title),
       prowrite,
+      upvotes: 0,
+      downvotes: 0,
+      updatedAt: new Date(),
+      lastCommentAt: new Date(),
     };
 
     await client.db("nga").collection("posts").insertOne(newPost);

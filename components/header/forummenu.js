@@ -74,7 +74,7 @@ export default function ForumMenu({ post, showMenu }) {
           color="inherit"
           startIcon={<ForumIcon />}
         >
-          Add Post
+          Create Post
         </Button>
       </Box>
       <Menu

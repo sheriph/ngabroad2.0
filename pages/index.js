@@ -9,12 +9,13 @@ import Header from "../components/header/header";
 import HeaderApp from "../components/header/headerapp";
 import { styled } from "@mui/material/styles";
 import { Button } from "@mui/material";
-import { useRecoilState } from "recoil";
-import { showNewPostDialog_ } from "../lib/recoil";
+import { useRecoilState, useSetRecoilState } from "recoil";
+import { editPostDialog_, showNewPostDialog_ } from "../lib/recoil";
 
 export default function Index() {
-  const [showNewPostDialog, setShowNewPostDialog] =
-    useRecoilState(showNewPostDialog_);
+  const setShowNewPostDialog = useSetRecoilState(showNewPostDialog_);
+  const setEditPostDialog = useSetRecoilState(editPostDialog_);
+
   return (
     <Box sx={{ my: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -22,6 +23,7 @@ export default function Index() {
       </Typography>
 
       <Button onClick={() => setShowNewPostDialog(true)}>Create Post</Button>
+      <Button onClick={() => setEditPostDialog(true)}>Edit Post</Button>
     </Box>
   );
 }

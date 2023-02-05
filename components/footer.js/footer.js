@@ -11,6 +11,7 @@ import Image from "next/image";
 import { useRecoilState } from "recoil";
 import {
   addPost_,
+  editPostDialog_,
   login_,
   replyPost_,
   showNewPostDialog_,
@@ -23,8 +24,9 @@ import Login from "../login";
 import EditProfile from "../../components/others/meeditprofile";
 import { useAuthUser } from "../../lib/utility";
 import { useAuthenticator } from "@aws-amplify/ui-react";
-import NewPostEditor from "../visa/newposteditor";
+import NewPostEditor from "../newposteditor";
 import CustomizedDialogs from "../others/alert";
+import ModifyPostEditor from "../modifyposteditor";
 
 export default function Footer() {
   const { user: userExist } = useAuthenticator((context) => [
@@ -37,10 +39,9 @@ export default function Footer() {
   const [login, setLogin] = useRecoilState(login_);
   const [updateProfile, setUpdateProfile_] = useRecoilState(updateProfile_);
   const [showAlert, setShowAlert] = React.useState(false);
-  const [showNewPostDialog, setShowNewPostDialog] =
-    useRecoilState(showNewPostDialog_);
+  const [editPostDialog, setEditPostDialog] = useRecoilState(editPostDialog_);
 
-  // console.log("user footer", user);
+  console.log("user footer", user?.email);
 
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
@@ -51,7 +52,7 @@ export default function Footer() {
     } else {
       setShowAlert(false);
     }
-  }, [user?.username]);
+  }, [user?.email]);
 
   return (
     <Stack>
@@ -65,23 +66,7 @@ export default function Footer() {
       >
         <Login />
       </Dialog>
-      <Dialog
-        sx={
-          {
-            // "&.MuiModal-root.MuiDialog-root": { zIndex: 1402 },
-          }
-        }
-        fullScreen={fullScreen}
-        open={showAlert}
-      >
-        <Stack spacing={1} sx={{ p: 2 }}>
-          <Alert severity="success">
-            We are happy to welcome you as a new member of this community.
-            Please complete your profile to start using your account.
-          </Alert>
-          <EditProfile />
-        </Stack>
-      </Dialog>
+
       <Dialog
         sx={{
           "&.MuiModal-root.MuiDialog-root": { zIndex: 1402 },
@@ -102,23 +87,22 @@ export default function Footer() {
       >
         <CreatePost />
       </Dialog>
-      {/* <Dialog
-        sx={{
-          "&.MuiModal-root.MuiDialog-root": { zIndex: 1402 },
-        }}
-        fullScreen={fullScreen}
-        open={showNewPostDialog}
-        onClose={() => setShowNewPostDialog(false)}
-      >
-        <NewPostEditor />
-      </Dialog> */}
+
       <CustomizedDialogs
-        open={showNewPostDialog}
-        setOpen={setShowNewPostDialog}
+        open={editPostDialog}
+        setOpen={setEditPostDialog}
         zIndex={1402}
-        title="Create a new post"
+        title="Edit Post"
       >
-        <NewPostEditor />
+        <ModifyPostEditor />
+      </CustomizedDialogs>
+      <CustomizedDialogs
+        open={showAlert}
+        setOpen={setShowAlert}
+        zIndex={1402}
+        title="Incomplete Profile"
+      >
+        <EditProfile />
       </CustomizedDialogs>
     </Stack>
   );

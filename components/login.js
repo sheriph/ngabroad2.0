@@ -13,33 +13,7 @@ import { useIsVisible } from "react-is-visible";
 import { get } from "lodash";
 
 export default function Login() {
-  const [login, setLogin] = useRecoilState(login_);
-
-  const formFields = {
-    signUp: {
-      email: {
-        labelHidden: true,
-        label: "Email:",
-        placeholder: "Enter your Email:",
-        isRequired: true,
-        order: 1,
-      },
-      family_name: {
-        labelHidden: true,
-        label: "Fist Name:",
-        placeholder: "Enter your Username:",
-        isRequired: true,
-        order: 2,
-      },
-      password: {
-        labelHidden: true,
-        label: "Password:",
-        placeholder: "Enter your Password:",
-        isRequired: true,
-        order: 3,
-      },
-    },
-  };
+  const setLogin = useSetRecoilState(login_);
 
   const { authStatus } = useAuthenticator((context) => [context.authStatus]);
 
@@ -48,8 +22,6 @@ export default function Login() {
   React.useEffect(() => {
     console.log("authStatus", authStatus);
     if (authStatus === "authenticated") {
-      // console.log("mutating and closing authenticator");
-      // mutate("/useAuthUser");
       setLogin(false);
     }
   }, [authStatus]);

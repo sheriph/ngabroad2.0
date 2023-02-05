@@ -14,7 +14,7 @@ import CommentOutlinedIcon from "@mui/icons-material/CommentOutlined";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import CreateIcon from "@mui/icons-material/Create";
-import { getUsername, LinkTypography } from "../lib/utility";
+import { getUsername, LinkTypography, titleCase } from "../lib/utility";
 import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import BookmarkAddOutlinedIcon from "@mui/icons-material/BookmarkAddOutlined";
@@ -47,7 +47,8 @@ const getCommentCount = async (key) => {
   }
 };
 
-export default function PostCard({ post }) {
+// @ts-ignore
+export default React.memo(function PostCard({ post }) {
   const answer = false;
   const { data: username } = useSWRImmutable(post.user_id, getUsername, {
     keepPreviousData: true,
@@ -72,40 +73,35 @@ export default function PostCard({ post }) {
       <Stack direction="row">
         <Stack>
           <Stack>
-            <NextLink href={`/${encodeURIComponent(post.slug)}`} passHref>
+            <NextLink
+              passHref
+              href={`/${encodeURIComponent(post.slug)}`}
+              legacyBehavior
+            >
               <Link
                 variant="h2"
                 textAlign="left"
                 sx={{
                   p: 0,
                   justifyContent: "flex-start",
-                  textDecorationStyle: "dotted",
+                  textDecorationStyle: "initial",
+                  textDecoration: "none",
                 }}
                 gutterBottom
-                underline="always"
+                underline="hover"
               >
-                {truncate(startCase(lowerCase(post.title)), {
-                  length: 150,
-                  omission: " ...",
-                })}
-                {post.post_type === "question" && (
-                  <QuestionMarkIcon fontSize="small" />
-                )}
+                {titleCase(post.title)}
               </Link>
             </NextLink>
 
-            <React.Fragment>
-              {post.post_type === "post" && (
-                <Stack>
-                  <IntroRender
-                    content={truncate(post.content, {
-                      length: 150,
-                      omission: ` ...`,
-                    })}
-                  />
-                </Stack>
-              )}
-            </React.Fragment>
+            <Stack>
+              <IntroRender
+                content={truncate(post.content, {
+                  length: 200,
+                  omission: ` ...`,
+                })}
+              />
+            </Stack>
 
             <Grid
               container
@@ -125,8 +121,9 @@ export default function PostCard({ post }) {
                         <NextLink
                           href={`/profile/${encodeURIComponent(username)}`}
                           passHref
+                          legacyBehavior
                         >
-                          <Link underline="always" variant="caption">
+                          <Link underline="hover" variant="caption">
                             @{username}
                           </Link>
                         </NextLink>
@@ -169,4 +166,4 @@ export default function PostCard({ post }) {
       </Stack>
     </LazyLoad>
   );
-}
+});
