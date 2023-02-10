@@ -69,7 +69,7 @@ export default function AccountMenu() {
       mutate(null, {
         optimisticData: null,
         populateCache: true,
-        revalidate: false,
+        revalidate: true,
       });
       console.log("auth user", user);
     } catch (error) {

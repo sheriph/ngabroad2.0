@@ -7,6 +7,7 @@ import Footer from "../components/footer.js/footer";
 import { Authenticator } from "@aws-amplify/ui-react";
 import { useAuthenticator } from "@aws-amplify/ui-react";
 import { useRouter } from "next/router";
+import { toast } from "react-toastify";
 
 const HeaderAppOffset = styled("div")(({ theme }) => theme.mixins.toolbar);
 
@@ -23,7 +24,7 @@ export default function LoginPage() {
     console.log("authStatus", authStatus);
     if (authStatus === "authenticated") {
       console.log("mutating and closing authenticator");
-      router.push(`/${router.query.url || ""}`);
+      router.back();
     }
   }, [authStatus]);
 

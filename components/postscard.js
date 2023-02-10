@@ -45,6 +45,7 @@ export default React.memo(function PostsCard({ post }) {
                   // @ts-ignore
                   post={item}
                   parentPost={first(post)}
+                  index={index}
                 />
               </Stack>
             );

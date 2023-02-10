@@ -62,13 +62,14 @@ import CustomizedDialogs from "./others/alert";
 import FormatQuoteIcon from "@mui/icons-material/FormatQuote";
 import ForumIcon from "@mui/icons-material/Forum";
 import ReplyCommentEditor from "./replycommenteditor";
-import NewCommentEditor from "./newcommenteditor";
+import ModifyPostEditor from "./modifyposteditor";
+import Modifycommenteditor from "./modifycommenteditor";
 
 var relativeTime = require("dayjs/plugin/relativeTime");
 dayjs.extend(relativeTime);
 
 // @ts-ignore
-export default React.memo(function SinglePostCard({ post, parentPost }) {
+export default React.memo(function SinglePostCard({ post, parentPost, index }) {
   const { user: userExist } = useAuthenticator((context) => [
     context.authStatus,
   ]);
@@ -76,6 +77,8 @@ export default React.memo(function SinglePostCard({ post, parentPost }) {
 
   const [addcommentDialog, setAddCommentDialog] = React.useState(false);
   const [replycommentDialog, setReplyCommentDialog] = React.useState(false);
+  const [editcommentDialog, setEditCommentDialog] = React.useState(false);
+  const [editPostDialog, setEditPostDialog] = React.useState(false);
 
   const getVotes = async (key) => {
     try {
@@ -87,6 +90,8 @@ export default React.memo(function SinglePostCard({ post, parentPost }) {
       console.log("error", error);
     }
   };
+
+  console.log("userExist", userExist);
 
   const getUsername = async (key) => {
     try {
@@ -418,8 +423,20 @@ export default React.memo(function SinglePostCard({ post, parentPost }) {
             <Divider />
             {user && user._id === post.user_id ? (
               <React.Fragment>
-                <Stack direction="row" spacing={2}>
-                  <LinkTypography variant="caption">Edit Post</LinkTypography>
+                <Stack
+                  onClick={() => {
+                    if (index === 0) {
+                      setEditPostDialog(true);
+                    } else {
+                      setEditCommentDialog(true);
+                    }
+                  }}
+                  direction="row"
+                  spacing={2}
+                >
+                  <LinkTypography variant="caption">
+                    {index === 0 ? "Edit Post" : "Edit Comment"}
+                  </LinkTypography>
                 </Stack>
                 <Divider />
               </React.Fragment>
@@ -433,7 +450,7 @@ export default React.memo(function SinglePostCard({ post, parentPost }) {
         open={replycommentDialog}
         setOpen={setReplyCommentDialog}
         zIndex={1402}
-        title={`Re: ${post.title}`}
+        title={`Re: ${get(parentPost, "title", "")}`}
       >
         <ReplyCommentEditor post={parentPost} replyPost={post} />
       </CustomizedDialogs>
@@ -441,18 +458,32 @@ export default React.memo(function SinglePostCard({ post, parentPost }) {
         open={addcommentDialog}
         setOpen={setAddCommentDialog}
         zIndex={1402}
-        title={`Re: ${post.title}`}
+        title={`Add Comment: ${get(parentPost, "title", "")}`}
       >
         <ReplyCommentEditor post={parentPost} replyPost={null} />
       </CustomizedDialogs>
-      {/*  <CustomizedDialogs
-        open={addcommentDialog}
-        setOpen={setCommentDialog}
+      <CustomizedDialogs
+        open={editcommentDialog}
+        setOpen={setEditCommentDialog}
         zIndex={1402}
-        title={`Re: ${post.title}`}
+        title={`Edit Comment: ${get(post, "content", "")}`}
       >
-        <NewCommentEditor post={post} />
-      </CustomizedDialogs> */}
+        <Modifycommenteditor
+          // @ts-ignore
+          post={post}
+        />
+      </CustomizedDialogs>
+      <CustomizedDialogs
+        open={editPostDialog}
+        setOpen={setEditPostDialog}
+        zIndex={1402}
+        title={`Edit Post: ${get(parentPost, "title", "")}`}
+      >
+        <ModifyPostEditor
+          // @ts-ignore
+          post={parentPost}
+        />
+      </CustomizedDialogs>
     </Stack>
   );
 });

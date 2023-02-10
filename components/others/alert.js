@@ -10,6 +10,7 @@ import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import Typography from "@mui/material/Typography";
 import { titleCase } from "../../lib/utility";
+import CancelIcon from "@mui/icons-material/Cancel";
 import { useMediaQuery } from "@mui/material";
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
@@ -33,6 +34,10 @@ function BootstrapDialogTitle(props) {
         backgroundColor: "primary.main",
         color: "white",
         fontSize: 17,
+        display: "-webkit-box",
+        "-webkit-line-clamp": "1",
+        "-webkit-box-orient": "vertical",
+        overflow: "hidden",
       }}
       {...other}
     >
@@ -41,14 +46,14 @@ function BootstrapDialogTitle(props) {
         <IconButton
           aria-label="close"
           onClick={onClose}
+          color="inherit"
           sx={{
             position: "absolute",
-            color: "inherit",
             right: 8,
             top: 8,
           }}
         >
-          <CloseIcon />
+          <CancelIcon />
         </IconButton>
       ) : null}
     </DialogTitle>

@@ -93,11 +93,13 @@ export default function ReplyCommentEditor({ post = null, replyPost = null }) {
 
   //console.log("inside newcomment post", post);
 
-  const { user: userExist } = useAuthenticator((context) => [
-    context.authStatus,
-  ]);
+  const {
+    user: userExist,
+    authStatus,
+    route,
+  } = useAuthenticator((context) => [context.authStatus]);
   const { user, isLoading: loading } = useAuthUser(userExist);
-  console.log("user", user?._id);
+  console.log("user", user?._id, authStatus);
 
   const [
     iniaicontent,
@@ -240,7 +242,7 @@ export default function ReplyCommentEditor({ post = null, replyPost = null }) {
 
       await axios.post("/api/others/createcomment", comment);
       toast.success("Awesome! Your comment has been created successfully");
-      //   router.reload();
+      router.reload();
     } catch (error) {
       console.log(error?.response?.data, error?.response);
       toast.error("Comment creation took a tumble, let's try again!");
@@ -266,6 +268,14 @@ export default function ReplyCommentEditor({ post = null, replyPost = null }) {
     setValue("aicontent", presentaicontent, setOptions);
     mutateAiContent();
   }, [presentaicontent]);
+
+  React.useEffect(() => {
+    console.log("authStatus", authStatus);
+    if (authStatus !== "authenticated") {
+      console.log("not authenticated");
+      router.push(`/login`);
+    }
+  }, [authStatus]);
 
   // return <>hello</>;
 

@@ -88,7 +88,7 @@ HideOnScroll.propTypes = {
 export default function HeaderApp(props) {
   const [login, setLogin] = useRecoilState(login_);
   // const { user, isValidating, loading } = useAuthUser();
-  const { user } = useAuthenticator((context) => [context.authStatus]);
+  const { authStatus } = useAuthenticator((context) => [context.authStatus]);
 
   const [addPost, setAddPost] = useRecoilState(addPost_);
   const setOpenSearch = useSetRecoilState(mobileSearchOpen_);
@@ -110,7 +110,7 @@ export default function HeaderApp(props) {
               <Button
                 startIcon={<ForumIcon />}
                 onClick={() => {
-                  if (!user) {
+                  if (authStatus !== "authenticated") {
                     setLogin(true);
                     return;
                   }
@@ -136,7 +136,7 @@ export default function HeaderApp(props) {
               <SearchDesktop />
             </Box> */}
 
-            {user ? (
+            {authStatus === "authenticated" ? (
               <AccountMenu />
             ) : (
               <Button

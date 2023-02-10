@@ -76,7 +76,6 @@ import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
 import SkipNextIcon from "@mui/icons-material/SkipNext";
 import SkipPreviousIcon from "@mui/icons-material/SkipPrevious";
 import useUndo from "use-undo";
-import FormatQuoteIcon from "@mui/icons-material/FormatQuote";
 import slugify from "slugify";
 
 const tagTitles = tagsArray.map((tag) => tag.item);
@@ -87,13 +86,13 @@ const tagsObj = tagTitles.reduce((acc, key) => {
   return acc;
 }, {});
 
-export default function NewCommentEditor({ post = null, replyPost = null }) {
+// @ts-ignore
+export default React.memo(function ModifyCommentEditor({ post }) {
   const [aiAssitedAlert, setaiAsistedAlert] = React.useState(false);
   const [fetchAIcontent, setFetchAIcontent] = React.useState(false);
+  const [tagsDialog, setTagsDialog] = useState(false);
 
-  //console.log("inside newcomment post", post);
-
-  const { user: userExist } = useAuthenticator((context) => [
+  const { user: userExist, authStatus } = useAuthenticator((context) => [
     context.authStatus,
   ]);
   const { user, isLoading: loading } = useAuthUser(userExist);
@@ -121,22 +120,28 @@ export default function NewCommentEditor({ post = null, replyPost = null }) {
   const schema = Yup.object().shape({
     content: Yup.string().when("tab", {
       is: "2",
-      then: Yup.string().required(
-        "Please provide content. Content field is required"
-      ),
+      then: Yup.string()
+        .required("Please provide content. Content field is required")
+        .min(
+          200,
+          "We have a minimum requirement for the length of content that can be posted. Please ensure that your post provides sufficient information and details."
+        ),
     }),
     aicontent: Yup.string().when("tab", {
       is: "1",
-      then: Yup.string().required(
-        "Please provide Content. Content field is required"
-      ),
+      then: Yup.string()
+        .required("Please provide Content. Content field is required")
+        .min(
+          200,
+          "We have a minimum requirement for the length of content that can be posted. Please ensure that your post provides sufficient information and details."
+        ),
     }),
     /*   countries: Yup.array().transform((value, originalValue) => {
-              return originalValue.map((item) => item.name);
-            }),
-            otherTags: Yup.array().transform((value, originalValue) =>
-              keysIn(pickBy(originalValue, (val, key) => val === true))
-            ), */
+          return originalValue.map((item) => item.name);
+        }),
+        otherTags: Yup.array().transform((value, originalValue) =>
+          keysIn(pickBy(originalValue, (val, key) => val === true))
+        ), */
   });
 
   const router = useRouter();
@@ -159,20 +164,13 @@ export default function NewCommentEditor({ post = null, replyPost = null }) {
     resolver: yupResolver(schema),
     mode: "onSubmit",
     defaultValues: {
-      content: "",
+      content: post?.prowrite ? "" : post?.content,
       tab: "1",
-      ...tagsObj,
-      aicontent: "",
+      aicontent: post?.prowrite ? post?.content : "",
     },
   });
 
-  const [tagsDialog, setTagsDialog] = useState(false);
-
   const getAiContent = async (key) => {
-    /* setValue("aicontent", content, setOptions);
-          setValue("ai", false, setOptions);
-          setaicontent(content);
-          return content; */
     try {
       const prompt = `Rewrite the content below with improved grammar, readability, and structure:${key}`;
       const max_tokens = 1000;
@@ -227,31 +225,33 @@ export default function NewCommentEditor({ post = null, replyPost = null }) {
     console.log("data", data);
     try {
       const { content, aicontent, tab } = data;
-      const commentContent = tab === "1" ? aicontent : content;
+      const tags = pick(data, tagTitles);
+      const tagsArray = flatten(Object.values(tags));
+      const postTags = tagsArray.map((tag) => tag.title);
+      const postContent = tab === "1" ? aicontent : content;
       const prowrite = tab === "1" ? true : false;
-      const comment = {
-        user_id: user._id,
-        content: commentContent,
+      const editedComment = {
+        content: postContent,
         prowrite,
-       // post: { ...post },
+        prevComment: post,
       };
-      console.log("comment", comment);
 
-      await axios.post("/api/others/createcomment", comment);
-      toast.success("Awesome! Your comment has been created successfully");
-      //   router.reload();
+      await axios.post("/api/others/editcomment", editedComment);
+      toast.success("Awesome! Your comment has been updated successfully");
+      router.reload();
     } catch (error) {
       console.log(error?.response?.data, error?.response);
-      toast.error("Comment creation took a tumble, let's try again!");
+      console.log("error", error);
+      toast.error("Post comment took a tumble, let's try again!");
     }
   };
 
   console.log("errors", errors);
 
   const proWrite = () => {
-    if (watch("aicontent").length < 100) {
+    if (watch("aicontent").length < 200) {
       toast.error(
-        "Our ProWrite feature requires a minimum of 100 characters to be written before optimization can occur"
+        "Our ProWrite feature requires a minimum of 200 characters to be written before optimization can occur"
       );
       return;
     }
@@ -262,11 +262,18 @@ export default function NewCommentEditor({ post = null, replyPost = null }) {
   React.useEffect(() => {
     console.log("CHANGES CAPTURED");
     if (presentaicontent === watch("aicontent")) return;
+    if (!presentaicontent) return;
     setValue("aicontent", presentaicontent, setOptions);
     mutateAiContent();
   }, [presentaicontent]);
 
-  // return <>hello</>;
+  React.useEffect(() => {
+    console.log("authStatus", authStatus);
+    if (authStatus !== "authenticated") {
+      console.log("not authenticated");
+      router.push(`/login`);
+    }
+  }, [authStatus]);
 
   return (
     <Stack>
@@ -287,6 +294,7 @@ export default function NewCommentEditor({ post = null, replyPost = null }) {
         {errors.content?.message &&
           isSubmitting &&
           toast.error(errors.content?.message)}
+
         <CustomizedDialogs
           open={aiAssitedAlert}
           setOpen={setaiAsistedAlert}
@@ -301,7 +309,6 @@ export default function NewCommentEditor({ post = null, replyPost = null }) {
           what stays and what goes, always in control of your content and title.
           Join the growing NGabroad community with ease!
         </CustomizedDialogs>
-
         <TabContext value={watch("tab")}>
           <TabList
             onChange={(event, newValue) =>
@@ -326,14 +333,6 @@ export default function NewCommentEditor({ post = null, replyPost = null }) {
             />
           </TabList>
           <TabPanel sx={{ p: 0 }} value="1">
-            <Alert icon={<FormatQuoteIcon />} variant="outlined" sx={{ mb: 2 }}>
-              <ArticleRender
-                content={
-                  // @ts-ignore
-                  post?.content
-                }
-              />
-            </Alert>
             <Stack spacing={1}>
               <Stack
                 sx={{ cursor: "pointer" }}
@@ -453,14 +452,6 @@ export default function NewCommentEditor({ post = null, replyPost = null }) {
             </Stack>
           </TabPanel>
           <TabPanel sx={{ p: 0 }} value="2">
-            <Alert icon={<FormatQuoteIcon />} variant="outlined" sx={{ mb: 2 }}>
-              <ArticleRender
-                content={
-                  // @ts-ignore
-                  post?.content
-                }
-              />
-            </Alert>
             <Stack spacing={1}>
               <Controller
                 name="content"
@@ -497,4 +488,4 @@ export default function NewCommentEditor({ post = null, replyPost = null }) {
       </Stack>
     </Stack>
   );
-}
+});

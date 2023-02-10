@@ -66,7 +66,7 @@ export default function Layout(props) {
   const { children } = props;
   const post = useRecoilValue(post_);
   const [loading, setLoading] = useRecoilState(isLoading_);
-  const [blockLoading, setBlockLoading] = useRecoilState(blockLoading_);
+  const [blockLoading, setBlockLoading] = React.useState(false);
 
   React.useEffect(() => {
     Router.events.on("routeChangeStart", (url) => {
@@ -87,7 +87,7 @@ export default function Layout(props) {
   return (
     <Container sx={{ px: 0 }} maxWidth="lg">
       <Stack>
-      <Loading isAnimating={loading} />
+        <Loading isAnimating={loading} />
         <BlockingLoading isAnimating={blockLoading} />
         <Box id="jumptotopngabroad">
           <HeaderApp post={post} />

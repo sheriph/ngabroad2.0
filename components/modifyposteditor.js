@@ -86,12 +86,13 @@ const tagsObj = tagTitles.reduce((acc, key) => {
   return acc;
 }, {});
 
-export default function ModifyPostEditor() {
- 
+// @ts-ignore
+export default React.memo(function ModifyPostEditor({ post }) {
   const [aiAssitedAlert, setaiAsistedAlert] = React.useState(false);
   const [fetchAIcontent, setFetchAIcontent] = React.useState(false);
+  const [tagsDialog, setTagsDialog] = useState(false);
 
-  const { user: userExist } = useAuthenticator((context) => [
+  const { user: userExist, authStatus } = useAuthenticator((context) => [
     context.authStatus,
   ]);
   const { user, isLoading: loading } = useAuthUser(userExist);
@@ -135,30 +136,12 @@ export default function ModifyPostEditor() {
           "We have a minimum requirement for the length of content that can be posted. Please ensure that your post provides sufficient information and details."
         ),
     }),
-    title: Yup.string().when("tab", {
-      is: "2",
-      then: Yup.string()
-        .required("Please provide Title. Title field is required")
-        .min(
-          20,
-          "Title must be at least 20 characters long. Please add more characters to make your title meaningful"
-        ),
-    }),
-    aititle: Yup.string().when("tab", {
-      is: "1",
-      then: Yup.string()
-        .required("Please provide Title. Title field is required")
-        .min(
-          20,
-          "Title must be at least 20 characters long. Please add more characters to make your title meaningful"
-        ),
-    }),
     /*   countries: Yup.array().transform((value, originalValue) => {
-          return originalValue.map((item) => item.name);
-        }),
-        otherTags: Yup.array().transform((value, originalValue) =>
-          keysIn(pickBy(originalValue, (val, key) => val === true))
-        ), */
+        return originalValue.map((item) => item.name);
+      }),
+      otherTags: Yup.array().transform((value, originalValue) =>
+        keysIn(pickBy(originalValue, (val, key) => val === true))
+      ), */
   });
 
   const router = useRouter();
@@ -181,20 +164,28 @@ export default function ModifyPostEditor() {
     resolver: yupResolver(schema),
     mode: "onSubmit",
     defaultValues: {
-      content: "",
+      content: post?.prowrite ? "" : post?.content,
       tab: "1",
       ...tagsObj,
-      aicontent: "",
+      aicontent: post?.prowrite ? post?.content : "",
     },
   });
 
-  const [tagsDialog, setTagsDialog] = useState(false);
+  /*   React.useEffect(() => {
+    if (post?.prowrite) {
+      console.log("effect", post?.prowrite, post?.content);
+      setValue("aicontent", post?.content, setOptions);
+    } else {
+      console.log("effect", post?.prowrite, post?.content);
+      setValue("content", post?.content, setOptions);
+    }
+  }, [post?.content]); */
 
   const getAiContent = async (key) => {
     /* setValue("aicontent", content, setOptions);
-      setValue("ai", false, setOptions);
-      setaicontent(content);
-      return content; */
+    setValue("ai", false, setOptions);
+    setaicontent(content);
+    return content; */
     try {
       const prompt = `Rewrite the content below with improved grammar, readability, and structure:${key}`;
       const max_tokens = 1000;
@@ -248,26 +239,27 @@ export default function ModifyPostEditor() {
   const onSubmit = async (data) => {
     console.log("data", data);
     try {
-      const { content, aititle, aicontent, tab } = data;
+      const { content, aicontent, tab } = data;
       const tags = pick(data, tagTitles);
       const tagsArray = flatten(Object.values(tags));
       const postTags = tagsArray.map((tag) => tag.title);
       const postContent = tab === "1" ? aicontent : content;
       const prowrite = tab === "1" ? true : false;
-      const post = {
-        user_id: user._id,
+      const editedPost = {
         content: postContent,
         tags: postTags,
         prowrite,
+        prevPost: post,
       };
-      console.log("post", post);
+      console.log("editedPost", editedPost);
 
-      await axios.post("/api/others/createpost", post);
-      toast.success("Awesome! Your post has been created successfully");
-      //   router.reload();
+      await axios.post("/api/others/editpost", editedPost);
+      toast.success("Awesome! Your post has been updated successfully");
+      router.reload();
     } catch (error) {
       console.log(error?.response?.data, error?.response);
-      toast.error("Post creation took a tumble, let's try again!");
+      console.log("error", error);
+      toast.error("Post update took a tumble, let's try again!");
     }
   };
 
@@ -287,11 +279,18 @@ export default function ModifyPostEditor() {
   React.useEffect(() => {
     console.log("CHANGES CAPTURED");
     if (presentaicontent === watch("aicontent")) return;
+    if (!presentaicontent) return;
     setValue("aicontent", presentaicontent, setOptions);
     mutateAiContent();
   }, [presentaicontent]);
 
- // return <>hello</>;
+  React.useEffect(() => {
+    console.log("authStatus", authStatus);
+    if (authStatus !== "authenticated") {
+      console.log("not authenticated");
+      router.push(`/login`);
+    }
+  }, [authStatus]);
 
   return (
     <Stack>
@@ -415,7 +414,6 @@ export default function ModifyPostEditor() {
           what stays and what goes, always in control of your content and title.
           Join the growing NGabroad community with ease!
         </CustomizedDialogs>
-
         <TabContext value={watch("tab")}>
           <TabList
             onChange={(event, newValue) =>
@@ -609,4 +607,131 @@ export default function ModifyPostEditor() {
       </Stack>
     </Stack>
   );
-}
+});
+const top100Films = [
+  { title: "The Shawshank Redemption", year: 1994 },
+  { title: "The Godfather", year: 1972 },
+  { title: "The Godfather: Part II", year: 1974 },
+  { title: "The Dark Knight", year: 2008 },
+  { title: "12 Angry Men", year: 1957 },
+  { title: "Schindler's List", year: 1993 },
+  { title: "Pulp Fiction", year: 1994 },
+  {
+    title: "The Lord of the Rings: The Return of the King",
+    year: 2003,
+  },
+  { title: "The Good, the Bad and the Ugly", year: 1966 },
+  { title: "Fight Club", year: 1999 },
+  {
+    title: "The Lord of the Rings: The Fellowship of the Ring",
+    year: 2001,
+  },
+  {
+    title: "Star Wars: Episode V - The Empire Strikes Back",
+    year: 1980,
+  },
+  { title: "Forrest Gump", year: 1994 },
+  { title: "Inception", year: 2010 },
+  {
+    title: "The Lord of the Rings: The Two Towers",
+    year: 2002,
+  },
+  { title: "One Flew Over the Cuckoo's Nest", year: 1975 },
+  { title: "Goodfellas", year: 1990 },
+  { title: "The Matrix", year: 1999 },
+  { title: "Seven Samurai", year: 1954 },
+  {
+    title: "Star Wars: Episode IV - A New Hope",
+    year: 1977,
+  },
+  { title: "City of God", year: 2002 },
+  { title: "Se7en", year: 1995 },
+  { title: "The Silence of the Lambs", year: 1991 },
+  { title: "It's a Wonderful Life", year: 1946 },
+  { title: "Life Is Beautiful", year: 1997 },
+  { title: "The Usual Suspects", year: 1995 },
+  { title: "Léon: The Professional", year: 1994 },
+  { title: "Spirited Away", year: 2001 },
+  { title: "Saving Private Ryan", year: 1998 },
+  { title: "Once Upon a Time in the West", year: 1968 },
+  { title: "American History X", year: 1998 },
+  { title: "Interstellar", year: 2014 },
+  { title: "Casablanca", year: 1942 },
+  { title: "City Lights", year: 1931 },
+  { title: "Psycho", year: 1960 },
+  { title: "The Green Mile", year: 1999 },
+  { title: "The Intouchables", year: 2011 },
+  { title: "Modern Times", year: 1936 },
+  { title: "Raiders of the Lost Ark", year: 1981 },
+  { title: "Rear Window", year: 1954 },
+  { title: "The Pianist", year: 2002 },
+  { title: "The Departed", year: 2006 },
+  { title: "Terminator 2: Judgment Day", year: 1991 },
+  { title: "Back to the Future", year: 1985 },
+  { title: "Whiplash", year: 2014 },
+  { title: "Gladiator", year: 2000 },
+  { title: "Memento", year: 2000 },
+  { title: "The Prestige", year: 2006 },
+  { title: "The Lion King", year: 1994 },
+  { title: "Apocalypse Now", year: 1979 },
+  { title: "Alien", year: 1979 },
+  { title: "Sunset Boulevard", year: 1950 },
+  {
+    title:
+      "Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb",
+    year: 1964,
+  },
+  { title: "The Great Dictator", year: 1940 },
+  { title: "Cinema Paradiso", year: 1988 },
+  { title: "The Lives of Others", year: 2006 },
+  { title: "Grave of the Fireflies", year: 1988 },
+  { title: "Paths of Glory", year: 1957 },
+  { title: "Django Unchained", year: 2012 },
+  { title: "The Shining", year: 1980 },
+  { title: "WALL·E", year: 2008 },
+  { title: "American Beauty", year: 1999 },
+  { title: "The Dark Knight Rises", year: 2012 },
+  { title: "Princess Mononoke", year: 1997 },
+  { title: "Aliens", year: 1986 },
+  { title: "Oldboy", year: 2003 },
+  { title: "Once Upon a Time in America", year: 1984 },
+  { title: "Witness for the Prosecution", year: 1957 },
+  { title: "Das Boot", year: 1981 },
+  { title: "Citizen Kane", year: 1941 },
+  { title: "North by Northwest", year: 1959 },
+  { title: "Vertigo", year: 1958 },
+  {
+    title: "Star Wars: Episode VI - Return of the Jedi",
+    year: 1983,
+  },
+  { title: "Reservoir Dogs", year: 1992 },
+  { title: "Braveheart", year: 1995 },
+  { title: "M", year: 1931 },
+  { title: "Requiem for a Dream", year: 2000 },
+  { title: "Amélie", year: 2001 },
+  { title: "A Clockwork Orange", year: 1971 },
+  { title: "Like Stars on Earth", year: 2007 },
+  { title: "Taxi Driver", year: 1976 },
+  { title: "Lawrence of Arabia", year: 1962 },
+  { title: "Double Indemnity", year: 1944 },
+  {
+    title: "Eternal Sunshine of the Spotless Mind",
+    year: 2004,
+  },
+  { title: "Amadeus", year: 1984 },
+  { title: "To Kill a Mockingbird", year: 1962 },
+  { title: "Toy Story 3", year: 2010 },
+  { title: "Logan", year: 2017 },
+  { title: "Full Metal Jacket", year: 1987 },
+  { title: "Dangal", year: 2016 },
+  { title: "The Sting", year: 1973 },
+  { title: "2001: A Space Odyssey", year: 1968 },
+  { title: "Singin' in the Rain", year: 1952 },
+  { title: "Toy Story", year: 1995 },
+  { title: "Bicycle Thieves", year: 1948 },
+  { title: "The Kid", year: 1921 },
+  { title: "Inglourious Basterds", year: 2009 },
+  { title: "Snatch", year: 2000 },
+  { title: "3 Idiots", year: 2009 },
+  { title: "Monty Python and the Holy Grail", year: 1975 },
+];
