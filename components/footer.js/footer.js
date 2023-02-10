@@ -39,7 +39,6 @@ export default function Footer() {
   const [login, setLogin] = useRecoilState(login_);
   const [updateProfile, setUpdateProfile_] = useRecoilState(updateProfile_);
   const [showAlert, setShowAlert] = React.useState(false);
-  const [editPostDialog, setEditPostDialog] = useRecoilState(editPostDialog_);
 
   console.log("user footer", user?.email);
 
@@ -88,14 +87,6 @@ export default function Footer() {
         <CreatePost />
       </Dialog>
 
-      <CustomizedDialogs
-        open={editPostDialog}
-        setOpen={setEditPostDialog}
-        zIndex={1402}
-        title="Edit Post"
-      >
-        <ModifyPostEditor />
-      </CustomizedDialogs>
       <CustomizedDialogs
         open={showAlert}
         setOpen={setShowAlert}
