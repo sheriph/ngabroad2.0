@@ -4,11 +4,9 @@ import clientPromise from "../../../lib/mongodb/mongodbinstance";
 
 export default async function handler(req, res) {
   try {
-    // console.log(`req.body`, req.body);
     const client = await clientPromise;
     const { post_id } = req.body;
-    // console.log('comment post_id', post_id)
-    const query = { post_id: new ObjectId(post_id) };
+    const query = { "post._id": post_id };
     const options = {
       // sorting
       sort: {},

@@ -24,6 +24,8 @@
   font-family: "Roboto", "Helvetica", "Arial", sans-serif;
   color: rgba(105, 105, 105, 0.6);
   font-weight: 400;
+  background-color: "#F5F5F5";
+  display: none;
 }
 
 .mydate {
@@ -38,4 +40,8 @@
 
 .mdatepopper {
   z-index: 10;
+}
+
+.react-tel-input .form-control {
+  background-color: #ffffff00;
 }

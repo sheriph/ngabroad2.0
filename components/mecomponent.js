@@ -33,10 +33,11 @@ import { useRouter } from "next/router";
 import { get } from "lodash";
 import useSWRImmutable from "swr/immutable";
 import axios from "axios";
+import { TabContext, TabList, TabPanel } from "@mui/lab";
 
 const profileUserFetcher = async (key) => {
   try {
-    const username = key.split("-")[0];
+    const { username } = JSON.parse(key);
     const user = await axios.post("/api/others/getuserwithusername", {
       username,
     });
@@ -57,101 +58,69 @@ export default function MeComponent() {
   ]);
   const { user, isLoading, mutate } = useAuthUser(userExist);
 
-  const {
-    data: profileUser,
-    mutate: profileUserMutate,
-    error: profileUserError,
-    isValidating: profileUserIsValidating,
-    isLoading: profileUserIsLoading,
-  } = useSWRImmutable(
-    username ? `${username}-getuserdetail` : undefined,
+  const { data: profileUser } = useSWRImmutable(
+    username
+      ? JSON.stringify({ username, tag: "get user data for profile" })
+      : undefined,
     profileUserFetcher
   );
 
   const mobile = useMediaQuery("(max-width:600px)", { noSsr: true });
 
-  //console.log("user in me", username, user, profileUser);
+  const [tabValue, setValue] = React.useState("1");
 
-  /*   React.useEffect(() => {
-    if (!isLoading && ssrUser._id !== user?._id) {
-      setMeCategory("Account Details");
-    }
-  }, [ssrUser._id === user?._id]); */
+  const handleTabChange = (event, newValue) => {
+    setValue(newValue);
+  };
 
   if (!profileUser) return <Skeleton sx={{ height: "500px", width: "100%" }} />;
 
-  console.log('profileUser', profileUser)
+  console.log("profileUser", profileUser);
 
   return (
-    <Stack sx={{ p: { xs: 1, sm: 2 } }} direction="row" spacing={2}>
-      <MeSideBar profileUser={profileUser} />
-      <Divider
-        sx={{
-          position: "relative",
-          left: "250px",
-          margin: `0 !important`,
-          display: { xs: "none", md: "block" },
-        }}
-        orientation="vertical"
-        flexItem
-      />
-      <Box
-        sx={{
-          position: { xs: "inherit", md: "relative" },
-          left: { xs: 0, md: "250px" },
-          width: { xs: "100%", md: "calc(100% - 270px)" },
-          marginLeft: { xs: `0 !important`, md: `16px !important` },
-        }}
-      >
-        <Stack spacing={1}>
-          {profileUser?._id === user?._id ? (
-            <Tabs
-              scrollButtons={true}
-              sx={{
-                display: { xs: "block", md: "none" },
-                textTransform: "none",
-              }}
-              allowScrollButtonsMobile
-              value={meCategory}
-              onChange={(e, value) => setMeCategory(value)}
-              centered
-            >
+    <Stack>
+      <TabContext value={tabValue}>
+        <Box
+          sx={{
+            borderBottom: profileUser?._id === user?._id ? 1 : 0,
+            borderColor: "divider",
+          }}
+        >
+          {profileUser?._id === user?._id && (
+            <TabList centered allowScrollButtonsMobile onChange={handleTabChange}>
               <Tab
-                icon={mobile ? <ContactMailOutlinedIcon /> : ""}
-                iconPosition="start"
                 sx={{ textTransform: "none" }}
                 label={mobile ? "" : "Account Details"}
-                value="Account Details"
+                value="1"
+                icon={mobile ? <ContactMailOutlinedIcon /> : ""}
+                iconPosition="start"
               />
               <Tab
-                icon={mobile ? <EditOutlinedIcon /> : ""}
                 sx={{ textTransform: "none" }}
                 label={mobile ? "" : "Edit Profile"}
-                value="Edit Profile"
+                value="2"
+                icon={mobile ? <ContactMailOutlinedIcon /> : ""}
+                iconPosition="start"
               />
               <Tab
-                icon={mobile ? <VpnKeyOutlinedIcon /> : ""}
                 sx={{ textTransform: "none" }}
                 label={mobile ? "" : "Security"}
-                value="Password and Security"
+                value="3"
+                icon={mobile ? <VpnKeyOutlinedIcon /> : ""}
               />
-            </Tabs>
-          ) : (
-            ""
+            </TabList>
           )}
-          <Stack>
-            {meCategory === "Account Details" ? (
-              <MeProfile profileUser={profileUser} />
-            ) : (
-              ""
-            )}
-          </Stack>
-          <Stack>{meCategory === "Edit Profile" ? <EditProfile /> : ""}</Stack>
-          <Stack>
-            {meCategory === "Password and Security" ? <MeSecurity /> : ""}
-          </Stack>
-        </Stack>
-      </Box>
+        </Box>
+        <TabPanel value="1">
+          <MeProfile profileUser={profileUser} />
+        </TabPanel>
+        <TabPanel value="2">
+          <EditProfile />
+        </TabPanel>
+        <TabPanel value="3">
+          <MeSecurity />
+        </TabPanel>
+      </TabContext>
     </Stack>
   );
 }

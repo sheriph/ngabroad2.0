@@ -16,7 +16,7 @@ export default async function handler(req, res) {
       createdAt: new Date(),
       lastSeen: new Date(),
       email: email,
-      role: "user",
+      role: "member",
     };
 
     if (process.env.NODE_ENV === "development") {

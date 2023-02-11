@@ -24,6 +24,7 @@ import CommentIcon from "@mui/icons-material/Comment";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import ThumbDownIcon from "@mui/icons-material/ThumbDown";
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
+import CommentComponent from "./commentcomments";
 
 import dayjs from "dayjs";
 
@@ -36,32 +37,34 @@ import useSWR from "swr";
 import useSWRImmutable from "swr/immutable";
 import axios from "axios";
 
-import ProfilePosts from "./profileposts";
 import ProfileQuestions from "./profilequestions";
-import ProfileComments from "./profilecomments";
+import ProfileComments from "./commentcomments";
+import dynamic from "next/dynamic";
 
 const advancedFormat = require("dayjs/plugin/advancedFormat");
 dayjs.extend(advancedFormat);
 
-const getVotes = async (user_id) => {
+const PostComponent = dynamic(() => import("../../components/postcomponent"), {
+  ssr: false,
+});
+
+const getMyUpVotes = async (key) => {
   try {
-    const key = user_id.split("_")[0];
-    const votes = await axios.post("/api/others/getmyvotes", { user_id: key });
-    console.log("votes", votes.data);
-    return votes.data;
+    const { user_id } = JSON.parse(key);
+    const upvotes = await axios.post("/api/others/getmyupvotes", { user_id });
+    console.log("upvotes", upvotes.data);
+    return upvotes.data;
   } catch (error) {
     console.log("error", error);
   }
 };
 
-const getFollows = async (user_id) => {
+const getMyDownVotes = async (key) => {
   try {
-    const key = user_id.split("_")[0];
-    const follows = await axios.post("/api/others/getfollows", {
-      user_id: key,
-    });
-    console.log("follows fetcher", follows.data);
-    return follows.data;
+    const { user_id } = JSON.parse(key);
+    const upvotes = await axios.post("/api/others/getmydownvotes", { user_id });
+    console.log("upvotes", upvotes.data);
+    return upvotes.data;
   } catch (error) {
     console.log("error", error);
   }
@@ -69,24 +72,25 @@ const getFollows = async (user_id) => {
 
 const getPostsCount = async (key) => {
   try {
-    const follows = await axios.post("/api/others/getusercontentscount", {
-      key,
+    const { user_id } = JSON.parse(key);
+    const posts = await axios.post("/api/others/getuserpostscount", {
+      user_id,
     });
-    console.log("postsCount fetcher", follows.data);
-    return follows.data;
+    console.log("postsCount fetcher", posts.data);
+    return posts.data;
   } catch (error) {
     console.log("error", error);
   }
 };
 
 const getCommentsCount = async (key) => {
-  const user_id = key.split("-")[0];
   try {
-    const follows = await axios.post("/api/others/getusercommentscount", {
+    const { user_id } = JSON.parse(key);
+    const comments = await axios.post("/api/others/getusercommentscount", {
       user_id,
     });
-    console.log("commentsCount fetcher", follows.data);
-    return follows.data;
+    console.log("commentsCount fetcher", comments.data);
+    return comments.data;
   } catch (error) {
     console.log("error", error);
   }
@@ -95,57 +99,71 @@ const getCommentsCount = async (key) => {
 export default function MeProfile({ profileUser }) {
   const [tabValue, setTabValue] = React.useState("1");
 
-  const { data: votes } = useSWRImmutable(
-    profileUser?._id ? `${profileUser?._id}_allmyvotes` : undefined,
-    getVotes
+  const { data: upvotes } = useSWRImmutable(
+    profileUser?._id
+      ? JSON.stringify({
+          user_id: profileUser?._id,
+          tag: "get user upvotes count",
+        })
+      : undefined,
+    getMyUpVotes
   );
-  const { data: follows } = useSWRImmutable(
-    profileUser?._id ? `${profileUser?._id}_allmyfollow` : undefined,
-    getFollows
+  const { data: downvotes } = useSWRImmutable(
+    profileUser?._id
+      ? JSON.stringify({
+          user_id: profileUser?._id,
+          tag: "get user downvotes count",
+        })
+      : undefined,
+    getMyDownVotes
   );
 
   const { data: postsCount } = useSWRImmutable(
-    profileUser?._id ? `post-${profileUser?._id}-allmyposts` : undefined,
-    getPostsCount
-  );
-
-  const { data: questionsCount } = useSWRImmutable(
-    profileUser?._id ? `question-${profileUser?._id}-allmyposts` : undefined,
+    profileUser?._id
+      ? JSON.stringify({
+          user_id: profileUser?._id,
+          tag: "get user posts count",
+        })
+      : undefined,
     getPostsCount
   );
 
   const { data: commentsCount } = useSWRImmutable(
-    profileUser?._id ? `${profileUser?._id}-allmycomments` : undefined,
+    profileUser?._id
+      ? JSON.stringify({
+          user_id: profileUser?._id,
+          tag: "get user comments count",
+        })
+      : undefined,
     getCommentsCount
   );
-
-  const upvotes = votes ? votes.filter((vote) => vote.status).length : 0;
-  const downvotes = votes ? votes.filter((vote) => !vote.status).length : 0;
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
 
-  console.log("follows", follows);
-
   return (
     <Stack spacing={1} sx={{ mt: 1 }}>
-      <Stack justifyContent="center" spacing={3} direction="row">
+      <Stack justifyContent="center" spacing={1.5} direction="row">
         <Avatar
           alt={profileUser?.username}
           src={profileUser?.image}
-          sx={{ width: { xs: 80, sm: 100 }, height: { xs: 80, sm: 100 } }}
+          sx={{ width: { xs: 60, sm: 80 }, height: { xs: 60, sm: 80 } }}
         />
-        <Stack spacing={1}>
-          <Stack spacing={1} direction="row">
-            <Typography variant="h1">
+        <Stack spacing={0.5}>
+          <Stack direction="row">
+            <Typography sx={{ pr: 1 }} textAlign="left" variant="h1">
               {titleCase(`${profileUser?.firstName} ${profileUser?.lastName}`)}
             </Typography>
-            <Link href={`/profile/${profileUser.username}`} variant="caption">
+            <Link
+              textAlign="left"
+              href={`/profile/${profileUser.username}`}
+              variant="caption"
+            >
               @{profileUser.username}
             </Link>
           </Stack>
-          <Typography variant="caption">
+          <Typography textAlign="left" variant="caption">
             Joined {dayjs(profileUser.createdAt).format("MMMM YYYY")}
           </Typography>
           <HtmlTooltip
@@ -159,8 +177,7 @@ export default function MeProfile({ profileUser }) {
                       fontSize="small"
                     />
                     <Typography variant="caption">
-                      Number of times {titleCase(`${profileUser.firstName}`)}{" "}
-                      was upvoted
+                      Number of times upvoted
                     </Typography>
                   </Stack>
                   <Stack alignItems="center" spacing={1} direction="row">
@@ -173,18 +190,7 @@ export default function MeProfile({ profileUser }) {
                       fontSize="small"
                     />
                     <Typography variant="caption">
-                      Number of times {titleCase(`${profileUser.firstName}`)}{" "}
-                      was downvoted
-                    </Typography>
-                  </Stack>
-                  <Stack alignItems="center" spacing={1} direction="row">
-                    <NotificationsActiveIcon
-                      sx={{ width: 17, height: 17 }}
-                      fontSize="small"
-                    />
-                    <Typography variant="caption">
-                      Number of posts {titleCase(`${profileUser.firstName}`)} is
-                      following
+                      Number of times downvoted
                     </Typography>
                   </Stack>
                 </Stack>
@@ -217,13 +223,6 @@ export default function MeProfile({ profileUser }) {
                 />
                 <Typography variant="caption">{downvotes}</Typography>
               </Stack>
-              <Stack spacing={0.5} alignItems="center" direction="row">
-                <NotificationsActiveIcon
-                  sx={{ width: 17, height: 17 }}
-                  fontSize="small"
-                />
-                <Typography variant="caption">{follows || 0}</Typography>
-              </Stack>
             </Stack>
           </HtmlTooltip>
         </Stack>
@@ -232,7 +231,7 @@ export default function MeProfile({ profileUser }) {
       <Box sx={{ width: "100%", typography: "body1" }}>
         <TabContext value={tabValue}>
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-            <TabList onChange={handleTabChange}>
+            <TabList centered onChange={handleTabChange}>
               <Tab
                 sx={{ textTransform: "none" }}
                 label={`${postsCount} Posts`}
@@ -240,29 +239,20 @@ export default function MeProfile({ profileUser }) {
               />
               <Tab
                 sx={{ textTransform: "none" }}
-                label={`${questionsCount} Questions`}
-                value="2"
-              />
-              <Tab
-                sx={{ textTransform: "none" }}
                 label={`${commentsCount} Comments`}
-                value="3"
+                value="2"
               />
             </TabList>
           </Box>
           <TabPanel sx={{ "&.MuiTabPanel-root": { py: 2, px: 0 } }} value="1">
-            <ProfilePosts postsCount={postsCount} id={profileUser._id} />
+            {/* // 
+          @ts-ignore */}
+            <PostComponent user_id={profileUser._id} />
           </TabPanel>
           <TabPanel sx={{ "&.MuiTabPanel-root": { py: 2, px: 0 } }} value="2">
-            <ProfileQuestions
-              questionsCount={questionsCount}
-              id={profileUser._id}
-            />
-          </TabPanel>
-          <TabPanel sx={{ "&.MuiTabPanel-root": { py: 2, px: 0 } }} value="3">
-            <ProfileComments
-              commentsCount={commentsCount}
-              id={profileUser._id}
+            <CommentComponent
+              // @ts-ignore
+              user_id={profileUser._id}
             />
           </TabPanel>
         </TabContext>

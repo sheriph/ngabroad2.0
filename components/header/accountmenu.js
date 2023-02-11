@@ -142,7 +142,7 @@ export default function AccountMenu() {
           <Avatar /> My account
         </MenuItem>
         <Divider />
-        <MenuItem
+        {/* <MenuItem
           onClick={() => {
             setMeCategory("Edit Profile");
             console.log("go to settings");
@@ -153,7 +153,7 @@ export default function AccountMenu() {
             <Settings fontSize="small" />
           </ListItemIcon>
           Settings
-        </MenuItem>
+        </MenuItem> */}
         <MenuItem onClick={logOut}>
           <ListItemIcon>
             <Logout fontSize="small" />

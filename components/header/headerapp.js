@@ -48,6 +48,7 @@ import { useAuthenticator } from "@aws-amplify/ui-react";
 import LoginIcon from "@mui/icons-material/Login";
 import CustomizedDialogs from "../others/alert";
 import NewPostEditor from "../newposteditor";
+import { useRouter } from "next/router";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   // @ts-ignore
@@ -86,12 +87,11 @@ HideOnScroll.propTypes = {
 };
 
 export default function HeaderApp(props) {
-  const [login, setLogin] = useRecoilState(login_);
   // const { user, isValidating, loading } = useAuthUser();
   const { authStatus } = useAuthenticator((context) => [context.authStatus]);
 
-  const [addPost, setAddPost] = useRecoilState(addPost_);
-  const setOpenSearch = useSetRecoilState(mobileSearchOpen_);
+  const router = useRouter();
+
   const [showNewPostDialog, setShowNewPostDialog] =
     useRecoilState(showNewPostDialog_);
   // console.log("user", user);
@@ -111,7 +111,7 @@ export default function HeaderApp(props) {
                 startIcon={<ForumIcon />}
                 onClick={() => {
                   if (authStatus !== "authenticated") {
-                    setLogin(true);
+                    router.push("/login");
                     return;
                   }
                   setShowNewPostDialog(true);
@@ -141,7 +141,7 @@ export default function HeaderApp(props) {
             ) : (
               <Button
                 startIcon={<LoginIcon />}
-                onClick={() => setLogin(true)}
+                onClick={() => router.push("/login")}
                 color="inherit"
               >
                 Login

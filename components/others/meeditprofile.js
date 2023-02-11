@@ -43,6 +43,7 @@ import { useAuthenticator } from "@aws-amplify/ui-react";
 import PhoneInput from "react-phone-input-2";
 import { isPossiblePhoneNumber } from "react-phone-number-input";
 import isAlphanumeric from "validator/lib/isAlphanumeric";
+import BlockingLoading from "./blockingloading";
 
 const fetcher = async (key) => {
   try {
@@ -60,7 +61,7 @@ export default function EditProfile() {
   ]);
   const { user, isLoading, mutate } = useAuthUser(userExist);
   const router = useRouter();
-  const setBlockLoading = useSetRecoilState(blockLoading_);
+  const [blockLoading, setBlockLoading] = React.useState(false);
 
   const schema = Yup.object().shape({
     username: Yup.string()
@@ -117,9 +118,6 @@ export default function EditProfile() {
       phone: get(user, "phone", ""),
     },
   });
-  // const { mutate } = useSWRConfig
-
-  // const [image, setImage] = React.useState(imageTemplate);
 
   const updateProfileImage = (e) => {
     const file = e.target.files[0];
@@ -206,6 +204,7 @@ export default function EditProfile() {
       component="form"
       onSubmit={handleSubmit(saveProfile)}
     >
+      <BlockingLoading isAnimating={blockLoading} />
       <Stack sx={{ mb: 4 }} justifyContent="center" direction="row">
         <Avatar
           alt="avatar"
@@ -230,7 +229,6 @@ export default function EditProfile() {
         <Grid item xs={12} sm={6}>
           <Controller
             name="username"
-            defaultValue=""
             control={control}
             render={({ field }) => {
               const { onChange, value, ...rest } = field;
@@ -256,7 +254,6 @@ export default function EditProfile() {
         <Grid item xs={12} md={6}>
           <Controller
             name="phone"
-            defaultValue=""
             control={control}
             render={({ field }) => {
               const { onChange, value, ...rest } = field;
@@ -282,7 +279,6 @@ export default function EditProfile() {
         <Grid item xs={12} sm={6}>
           <Controller
             name="firstName"
-            defaultValue=""
             control={control}
             render={({ field }) => {
               return (
@@ -301,7 +297,6 @@ export default function EditProfile() {
         <Grid item xs={12} sm={6}>
           <Controller
             name="lastName"
-            defaultValue=""
             control={control}
             render={({ field }) => {
               return (
@@ -320,7 +315,6 @@ export default function EditProfile() {
         <Grid item xs={12} sm={6}>
           <Controller
             name="gender"
-            defaultValue=""
             control={control}
             render={({ field }) => {
               return (

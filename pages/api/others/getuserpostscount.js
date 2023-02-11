@@ -5,23 +5,19 @@ import clientPromise from "../../../lib/mongodb/mongodbinstance";
 export default async function handler(req, res) {
   try {
     // console.log(`req.body`, req.body);
+
+    console.time("getPostTimer");
     const client = await clientPromise;
     const { user_id } = req.body;
-    console.log("user_id", user_id);
+
     const query = { user_id: new ObjectId(user_id) };
-    const options = {
-      // sorting
-      sort: {},
-      //what to return
-      projection: { status: 1 },
-    };
-    const votes = await client
+
+    const posts = await client
       .db("nga")
-      .collection("votes")
-      .find(query, options)
-      .toArray();
-    console.log("votes", votes);
-    res.status(200).json(votes);
+      .collection("posts")
+      .countDocuments(query);
+      
+    res.status(200).json(posts);
   } catch (err) {
     console.log(`err`, err);
     res.status(400).json(err);

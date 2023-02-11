@@ -22,18 +22,11 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import React, { useEffect } from "react";
-import { Box } from "@mui/system";
-import PostList from "./postlist";
-import { styled } from "@mui/styles";
-import DesktopSideBar from "./others/desktopsidebar";
-import FilterListIcon from "@mui/icons-material/FilterList";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
-import { blockLoading_, postType_ } from "../lib/recoil";
 import useSWRInfinite from "swr/infinite";
 import axios from "axios";
-import FilterList from "./others/filterlist";
-import { debounce } from "lodash";
-import BlockingLoading from "./others/blockingloading";
+import BlockingLoading from "./blockingloading";
+import PostList from "../postlist";
+import CommentList from "../commentlist";
 
 const number = process.env.NODE_ENV === "development" ? 1 : 30;
 
@@ -56,7 +49,7 @@ const getPosts = async (key) => {
 };
 
 // @ts-ignore
-export default React.memo(function PostComponent({ user_id }) {
+export default React.memo(function CommentComponent({ user_id }) {
   const [searchKey, setSearchKey] = React.useState("");
   const [searkeyLive, setSearkeyLive] = React.useState("");
   const handleSearchKey = (e) => {
@@ -71,8 +64,8 @@ export default React.memo(function PostComponent({ user_id }) {
     }
     return JSON.stringify({
       index,
-      url: "/api/others/getposts",
-      tag: "Get paginated posts on forum home",
+      url: "/api/others/getcomments",
+      tag: "Get paginated comments",
       text: searkeyLive.length > 4 ? `${searkeyLive}` : "",
       user_id: user_id,
     });
@@ -120,16 +113,8 @@ export default React.memo(function PostComponent({ user_id }) {
             ),
           }}
         />
-        <PostList posts={posts} setSize={setSize} />
+        <CommentList comments={posts} setSize={setSize} />
       </Stack>
     </Stack>
   );
 });
-
-/* InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <FilterList />
-              </InputAdornment>
-            ),
-          }} */

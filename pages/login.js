@@ -1,5 +1,4 @@
 import React from "react";
-import Login from "../components/login";
 import { styled } from "@mui/material/styles";
 import { Alert, AlertTitle, Box, Container, Stack } from "@mui/material";
 import HeaderApp from "../components/header/headerapp";
@@ -12,13 +11,18 @@ import { toast } from "react-toastify";
 const HeaderAppOffset = styled("div")(({ theme }) => theme.mixins.toolbar);
 
 export default function LoginPage() {
-  const { authStatus, user } = useAuthenticator((context) => [
-    context.authStatus,
-  ]);
+  const { authStatus, user, toResetPassword, route } = useAuthenticator(
+    (context) => [
+      context.authStatus,
+      context.signOut,
+      context.toResetPassword,
+      context.user,
+    ]
+  );
 
   const router = useRouter();
 
-  console.log("router", router);
+  console.log("router", router, router?.query?.resetpassword, route);
 
   React.useEffect(() => {
     console.log("authStatus", authStatus);
@@ -27,6 +31,12 @@ export default function LoginPage() {
       router.back();
     }
   }, [authStatus]);
+
+  React.useEffect(() => {
+    if (router?.query?.resetpassword === "yes") {
+      toResetPassword();
+    }
+  }, [route, authStatus, user, router?.query?.resetpassword]);
 
   return (
     <Container disableGutters>

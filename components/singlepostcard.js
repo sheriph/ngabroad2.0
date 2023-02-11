@@ -65,6 +65,7 @@ import ReplyCommentEditor from "./replycommenteditor";
 import ModifyPostEditor from "./modifyposteditor";
 import Modifycommenteditor from "./modifycommenteditor";
 
+
 var relativeTime = require("dayjs/plugin/relativeTime");
 dayjs.extend(relativeTime);
 
@@ -93,23 +94,10 @@ export default React.memo(function SinglePostCard({ post, parentPost, index }) {
 
   console.log("userExist", userExist);
 
-  const getUsername = async (key) => {
-    try {
-      const { user_id } = JSON.parse(key);
-      const username = await axios.post("/api/others/getusername", {
-        user_id: user_id,
-      });
-      console.log("username", username.data);
-      return username.data;
-    } catch (error) {
-      console.log("error", error);
-    }
-  };
-
   const { data: username } = useSWRImmutable(
     JSON.stringify({
       user_id: post.user_id,
-      text: "get a single post username",
+      tag: "get username from user_id",
     }),
     getUsername
   );
@@ -135,137 +123,12 @@ export default React.memo(function SinglePostCard({ post, parentPost, index }) {
     (vote) => vote.voteType === "downvote"
   ).length;
 
-  const handleVote = async (status) => {
-    // console.log("vote status", status);
-    if (!user) {
-      toast.error("Please login to vote");
-      return;
-    } else if (!votes) {
-      toast.error(
-        "Page not fully loaded yet. Please check your network or reload this page"
-      );
-      return;
-    }
-    let alreadyVoted = false;
-    forEach(votes, (vote) => {
-      alreadyVoted = isEqual(
-        { user_id: vote.user_id, status: vote.status },
-        { user_id: user._id, status: status }
-      );
-    });
-    console.log("reachable code alreadyVoted", alreadyVoted);
-    if (alreadyVoted) {
-      const newVotes = votes.filter(
-        (vote) =>
-          !isEqual(
-            { user_id: vote.user_id, status: vote.status },
-            { user_id: user._id, status: status }
-          )
-      );
-      try {
-        await mutatevotes(newVotes, {
-          rollbackOnError: true,
-          populateCache: true,
-          revalidate: false,
-        });
-        await axios.post("/api/others/vote", {
-          user_id: user._id,
-          status,
-          post_id: post._id,
-          post_title: post.title,
-          slug: post.slug,
-          post_type: post.post_type,
-          remove: true,
-        });
-        await mutatevotes(newVotes, {
-          rollbackOnError: true,
-          populateCache: false,
-          revalidate: true,
-        });
-      } catch (error) {
-        console.log("error", error);
-      }
-      return;
-    }
-    let hasOppositeVote = false;
-    forEach(votes, (vote) => {
-      hasOppositeVote = vote.user_id === user._id;
-    });
-    console.log("reachable code hasOppositeVote", hasOppositeVote);
-    if (hasOppositeVote) {
-      const myVote = {
-        post_id: post._id,
-        user_id: user._id,
-        status: status,
-      };
-      const newVotes = votes.map((vote) => {
-        let hasOppositeVote = vote.user_id === user._id;
-        if (hasOppositeVote) {
-          return myVote;
-        } else {
-          return vote;
-        }
-      });
-      console.log("votes in mutate", newVotes);
-
-      await mutatevotes(newVotes, {
-        rollbackOnError: true,
-        populateCache: true,
-        revalidate: false,
-      });
-
-      try {
-        await axios.post("/api/others/vote", {
-          user_id: user._id,
-          status,
-          post_id: post._id,
-          post_title: post.title,
-          slug: post.slug,
-          post_type: post.post_type,
-        });
-        await mutatevotes(newVotes, {
-          rollbackOnError: true,
-          populateCache: false,
-          revalidate: true,
-        });
-      } catch (error) {
-        console.log("error", error);
-      }
-    } else {
-      const myVote = {
-        post_id: post._id,
-        user_id: user._id,
-        status: status,
-      };
-      const newVotes = [...votes, myVote];
-      try {
-        await mutatevotes(newVotes, {
-          rollbackOnError: true,
-          populateCache: true,
-          revalidate: false,
-        });
-        await axios.post("/api/others/vote", {
-          user_id: user._id,
-          status,
-          post_id: post._id,
-          post_title: post.title,
-          slug: post.slug,
-          post_type: post.post_type,
-        });
-        await mutatevotes(newVotes, {
-          rollbackOnError: true,
-          populateCache: false,
-          revalidate: true,
-        });
-      } catch (error) {
-        console.log("error", error);
-      }
-    }
-    return;
-  };
-
   const handleUpVote = async () => {
     if (!votes) return;
+    if (!user) {
+      toast.error("Please log-in to clap");
+      return;
+    }
     if (post.user_id === user._id) {
       toast.error("No self-voting allowed, let others clap for you!");
       return;
@@ -286,6 +149,10 @@ export default React.memo(function SinglePostCard({ post, parentPost, index }) {
 
   const handleDownVote = async () => {
     if (!votes) return;
+    if (!user) {
+      toast.error("Please log-in to clap");
+      return;
+    }
     if (post.user_id === user._id) {
       toast.error("No self-voting allowed, let others clap for you!");
       return;
@@ -306,8 +173,8 @@ export default React.memo(function SinglePostCard({ post, parentPost, index }) {
 
   //  console.log("post", post);
   return (
-    <Stack spacing={2} direction="row">
-      <Stack sx={{ width: "100%" }}>
+    <Stack spacing={2}>
+      <Stack>
         <Stack>
           <Typography
             sx={{
