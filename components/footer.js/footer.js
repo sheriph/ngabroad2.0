@@ -20,7 +20,6 @@ import {
 import { useTheme } from "@mui/material/styles";
 import CreatePost from "../createapost";
 import ReplyPost from "../replypost";
-import Login from "../login";
 import EditProfile from "../../components/others/meeditprofile";
 import { useAuthUser } from "../../lib/utility";
 import { useAuthenticator } from "@aws-amplify/ui-react";
@@ -36,8 +35,6 @@ export default function Footer() {
   const { user } = useAuthUser(userExist);
   const [addPost, setAddPost] = useRecoilState(addPost_);
   const [replyPost, setReplyPost] = useRecoilState(replyPost_);
-  const [login, setLogin] = useRecoilState(login_);
-  const [updateProfile, setUpdateProfile_] = useRecoilState(updateProfile_);
   const [showAlert, setShowAlert] = React.useState(false);
 
   console.log("user footer", user?.email);
@@ -55,17 +52,6 @@ export default function Footer() {
 
   return (
     <Stack>
-      <Dialog
-        sx={{
-          "&.MuiModal-root.MuiDialog-root": { zIndex: 1402 },
-        }}
-        fullScreen={fullScreen}
-        open={login}
-        onClose={() => setLogin(false)}
-      >
-        <Login />
-      </Dialog>
-
       <Dialog
         sx={{
           "&.MuiModal-root.MuiDialog-root": { zIndex: 1402 },

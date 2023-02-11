@@ -3,7 +3,6 @@ import dynamic from "next/dynamic";
 import useSWRImmutable from "swr/immutable";
 import axios from "axios";
 import { Container } from "@mui/material";
-import { useRecoilState, useSetRecoilState } from "recoil";
 
 const PostComponent = dynamic(() => import("../components/postcomponent"), {
   ssr: false,

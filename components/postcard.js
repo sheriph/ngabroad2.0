@@ -14,7 +14,12 @@ import CommentOutlinedIcon from "@mui/icons-material/CommentOutlined";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import CreateIcon from "@mui/icons-material/Create";
-import { getUsername, LinkTypography, titleCase } from "../lib/utility";
+import {
+  getCommentCount,
+  getUsername,
+  LinkTypography,
+  titleCase,
+} from "../lib/utility";
 import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import BookmarkAddOutlinedIcon from "@mui/icons-material/BookmarkAddOutlined";
@@ -35,38 +40,22 @@ import QuestionMarkIcon from "@mui/icons-material/QuestionMark";
 var relativeTime = require("dayjs/plugin/relativeTime");
 dayjs.extend(relativeTime);
 
-const getCommentCount = async (key) => {
-  try {
-    const commentCount = await axios.post("/api/others/getcommentcount", {
-      post_id: key.split("_")[0],
-    });
-    console.log("commentCount", commentCount.data);
-    return commentCount.data;
-  } catch (error) {
-    console.log("error", error);
-  }
-};
-
 // @ts-ignore
 export default React.memo(function PostCard({ post }) {
-  const answer = false;
-  const { data: username } = useSWRImmutable(post.user_id, getUsername, {
-    keepPreviousData: true,
-    errorRetryCount: 3,
-    shouldRetryOnError: true,
-    errorRetryInterval: 10000,
-  });
-  const { data: commentCount } = useSWRImmutable(
-    post._id ? `${post._id}_getcommentcountinforum` : undefined,
-    getCommentCount,
-    {
-      keepPreviousData: true,
-      errorRetryCount: 3,
-      shouldRetryOnError: true,
-      errorRetryInterval: 10000,
-    }
+  const { data: username } = useSWRImmutable(
+    JSON.stringify({
+      user_id: post.user_id,
+      tag: "get username from user_id",
+    }),
+    getUsername
   );
-  //console.log("commentCount, error", commentCount, error);
+  const { data: commentCount } = useSWRImmutable(
+    JSON.stringify({
+      post_id: post._id,
+      tag: "get username with a user_id",
+    }),
+    getCommentCount
+  );
 
   return (
     <LazyLoad once>
