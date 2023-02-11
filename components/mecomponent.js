@@ -34,6 +34,7 @@ import { get } from "lodash";
 import useSWRImmutable from "swr/immutable";
 import axios from "axios";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
+import FeedIcon from '@mui/icons-material/Feed';
 
 const profileUserFetcher = async (key) => {
   try {
@@ -92,7 +93,7 @@ export default function MeComponent() {
                 sx={{ textTransform: "none" }}
                 label={mobile ? "" : "Account Details"}
                 value="1"
-                icon={mobile ? <ContactMailOutlinedIcon /> : ""}
+                icon={mobile ? <FeedIcon /> : ""}
                 iconPosition="start"
               />
               <Tab
@@ -111,13 +112,13 @@ export default function MeComponent() {
             </TabList>
           )}
         </Box>
-        <TabPanel value="1">
+        <TabPanel sx={{ "&.MuiTabPanel-root": { py: 2, px: 0 } }} value="1">
           <MeProfile profileUser={profileUser} />
         </TabPanel>
-        <TabPanel value="2">
+        <TabPanel sx={{ "&.MuiTabPanel-root": { py: 2, px: 0 } }} value="2">
           <EditProfile />
         </TabPanel>
-        <TabPanel value="3">
+        <TabPanel sx={{ "&.MuiTabPanel-root": { py: 2, px: 0 } }} value="3">
           <MeSecurity />
         </TabPanel>
       </TabContext>

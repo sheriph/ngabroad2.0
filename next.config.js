@@ -15,6 +15,7 @@ const nextConfig = {
     NEXT_PUBLIC_FLW_PUBLIC_KEY: process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     NEXT_PUBLIC_OPENAI_API_KEY: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+    WORDPRESS_API_URL: process.env.WORDPRESS_API_URL,
   },
   swcMinify: true,
   // reactStrictMode: true,

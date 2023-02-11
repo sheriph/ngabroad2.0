@@ -47,7 +47,7 @@ export default function ArticleRender({ content }) {
         <Typography
           sx={{ my: 2 }}
           textAlign="center"
-          variant="h1"
+          variant="h2"
           component="h1"
           key={index}
         >

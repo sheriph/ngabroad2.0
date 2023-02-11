@@ -173,7 +173,7 @@ export default React.memo(function SinglePostCard({ post, parentPost, index }) {
 
   //  console.log("post", post);
   return (
-    <Stack spacing={2}>
+    <Stack spacing={1}>
       <Stack>
         <Stack>
           <Typography
@@ -181,9 +181,11 @@ export default React.memo(function SinglePostCard({ post, parentPost, index }) {
               p: 0,
               justifyContent: "flex-start",
               pb: 1,
+              fontWeight:"bold"
             }}
             variant="h1"
             textAlign="left"
+            gutterBottom
           >
             {titleCase(post?.title || `Re: ${post?.post?.title}`)}
           </Typography>

@@ -1,4 +1,11 @@
-import { Button, Divider, Drawer, Stack, useMediaQuery } from "@mui/material";
+import {
+  Button,
+  Chip,
+  Divider,
+  Drawer,
+  Stack,
+  useMediaQuery,
+} from "@mui/material";
 
 import React, { useEffect, useState } from "react";
 import PostCard from "./postcard";
@@ -35,7 +42,11 @@ export default function CommentList({ comments = [], setSize }) {
           ))}
 
           {noMorePosts ? (
-            ""
+            <Stack sx={{ py: 4 }}>
+              <Divider>
+                <Chip label="End" />
+              </Divider>
+            </Stack>
           ) : (
             <Button
               onClick={visibleCallback}

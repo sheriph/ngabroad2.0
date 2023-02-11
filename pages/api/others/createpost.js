@@ -3,6 +3,14 @@ import { postSchema } from "../../../lib/mongodb/schema";
 const ObjectID = require("mongodb").ObjectId;
 
 const slugify = require("slugify");
+const slugifyOptions = {
+  replacement: "-", // replace spaces with replacement character, defaults to `-`
+  remove: undefined, // remove characters that match regex, defaults to `undefined`
+  lower: true, // convert to lower case, defaults to `false`
+  strict: true, // strip special characters except replacement, defaults to `false`
+  locale: "vi", // language code of the locale to use
+  trim: true, // trim leading and trailing replacement chars, defaults to `true`
+};
 
 export default async function handler(req, res) {
   try {
@@ -31,7 +39,7 @@ export default async function handler(req, res) {
       createdAt: new Date(),
       tags: tags,
       // @ts-ignore
-      slug: slugify(title),
+      slug: slugify(title, slugifyOptions),
       prowrite,
       upvotes: 0,
       downvotes: 0,

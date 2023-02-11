@@ -18,9 +18,9 @@ const theme = createTheme({
     },
   },
   typography: {
-    h1: { fontSize: "1.1rem", fontWeight: "400" },
-    h2: { fontSize: "1rem", fontWeight: "400" },
-    body1: { fontSize: "0.87rem" },
+    h1: { fontSize: "1.3rem", fontWeight: "400" },
+    h2: { fontSize: "1.1rem", fontWeight: "400" },
+    body1: { fontSize: "0.9rem" },
   },
   components: {
     MuiButton: {

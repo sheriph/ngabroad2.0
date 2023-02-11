@@ -78,6 +78,15 @@ import SkipPreviousIcon from "@mui/icons-material/SkipPrevious";
 import useUndo from "use-undo";
 import slugify from "slugify";
 
+const slugifyOptions = {
+  replacement: "-", // replace spaces with replacement character, defaults to `-`
+  remove: undefined, // remove characters that match regex, defaults to `undefined`
+  lower: true, // convert to lower case, defaults to `false`
+  strict: true, // strip special characters except replacement, defaults to `false`
+  locale: "vi", // language code of the locale to use
+  trim: true, // trim leading and trailing replacement chars, defaults to `true`
+};
+
 const tagTitles = tagsArray.map((tag) => tag.item);
 //console.log("tagTitles", tagTitles);
 
@@ -543,7 +552,8 @@ export default function NewPostEditor() {
             <Stack spacing={1}>
               <Link
                 href={`/${slugify(
-                  watch("tab") === "1" ? watch("aititle") : watch("title")
+                  watch("tab") === "1" ? watch("aititle") : watch("title"),
+                  slugifyOptions
                 )}`}
               >
                 Post with same title: How to{" "}
@@ -783,9 +793,7 @@ export default function NewPostEditor() {
                   variant="contained"
                   onClick={() => {
                     if (watch("content").length < 200) {
-                      toast.error(
-                        "Minimum of 200 characters are required"
-                      );
+                      toast.error("Minimum of 200 characters are required");
                       return;
                     } else if (watch("title").length < 20) {
                       toast.error(
@@ -801,7 +809,6 @@ export default function NewPostEditor() {
               </ButtonGroup>
             </Stack>
           </TabPanel>
-      
         </TabContext>
       </Stack>
     </Stack>

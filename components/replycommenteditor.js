@@ -77,7 +77,6 @@ import SkipNextIcon from "@mui/icons-material/SkipNext";
 import SkipPreviousIcon from "@mui/icons-material/SkipPrevious";
 import useUndo from "use-undo";
 import FormatQuoteIcon from "@mui/icons-material/FormatQuote";
-import slugify from "slugify";
 
 const tagTitles = tagsArray.map((tag) => tag.item);
 //console.log("tagTitles", tagTitles);

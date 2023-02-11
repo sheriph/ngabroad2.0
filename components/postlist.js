@@ -1,4 +1,12 @@
-import { Button, Divider, Drawer, Stack, useMediaQuery } from "@mui/material";
+import {
+  Button,
+  Chip,
+  Divider,
+  Drawer,
+  Stack,
+  Typography,
+  useMediaQuery,
+} from "@mui/material";
 
 import React, { useEffect, useState } from "react";
 import PostCard from "./postcard";
@@ -10,7 +18,6 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useRecoilValue } from "recoil";
 
 export default function PostList({ posts = [], setSize }) {
-
   const visibleCallback = () => {
     setSize((size) => size + 1);
   };
@@ -35,7 +42,11 @@ export default function PostList({ posts = [], setSize }) {
           ))}
 
           {noMorePosts ? (
-            ""
+            <Stack sx={{ py: 4 }}>
+              <Divider>
+                <Chip label="End" />
+              </Divider>
+            </Stack>
           ) : (
             <Button
               onClick={visibleCallback}

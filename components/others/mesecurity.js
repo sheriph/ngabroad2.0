@@ -38,7 +38,7 @@ export default function MeSecurity() {
             await router.push("/login?resetpassword=yes");
           }}
           size="small"
-          sx={{ mt: 5 }}
+          sx={{ mt: 5, display: "block" }}
           variant="contained"
         >
           Reset Password

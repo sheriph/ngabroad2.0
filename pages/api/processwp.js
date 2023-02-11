@@ -1,4 +1,4 @@
-import { truncate } from "lodash";
+import { first, truncate } from "lodash";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import { getAllPostsWithSlug } from "../../components/wp";
 import { postSchema } from "../../lib/mongodb/schema";
@@ -17,6 +17,9 @@ export default async function handler(req, res) {
   try {
     await client.connect();
     const posts = await getAllPostsWithSlug();
+
+    /* res.status(200).json(posts);
+    return; */
 
     if (process.env.NODE_ENV === "development") {
       console.log("adding validation");
@@ -38,16 +41,16 @@ export default async function handler(req, res) {
       console.log("stage", i);
       const { slug, title, content, date } = post.node;
       const user_id = "62fd5507d0b451b394f7dc3a";
-      const post_type = "post";
       const newPost = {
         title: title,
         user_id: new ObjectID(user_id),
         content: content,
-        createdAt: new Date(date),
-        updatedAts: [],
-        approves: [],
         slug: slug,
-        post_type: post_type,
+        createdAt: new Date(date),
+        updatedAt: new Date(date),
+        lastCommentAt: new Date(date),
+        tags: [],
+        prowrite: false,
       };
 
       await client.db("nga").collection("posts").insertOne(newPost);
@@ -63,3 +66,4 @@ export default async function handler(req, res) {
     await client.close();
   }
 }
+

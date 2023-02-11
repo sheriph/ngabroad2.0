@@ -2,7 +2,6 @@ import clientPromise from "../../../lib/mongodb/mongodbinstance";
 import { postSchema } from "../../../lib/mongodb/schema";
 const ObjectID = require("mongodb").ObjectId;
 
-const slugify = require("slugify");
 
 export default async function handler(req, res) {
   try {

@@ -32,12 +32,12 @@ export default React.memo(function PostsCard({ post }) {
               gutterBottom
             >
               <ChevronLeftIcon fontSize="small" sx={{ ml: 0, pl: 0 }} /> Back to
-              forum posts
+              forum
             </Link>
           </NextLink>
         </Stack>
 
-        <Stack spacing={3}>
+        <Stack>
           {post.map((item, index) => {
             return (
               <Stack key={index}>

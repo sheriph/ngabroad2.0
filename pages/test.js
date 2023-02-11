@@ -38,8 +38,8 @@ export default function Test() {
   const [flightOffer, setFlightOffer] = React.useState(null);
   const processWp = async () => {
     try {
-      // const posts = await axios.get("/api/processwp");
-      // console.log("posts", posts.data);
+      const posts = await axios.get("/api/processwp");
+      console.log("posts", posts.data);
     } catch (error) {
       console.log(error.response.data, error);
     }
@@ -146,9 +146,9 @@ export default function Test() {
       divider={<Divider sx={{ mb: 2 }} orientation="horizontal" flexItem />}
     >
       {/* <Button onClick={processWp}>PROCESS WP</Button> */}
-      <Button onClick={testVisa}>RUN</Button>
+      {/* <Button onClick={testVisa}>RUN</Button> */}
       {/* <Button onClick={runLambda}>TEST LAMBDA</Button> */}
-      <Box dangerouslySetInnerHTML={{ __html: myHtml }} />
+      {/* <Box dangerouslySetInnerHTML={{ __html: myHtml }} /> */}
     </Stack>
   );
 }

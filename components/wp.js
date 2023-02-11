@@ -56,8 +56,8 @@ export async function getAllPostsWithSlug() {
       ) {
         edges {
           node {
-            title(format: RAW)
-            content(format: RAW)
+            title
+            content
             date
             slug
           }

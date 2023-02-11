@@ -152,18 +152,14 @@ export default function MeProfile({ profileUser }) {
         />
         <Stack spacing={0.5}>
           <Stack direction="row">
-            <Typography sx={{ pr: 1 }} textAlign="left" variant="h1">
+            <Typography sx={{ pr: 1 }} textAlign="left" variant="h2">
               {titleCase(`${profileUser?.firstName} ${profileUser?.lastName}`)}
             </Typography>
-            <Link
-              textAlign="left"
-              href={`/profile/${profileUser.username}`}
-              variant="caption"
-            >
+            <Link textAlign="left" href={`/profile/${profileUser.username}`}>
               @{profileUser.username}
             </Link>
           </Stack>
-          <Typography textAlign="left" variant="caption">
+          <Typography textAlign="left">
             Joined {dayjs(profileUser.createdAt).format("MMMM YYYY")}
           </Typography>
           <HtmlTooltip
@@ -211,17 +207,17 @@ export default function MeProfile({ profileUser }) {
             >
               <Stack spacing={0.5} alignItems="center" direction="row">
                 <ThumbUpAltIcon
-                  sx={{ width: 17, height: 17 }}
+                  sx={{ width: 20, height: 20 }}
                   fontSize="small"
                 />
-                <Typography variant="caption">{upvotes}</Typography>
+                <Typography>{upvotes}</Typography>
               </Stack>
               <Stack spacing={0.5} alignItems="center" direction="row">
                 <ThumbDownIcon
-                  sx={{ width: 15, height: 15, transform: "rotateY(180deg)" }}
+                  sx={{ width: 20, height: 20, transform: "rotateY(180deg)" }}
                   fontSize="small"
                 />
-                <Typography variant="caption">{downvotes}</Typography>
+                <Typography>{downvotes}</Typography>
               </Stack>
             </Stack>
           </HtmlTooltip>
